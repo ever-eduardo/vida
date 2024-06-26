@@ -1,0 +1,10 @@
+module		:=	statement*
+statement	:= 	global
+			| 	local
+global		:=	ident '=' expr
+local		:=	'loc' ident '=' expr
+ident		:=	['_' | letter]+ ['_' | letter | number]*
+expr		:=	'true'
+			|	'false'
+			|	'nil'
+			|	ident
