@@ -1,39 +1,44 @@
 package vida
 
-import "encoding/binary"
+import (
+	"encoding/binary"
+	"fmt"
+)
 
-type Result string
-
-const Success Result = "Success"
-const Failure Result = "Failure"
-
-const callStackSize = 1024
-const stackSize = 16
-
-type frame struct {
-	code  []byte
-	stack []Value
-	ip    int
-	ret   int
-	op    byte
+func (vm VM) Inspect(ip int) {
+	clear()
+	fmt.Println("Running", vm.Module.Name)
+	fmt.Println("Store")
+	for k, v := range vm.Module.Store {
+		fmt.Println(k, " : ", v)
+	}
+	fmt.Println("Konst")
+	for i, v := range vm.Module.Konstants {
+		fmt.Println(i, " : ", v)
+	}
+	fmt.Println("Code")
+	for i, v := range vm.Module.Code {
+		if i == ip {
+			fmt.Printf("[%v : %v], ", i, v)
+		} else {
+			fmt.Printf("%v, ", v)
+		}
+	}
+	fmt.Println()
+	fmt.Println("Stack")
+	for _, v := range vm.Stack {
+		fmt.Printf("%v, ", v)
+	}
+	fmt.Printf("\n\n\n   Press 'enter'")
+	fmt.Scanf(" ")
 }
 
-type VM struct {
-	Module Module
-	Frames [callStackSize]frame
-	Stack  [stackSize]Value
-	fp     int
-}
-
-func NewVM(m Module) VM {
-	return VM{Module: m}
-}
-
-func (vm VM) Run() Result {
+func (vm VM) Debug() Result {
 	frame := &vm.Frames[vm.fp]
 	frame.code = vm.Module.Code
 	ip := 8
 	for {
+		vm.Inspect(ip)
 		op := frame.code[ip]
 		switch op {
 		case setAtom:
@@ -89,4 +94,9 @@ func (vm VM) Run() Result {
 			return Failure
 		}
 	}
+}
+
+func clear() {
+	fmt.Printf("\u001B[H")
+	fmt.Printf("\u001B[2J")
 }

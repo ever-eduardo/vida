@@ -6,10 +6,6 @@ type Value any
 
 type Nil struct{}
 
-func NewNil() Nil {
-	return Nil{}
-}
-
 func (n Nil) String() string {
 	return "nil"
 }
@@ -17,28 +13,36 @@ func (n Nil) String() string {
 type Module struct {
 	Konstants []Value
 	Code      []byte
+	Name      string
 	Store     map[string]Value
 }
 
-func NewModule() *Module {
+func NewModule(name string) Module {
 	m := Module{
-		Store: make(map[string]Value),
-		Code:  make([]byte, 0, 128),
+		Store:     make(map[string]Value),
+		Code:      make([]byte, 0, 128),
+		Konstants: make([]Value, 0, 16),
+		Name:      name,
 	}
-	return &m
+	return m
 }
 
 func (m Module) String() string {
-	return fmt.Sprintf("Module (%p)", &m)
+	return fmt.Sprintf("Module <%v/>", m.Name)
 }
 
 type Function struct {
-	FreeVars []Value
-	Arity    int
-	First    int
-	Last     int
+	FreeVarsCount int
+	Arity         int
+	First         int
+	Last          int
 }
 
-func (f Function) String() string {
-	return fmt.Sprintf("Function (%p)", &f)
+type Closure struct {
+	Function Function
+	FreeVars []Value
+}
+
+func (c Closure) String() string {
+	return "Function"
 }

@@ -24,7 +24,7 @@ const bom = 0xFEFF
 const eof = -1
 const unexpected = -2
 
-func New(src []byte, moduleName string) *Lexer {
+func New(src []byte, moduleName string) Lexer {
 	src = append(src, 10)
 	lexer := Lexer{
 		src:         src,
@@ -39,7 +39,7 @@ func New(src []byte, moduleName string) *Lexer {
 	if lexer.c == bom {
 		lexer.next()
 	}
-	return &lexer
+	return lexer
 }
 
 func (l *Lexer) next() {

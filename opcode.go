@@ -4,6 +4,7 @@ const (
 	stopRun = iota
 	setAtom
 	loadAtom
+	setGlobal
 	loadGlobal
 )
 
@@ -15,5 +16,6 @@ var opcodes = [...]string{
 	stopRun:    "StopRun",
 	setAtom:    "SetAtom",
 	loadAtom:   "LoadAtom",
+	setGlobal:  "SetGlobal",
 	loadGlobal: "LoadGlobal",
 }

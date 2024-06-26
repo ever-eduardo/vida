@@ -61,7 +61,7 @@ func (c *Compiler) makeStopRun() {
 func (c *Compiler) makeLoadGlobal() {
 	if c.compilationInfo.IsGlobalAssignment {
 		c.compilationInfo.IsAtomicAssignment = true
-		c.module.Code = append(c.module.Code, loadGlobal)
+		c.module.Code = append(c.module.Code, setGlobal)
 		c.module.Code = binary.NativeEndian.AppendUint16(c.module.Code, c.konstantIndex(c.current.lit))
 		c.module.Code = binary.NativeEndian.AppendUint16(c.module.Code, c.konstantIndex(c.compilationInfo.Identifier))
 	} else {

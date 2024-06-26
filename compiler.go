@@ -11,13 +11,13 @@ import (
 var compilerError verror.VidaError
 
 type Compiler struct {
+	lexer           lexer.Lexer
+	module          Module
 	locals          locals
 	current         tokenInfo
 	next            tokenInfo
 	compilationInfo *compilationInfo
-	lexer           *lexer.Lexer
 	parent          *Compiler
-	module          *Module
 	function        *Function
 	identifiersMap  map[string]uint16
 	kIndex          uint16
@@ -31,7 +31,7 @@ func NewCompiler(src []byte, moduleName string) *Compiler {
 	c := Compiler{
 		lexer:           lexer.New(src, moduleName),
 		identifiersMap:  make(map[string]uint16),
-		module:          NewModule(),
+		module:          NewModule(moduleName),
 		parent:          nil,
 		locals:          locals{},
 		ok:              true,
@@ -57,7 +57,7 @@ func newChildCompiler(c *Compiler) Compiler {
 	return child
 }
 
-func (c *Compiler) Compile() (*Module, error) {
+func (c *Compiler) Compile() (Module, error) {
 	for c.ok {
 		switch c.current.token {
 		case token.IDENTIFIER:
@@ -68,10 +68,10 @@ func (c *Compiler) Compile() (*Module, error) {
 			c.makeStopRun()
 			return c.module, nil
 		default:
-			return nil, verror.New(c.lexer.ModuleName, "Expected statement", verror.SyntaxError, c.current.line)
+			return c.module, verror.New(c.lexer.ModuleName, "Expected valid statement", verror.SyntaxError, c.current.line)
 		}
 	}
-	return nil, compilerError
+	return c.module, compilerError
 }
 
 func (c *Compiler) identifierPath() {
@@ -102,6 +102,9 @@ func (c *Compiler) expression() {
 	case token.IDENTIFIER:
 		c.makeLoadGlobal()
 	default:
+		c.ok = false
+		message := fmt.Sprintf("Expected expression and got token %v", c.current.lit)
+		compilerError = verror.New(c.lexer.ModuleName, message, verror.SyntaxError, c.current.line)
 	}
 }
 
