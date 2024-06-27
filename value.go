@@ -46,3 +46,9 @@ type Closure struct {
 func (c Closure) String() string {
 	return "Function"
 }
+
+type GoFn func(args ...Value) (Value, error)
+
+func (gfn GoFn) String() string {
+	return "Function"
+}

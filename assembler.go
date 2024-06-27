@@ -4,12 +4,15 @@ import (
 	"encoding/binary"
 
 	"github.com/ever-eduardo/vida/token"
+	"github.com/ever-eduardo/vida/verror"
 )
 
 const v rune = 'v'
 const i rune = 'i'
 const d rune = 'd'
 const a rune = 'a'
+
+var compilerError verror.VidaError
 
 func (c *Compiler) makeHeader() {
 	c.module.Code = append(c.module.Code, byte(v))
@@ -22,23 +25,26 @@ func (c *Compiler) makeHeader() {
 	c.module.Code = append(c.module.Code, byte(inception))
 }
 
-func (c *Compiler) makeIdentifierPath() {
-	c.compilationInfo.IsGlobalAssignment = false
-	if c.compilationInfo.IsAtomicAssignment {
-		c.compilationInfo.IsAtomicAssignment = false
+func (c *Compiler) makeNewGlobal() {
+	c.compilationInfo.Let = false
+	if c.compilationInfo.IsAtom {
+		c.compilationInfo.IsAtom = false
 		return
 	}
 }
 
-func (c *Compiler) makeLocal(id string) {
-
+func (c *Compiler) makeLocal() {
+	c.compilationInfo.IsLocalAssignment = false
 }
 
 func (c *Compiler) makeAtomic(tok token.Token) {
-	if c.compilationInfo.IsGlobalAssignment {
-		c.compilationInfo.IsAtomicAssignment = true
+	if c.compilationInfo.Let {
+		c.compilationInfo.IsAtom = true
 		c.module.Code = append(c.module.Code, setAtom)
-		c.module.Code = binary.NativeEndian.AppendUint16(c.module.Code, c.konstantIndex(c.compilationInfo.Identifier))
+		c.module.Code = binary.NativeEndian.AppendUint16(c.module.Code, c.symbolTable.AddGlobal(c.compilationInfo.Identifier))
+	} else if c.compilationInfo.Var {
+		c.module.Code = append(c.module.Code, loadAtom)
+		c.module.Code = append(c.module.Code, c.rA)
 	} else {
 		c.module.Code = append(c.module.Code, loadAtom)
 		c.module.Code = append(c.module.Code, c.rA)
@@ -58,28 +64,16 @@ func (c *Compiler) makeStopRun() {
 	c.module.Code = append(c.module.Code, stopRun)
 }
 
-func (c *Compiler) makeLoadGlobal() {
-	if c.compilationInfo.IsGlobalAssignment {
-		c.compilationInfo.IsAtomicAssignment = true
+func (c *Compiler) makeLoadRef() {
+	if c.compilationInfo.Let {
+		c.compilationInfo.IsAtom = true
 		c.module.Code = append(c.module.Code, setGlobal)
-		c.module.Code = binary.NativeEndian.AppendUint16(c.module.Code, c.konstantIndex(c.current.lit))
-		c.module.Code = binary.NativeEndian.AppendUint16(c.module.Code, c.konstantIndex(c.compilationInfo.Identifier))
+		c.module.Code = binary.NativeEndian.AppendUint16(c.module.Code, c.symbolTable.AddGlobal(c.compilationInfo.Identifier))
+	} else if c.compilationInfo.IsLocalAssignment {
+		c.compilationInfo.IsAtom = true
 	} else {
 		c.module.Code = append(c.module.Code, loadGlobal)
-		c.module.Code = binary.NativeEndian.AppendUint16(c.module.Code, c.konstantIndex(c.current.lit))
 		c.module.Code = append(c.module.Code, c.rA)
 		c.rA++
-	}
-}
-
-func (c *Compiler) konstantIndex(id string) uint16 {
-	if idx, isPresent := c.identifiersMap[id]; isPresent {
-		return idx
-	} else {
-		idx = c.kIndex
-		c.identifiersMap[id] = idx
-		c.module.Konstants = append(c.module.Konstants, id)
-		c.kIndex++
-		return idx
 	}
 }

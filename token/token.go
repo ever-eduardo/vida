@@ -22,7 +22,8 @@ const (
 	TRUE
 	FALSE
 	NIL
-	LOCAL
+	LET
+	VAR
 	keyword_end
 )
 
@@ -36,7 +37,14 @@ var tokens = [...]string{
 	TRUE:       "true",
 	FALSE:      "false",
 	NIL:        "nil",
-	LOCAL:      "loc",
+	LET:        "let",
+	VAR:        "var",
+}
+
+type TokenInfo struct {
+	Lit   string
+	Token Token
+	Line  uint
 }
 
 var keywords map[string]Token

@@ -1,6 +1,12 @@
 package vida
 
-import "encoding/binary"
+import (
+	"encoding/binary"
+	"fmt"
+	"math"
+
+	"github.com/ever-eduardo/vida/verror"
+)
 
 type Result string
 
@@ -19,17 +25,18 @@ type frame struct {
 }
 
 type VM struct {
-	Module Module
-	Frames [callStackSize]frame
-	Stack  [stackSize]Value
-	fp     int
+	Module   Module
+	Frames   [callStackSize]frame
+	Stack    [stackSize]Value
+	TopStore map[string]Value
+	fp       int
 }
 
-func NewVM(m Module) VM {
-	return VM{Module: m}
+func NewVM(m Module) (VM, error) {
+	return VM{Module: m}, checkISACompatibility(m)
 }
 
-func (vm VM) Run() Result {
+func (vm VM) Run() (Result, error) {
 	frame := &vm.Frames[vm.fp]
 	frame.code = vm.Module.Code
 	ip := 8
@@ -84,9 +91,17 @@ func (vm VM) Run() Result {
 				vm.Module.Store[vm.Module.Konstants[dest].(string)] = globalNil
 			}
 		case stopRun:
-			return Success
+			return Success, nil
 		default:
-			return Failure
+			message := fmt.Sprintf("Unknown vm instruction %v", ip)
+			return Failure, verror.New(vm.Module.Name, message, verror.SyntaxError, math.MaxUint16)
 		}
 	}
+}
+
+func checkISACompatibility(m Module) error {
+	if m.Code[4] == major {
+		return nil
+	}
+	return verror.New(m.Name, "The module was compilated with another ABI version", verror.FileError, 0)
 }

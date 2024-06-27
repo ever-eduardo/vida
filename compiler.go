@@ -4,22 +4,21 @@ import (
 	"fmt"
 
 	"github.com/ever-eduardo/vida/lexer"
+	"github.com/ever-eduardo/vida/symbol"
 	"github.com/ever-eduardo/vida/token"
 	"github.com/ever-eduardo/vida/verror"
 )
 
-var compilerError verror.VidaError
-
 type Compiler struct {
 	lexer           lexer.Lexer
 	module          Module
-	locals          locals
-	current         tokenInfo
-	next            tokenInfo
-	compilationInfo *compilationInfo
+	current         token.TokenInfo
+	next            token.TokenInfo
+	symbolTable     symbol.SymbolTable
+	compilationInfo compilationInfo
+	level           int
 	parent          *Compiler
 	function        *Function
-	identifiersMap  map[string]uint16
 	kIndex          uint16
 	rA              byte
 	rB              byte
@@ -30,12 +29,11 @@ type Compiler struct {
 func NewCompiler(src []byte, moduleName string) *Compiler {
 	c := Compiler{
 		lexer:           lexer.New(src, moduleName),
-		identifiersMap:  make(map[string]uint16),
+		symbolTable:     symbol.New(),
 		module:          NewModule(moduleName),
 		parent:          nil,
-		locals:          locals{},
 		ok:              true,
-		compilationInfo: &compilationInfo{},
+		compilationInfo: compilationInfo{},
 	}
 	c.advance()
 	c.advance()
@@ -46,11 +44,10 @@ func NewCompiler(src []byte, moduleName string) *Compiler {
 func newChildCompiler(c *Compiler) Compiler {
 	child := Compiler{
 		lexer:           c.lexer,
-		identifiersMap:  c.identifiersMap,
+		symbolTable:     c.symbolTable,
 		function:        &Function{},
 		module:          c.module,
 		parent:          c,
-		locals:          locals{},
 		ok:              true,
 		compilationInfo: c.compilationInfo,
 	}
@@ -59,99 +56,85 @@ func newChildCompiler(c *Compiler) Compiler {
 
 func (c *Compiler) Compile() (Module, error) {
 	for c.ok {
-		switch c.current.token {
+		switch c.current.Token {
+		case token.LET:
+			c.defineGlobal()
+		case token.VAR:
+			c.defineLocal()
 		case token.IDENTIFIER:
-			c.identifierPath()
-		case token.LOCAL:
-			c.localDecl()
+			c.changeStateOrCall()
 		case token.EOF:
 			c.makeStopRun()
 			return c.module, nil
 		default:
-			return c.module, verror.New(c.lexer.ModuleName, "Expected valid statement", verror.SyntaxError, c.current.line)
+			return c.module, verror.New(c.lexer.ModuleName, "Expected valid statement", verror.SyntaxError, c.current.Line)
 		}
 	}
 	return c.module, compilerError
 }
 
-func (c *Compiler) identifierPath() {
-	c.compilationInfo.Identifier = c.current.lit
-	c.compilationInfo.IsGlobalAssignment = true
+func (c *Compiler) defineGlobal() {
+	c.compilationInfo.Let = true
+	c.advance()
+	c.expect(token.IDENTIFIER)
+	c.compilationInfo.Identifier = c.current.Lit
 	c.advance()
 	c.expect(token.ASSIGN)
 	c.advance()
 	c.expression()
 	c.advance()
-	c.makeIdentifierPath()
+	c.makeNewGlobal()
 }
 
-func (c *Compiler) localDecl() {
+func (c *Compiler) defineLocal() {
+	c.compilationInfo.IsLocalAssignment = true
 	c.advance()
 	c.expect(token.IDENTIFIER)
-	id := c.current.lit
+	c.compilationInfo.Identifier = c.current.Lit
+	c.advance()
+	c.expect(token.ASSIGN)
 	c.advance()
 	c.expression()
 	c.advance()
-	c.makeLocal(id)
+	c.makeLocal()
+}
+
+func (c *Compiler) changeStateOrCall() {
+	c.compilationInfo.Identifier = c.current.Lit
 }
 
 func (c *Compiler) expression() {
-	switch c.current.token {
+	switch c.current.Token {
 	case token.TRUE, token.FALSE, token.NIL:
-		c.makeAtomic(c.current.token)
+		c.makeAtomic(c.current.Token)
 	case token.IDENTIFIER:
-		c.makeLoadGlobal()
+		c.makeLoadRef()
 	default:
 		c.ok = false
-		message := fmt.Sprintf("Expected expression and got token %v", c.current.lit)
-		compilerError = verror.New(c.lexer.ModuleName, message, verror.SyntaxError, c.current.line)
+		message := fmt.Sprintf("Expected expression and got token %v", c.current.Lit)
+		compilerError = verror.New(c.lexer.ModuleName, message, verror.SyntaxError, c.current.Line)
 	}
 }
 
 func (c *Compiler) expect(tok token.Token) {
-	if c.current.token != tok && c.ok {
+	if c.current.Token != tok && c.ok {
 		c.ok = false
-		message := fmt.Sprintf("Expected token %v and got token %v", tok, c.current.token)
-		compilerError = verror.New(c.lexer.ModuleName, message, verror.SyntaxError, c.current.line)
+		message := fmt.Sprintf("Expected token %v and got token %v", tok, c.current.Token)
+		compilerError = verror.New(c.lexer.ModuleName, message, verror.SyntaxError, c.current.Line)
 	}
 }
 
 func (c *Compiler) advance() token.Token {
-	c.current.line, c.current.token, c.current.lit = c.next.line, c.next.token, c.next.lit
-	c.next.line, c.next.token, c.next.lit = c.lexer.Next()
-	return c.current.token
-}
-
-type tokenInfo struct {
-	lit   string
-	token token.Token
-	line  uint
-}
-
-type localInfo struct {
-	Name     string
-	Register int
-}
-
-type locals struct {
-	Locals []localInfo
-}
-
-func (local locals) add(name string, register int) {
-	local.Locals = append(local.Locals, localInfo{Name: name, Register: register})
-}
-
-func (local locals) lastIndexOf(name string) (int, bool) {
-	for i := len(local.Locals) - 1; i >= 0; i-- {
-		if local.Locals[i].Name == name {
-			return local.Locals[i].Register, true
-		}
-	}
-	return 0, false
+	c.current.Line, c.current.Token, c.current.Lit = c.next.Line, c.next.Token, c.next.Lit
+	c.next.Line, c.next.Token, c.next.Lit = c.lexer.Next()
+	return c.current.Token
 }
 
 type compilationInfo struct {
 	Identifier         string
+	Let                bool
+	Var                bool
 	IsGlobalAssignment bool
-	IsAtomicAssignment bool
+	IsLocalAssignment  bool
+	IsAtom             bool
 }

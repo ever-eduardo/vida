@@ -6,6 +6,8 @@ const (
 	loadAtom
 	setGlobal
 	loadGlobal
+	setLocal
+	readTop
 )
 
 const atomNil = 0
@@ -18,4 +20,6 @@ var opcodes = [...]string{
 	loadAtom:   "LoadAtom",
 	setGlobal:  "SetGlobal",
 	loadGlobal: "LoadGlobal",
+	setLocal:   "SetLocal",
+	readTop:    "ReadTop",
 }

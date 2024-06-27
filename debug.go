@@ -3,6 +3,9 @@ package vida
 import (
 	"encoding/binary"
 	"fmt"
+	"math"
+
+	"github.com/ever-eduardo/vida/verror"
 )
 
 func (vm VM) Inspect(ip int) {
@@ -29,11 +32,12 @@ func (vm VM) Inspect(ip int) {
 	for _, v := range vm.Stack {
 		fmt.Printf("%v, ", v)
 	}
-	fmt.Printf("\n\n\n   Press 'enter'")
+	fmt.Println()
+	fmt.Printf("Press 'Enter' to continue => ")
 	fmt.Scanf(" ")
 }
 
-func (vm VM) Debug() Result {
+func (vm VM) Debug() (Result, error) {
 	frame := &vm.Frames[vm.fp]
 	frame.code = vm.Module.Code
 	ip := 8
@@ -89,9 +93,10 @@ func (vm VM) Debug() Result {
 				vm.Module.Store[vm.Module.Konstants[dest].(string)] = globalNil
 			}
 		case stopRun:
-			return Success
+			return Success, nil
 		default:
-			return Failure
+			message := fmt.Sprintf("Unknown instruction %v", ip)
+			return Failure, verror.New(vm.Module.Name, message, verror.SyntaxError, math.MaxUint16)
 		}
 	}
 }
