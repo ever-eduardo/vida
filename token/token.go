@@ -22,7 +22,6 @@ const (
 	TRUE
 	FALSE
 	NIL
-	VAL
 	LOC
 	keyword_end
 )
@@ -37,7 +36,6 @@ var tokens = [...]string{
 	TRUE:       "true",
 	FALSE:      "false",
 	NIL:        "nil",
-	VAL:        "val",
 	LOC:        "loc",
 }
 

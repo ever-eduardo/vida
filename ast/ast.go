@@ -4,39 +4,26 @@ type Node interface {
 	_node()
 }
 
-type Statement interface {
-	_stmt()
-}
-
-type Expr interface {
-	_expr()
-}
-
 type Ast struct {
-	Statement []Statement
-}
-
-type Val struct {
-	Identifier string
-	Expr       Expr
+	Statement []Node
 }
 
 type Loc struct {
 	Identifier string
-	Expr       Expr
+	Expr       Node
 }
 
-type Mut struct {
-	Identifier string
-	Expr       Expr
+type Set struct {
+	LHS  Node
+	Expr Node
 }
 
 type Reference struct {
-	Identifier string
+	Value string
 }
 
-type Atomic struct {
-	Expr Expr
+type Identifier struct {
+	Value string
 }
 
 type Boolean struct {
@@ -47,20 +34,10 @@ type Nil struct {
 	Value struct{}
 }
 
-func (ast Ast) _node()       {}
-func (val Val) _node()       {}
-func (loc Loc) _node()       {}
-func (mut Mut) _node()       {}
-func (ref Reference) _node() {}
-func (atomic Atomic) _node() {}
-func (b Boolean) _node()     {}
-func (n Nil) _node()         {}
-
-func (val Val) _stmt() {}
-func (loc Loc) _stmt() {}
-func (mut Mut) _stmt() {}
-
-func (ref Reference) _expr() {}
-func (atomic Atomic) _expr() {}
-func (b Boolean) _expr()     {}
-func (n Nil) _expr()         {}
+func (ast *Ast) _node()       {}
+func (loc *Loc) _node()       {}
+func (mut *Set) _node()       {}
+func (ref *Reference) _node() {}
+func (id *Identifier) _node() {}
+func (b *Boolean) _node()     {}
+func (n *Nil) _node()         {}

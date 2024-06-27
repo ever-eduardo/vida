@@ -1,7 +1,9 @@
 package vida
 
 const (
-	stopRun = iota
+	end = iota
+	setK
+	// Old School
 	setAtom
 	loadAtom
 	setGlobal
@@ -15,7 +17,8 @@ const atomTrue = 1
 const atomFalse = 2
 
 var opcodes = [...]string{
-	stopRun:    "StopRun",
+	end:        "END",
+	setK:       "SETK",
 	setAtom:    "SetAtom",
 	loadAtom:   "LoadAtom",
 	setGlobal:  "SetGlobal",

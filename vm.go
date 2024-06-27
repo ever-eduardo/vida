@@ -42,23 +42,15 @@ func (vm VM) Run() (Result, error) {
 	ip := 8
 	for {
 		op := frame.code[ip]
+		ip++
 		switch op {
-		case setAtom:
-			ip++
-			addr := binary.NativeEndian.Uint16(frame.code[ip:])
+		case setK:
+			kAddr := binary.NativeEndian.Uint16(frame.code[ip:])
 			ip += 2
-			atom := frame.code[ip]
-			ip++
-			switch atom {
-			case atomTrue:
-				vm.Module.Store[vm.Module.Konstants[addr].(string)] = true
-			case atomFalse:
-				vm.Module.Store[vm.Module.Konstants[addr].(string)] = false
-			case atomNil:
-				vm.Module.Store[vm.Module.Konstants[addr].(string)] = globalNil
-			}
+			dest := binary.NativeEndian.Uint16(frame.code[ip:])
+			ip += 2
+			vm.Module.Store[vm.Module.Konstants[dest].(string)] = vm.Module.Konstants[kAddr]
 		case loadAtom:
-			ip++
 			dest := frame.code[ip]
 			ip++
 			atom := frame.code[ip]
@@ -72,7 +64,6 @@ func (vm VM) Run() (Result, error) {
 				frame.stack[dest] = globalNil
 			}
 		case loadGlobal:
-			ip++
 			addr := binary.NativeEndian.Uint16(frame.code[ip:])
 			ip += 2
 			dest := frame.code[ip]
@@ -80,7 +71,6 @@ func (vm VM) Run() (Result, error) {
 			frame.stack[dest] = vm.Module.Store[vm.Module.Konstants[addr].(string)]
 			ip++
 		case setGlobal:
-			ip++
 			src := binary.NativeEndian.Uint16(frame.code[ip:])
 			ip += 2
 			dest := binary.NativeEndian.Uint16(frame.code[ip:])
@@ -90,7 +80,7 @@ func (vm VM) Run() (Result, error) {
 			} else {
 				vm.Module.Store[vm.Module.Konstants[dest].(string)] = globalNil
 			}
-		case stopRun:
+		case end:
 			return Success, nil
 		default:
 			message := fmt.Sprintf("Unknown vm instruction %v", ip)

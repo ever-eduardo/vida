@@ -32,12 +32,10 @@ func NewParser(src []byte, moduleName string) *Parser {
 func (p *Parser) Parse() (*ast.Ast, error) {
 	for p.ok {
 		switch p.current.Token {
-		case token.VAL:
-			p.ast.Statement = append(p.ast.Statement, p.globalDecl())
-		case token.LOC:
-			p.ast.Statement = append(p.ast.Statement, p.localDecl())
 		case token.IDENTIFIER:
-			p.ast.Statement = append(p.ast.Statement, p.mutState())
+			p.ast.Statement = append(p.ast.Statement, p.identPath())
+		case token.LOC:
+			p.ast.Statement = append(p.ast.Statement, p.localStmt())
 		case token.EOF:
 			return p.ast, nil
 		default:
@@ -45,10 +43,20 @@ func (p *Parser) Parse() (*ast.Ast, error) {
 			return nil, p.err
 		}
 	}
-	return p.ast, nil
+	return nil, p.err
 }
 
-func (p *Parser) globalDecl() ast.Statement {
+func (p *Parser) identPath() ast.Node {
+	i := p.current.Lit
+	p.advance()
+	p.expect(token.ASSIGN)
+	p.advance()
+	e := p.expression()
+	p.advance()
+	return &ast.Set{LHS: &ast.Identifier{Value: i}, Expr: e}
+}
+
+func (p *Parser) localStmt() ast.Node {
 	p.advance()
 	p.expect(token.IDENTIFIER)
 	i := p.current.Lit
@@ -57,42 +65,19 @@ func (p *Parser) globalDecl() ast.Statement {
 	p.advance()
 	e := p.expression()
 	p.advance()
-	return ast.Val{Identifier: i, Expr: e}
+	return &ast.Loc{Identifier: i, Expr: e}
 }
 
-func (p *Parser) localDecl() ast.Statement {
-	p.advance()
-	p.expect(token.IDENTIFIER)
-	i := p.current.Lit
-	p.advance()
-	p.expect(token.ASSIGN)
-	p.advance()
-	e := p.expression()
-	p.advance()
-	return ast.Loc{Identifier: i, Expr: e}
-}
-
-func (p *Parser) mutState() ast.Statement {
-	p.expect(token.IDENTIFIER)
-	lhs := p.current.Lit
-	p.advance()
-	p.expect(token.ASSIGN)
-	p.advance()
-	e := p.expression()
-	p.advance()
-	return ast.Mut{Identifier: lhs, Expr: e}
-}
-
-func (p *Parser) expression() ast.Expr {
+func (p *Parser) expression() ast.Node {
 	switch p.current.Token {
 	case token.TRUE:
-		return ast.Boolean{Value: true}
+		return &ast.Boolean{Value: true}
 	case token.FALSE:
-		return ast.Boolean{Value: false}
+		return &ast.Boolean{Value: false}
 	case token.NIL:
-		return ast.Nil{}
+		return &ast.Nil{}
 	default:
-		return ast.Reference{Identifier: p.current.Lit}
+		return &ast.Reference{Value: p.current.Lit}
 	}
 }
 

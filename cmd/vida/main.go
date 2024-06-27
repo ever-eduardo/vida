@@ -4,21 +4,22 @@ import (
 	"fmt"
 
 	"github.com/ever-eduardo/vida"
+	"github.com/ever-eduardo/vida/ast"
 )
 
 func main() {
 	println(vida.Name(), vida.Version())
-	module := "hello.vida"
+	module := "sketchpad.vida"
 	src, err := vida.ReadFile(module)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 	p := vida.NewParser(src, module)
-	ast, err := p.Parse()
+	r, err := p.Parse()
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-	fmt.Println(ast)
+	fmt.Println(ast.PrintAST(r))
 }

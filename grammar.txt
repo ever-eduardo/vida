@@ -1,10 +1,8 @@
 module		:=	statement*
 statement	:= 	global
 			| 	local
-			|	changeState
-global		:=	'val' ident '=' expr
+global		:=	ident '=' expr
 local		:=	'loc' ident '=' expr
-changeState	:=	ident '=' expr
 ident		:=	['_' | letter]+ ['_' | letter | number]*
 expr		:=	'true'
 			|	'false'
