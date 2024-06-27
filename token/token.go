@@ -22,8 +22,8 @@ const (
 	TRUE
 	FALSE
 	NIL
-	LET
-	VAR
+	VAL
+	LOC
 	keyword_end
 )
 
@@ -37,8 +37,8 @@ var tokens = [...]string{
 	TRUE:       "true",
 	FALSE:      "false",
 	NIL:        "nil",
-	LET:        "let",
-	VAR:        "var",
+	VAL:        "val",
+	LOC:        "loc",
 }
 
 type TokenInfo struct {

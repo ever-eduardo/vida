@@ -1,0 +1,7 @@
+val alligator = true
+val beneviste = false
+val charcoal = nil
+
+beneviste = charcoal
+
+loc x = y
