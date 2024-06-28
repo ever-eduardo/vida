@@ -25,18 +25,18 @@ type frame struct {
 }
 
 type VM struct {
-	Module   Module
+	Module   *Module
 	Frames   [callStackSize]frame
 	Stack    [stackSize]Value
 	TopStore map[string]Value
 	fp       int
 }
 
-func NewVM(m Module) (VM, error) {
-	return VM{Module: m}, checkISACompatibility(m)
+func NewVM(m *Module) (*VM, error) {
+	return &VM{Module: m}, checkISACompatibility(m)
 }
 
-func (vm VM) Run() (Result, error) {
+func (vm *VM) Run() (Result, error) {
 	frame := &vm.Frames[vm.fp]
 	frame.code = vm.Module.Code
 	ip := 8
@@ -44,12 +44,18 @@ func (vm VM) Run() (Result, error) {
 		op := frame.code[ip]
 		ip++
 		switch op {
-		case setK:
-			kAddr := binary.NativeEndian.Uint16(frame.code[ip:])
-			ip += 2
+		case setKS:
+			flag := frame.code[ip]
+			ip++
 			dest := binary.NativeEndian.Uint16(frame.code[ip:])
 			ip += 2
-			vm.Module.Store[vm.Module.Konstants[dest].(string)] = vm.Module.Konstants[kAddr]
+			src := binary.NativeEndian.Uint16(frame.code[ip:])
+			ip += 2
+			if flag == 0 {
+				vm.Module.Store[vm.Module.Konstants[dest].(string)] = vm.Module.Konstants[src]
+			} else {
+				vm.Module.Store[vm.Module.Konstants[dest].(string)] = vm.Module.Store[vm.Module.Konstants[src].(string)]
+			}
 		case loadAtom:
 			dest := frame.code[ip]
 			ip++
@@ -89,7 +95,7 @@ func (vm VM) Run() (Result, error) {
 	}
 }
 
-func checkISACompatibility(m Module) error {
+func checkISACompatibility(m *Module) error {
 	if m.Code[4] == major {
 		return nil
 	}

@@ -17,14 +17,14 @@ type Module struct {
 	Store     map[string]Value
 }
 
-func NewModule(name string) Module {
+func newModule(name string) *Module {
 	m := Module{
 		Store:     make(map[string]Value),
 		Code:      make([]byte, 0, 128),
-		Konstants: make([]Value, 0, 16),
+		Konstants: make([]Value, 0, 32),
 		Name:      name,
 	}
-	return m
+	return &m
 }
 
 func (m Module) String() string {
@@ -38,8 +38,12 @@ type Function struct {
 	Last          int
 }
 
+func newFunction() *Function {
+	return &Function{}
+}
+
 type Closure struct {
-	Function Function
+	Function *Function
 	FreeVars []Value
 }
 
