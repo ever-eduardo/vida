@@ -44,7 +44,7 @@ func (vm *VM) Run() (Result, error) {
 		op := frame.code[ip]
 		ip++
 		switch op {
-		case setKS:
+		case setSK:
 			flag := frame.code[ip]
 			ip++
 			dest := binary.NativeEndian.Uint16(frame.code[ip:])
