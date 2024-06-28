@@ -29,14 +29,14 @@ func (c *Compiler) appendEnd() {
 }
 
 func (c *Compiler) emitSetSK(from, to int, flag byte) {
-	c.module.Code = append(c.module.Code, setSK)
+	c.module.Code = append(c.module.Code, setks)
 	c.module.Code = append(c.module.Code, flag)
 	c.module.Code = binary.NativeEndian.AppendUint16(c.module.Code, uint16(from))
 	c.module.Code = binary.NativeEndian.AppendUint16(c.module.Code, uint16(to))
 }
 
 func (c *Compiler) emitLocSK(from int, to byte, flag byte) {
-	c.module.Code = append(c.module.Code, locSK)
+	c.module.Code = append(c.module.Code, locks)
 	c.module.Code = append(c.module.Code, flag)
 	c.module.Code = binary.NativeEndian.AppendUint16(c.module.Code, uint16(from))
 	c.module.Code = append(c.module.Code, to)

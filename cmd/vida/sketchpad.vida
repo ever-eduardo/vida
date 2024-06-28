@@ -1,3 +1,7 @@
-loc a = nil
-loc b = true
-loc c = false
+alligator = true
+bethulia = alligator
+celtics = bethulia
+alligator = nil
+c=true
+d=nil
+alligator=a

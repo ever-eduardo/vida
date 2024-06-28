@@ -10,6 +10,7 @@ import (
 func main() {
 	println(vida.Name(), vida.Version())
 	debug := true
+	printBytecode := true
 	module := "sketchpad.vida"
 	testModule := "../../tests/setSK.vida"
 	var src []byte
@@ -35,6 +36,10 @@ func main() {
 	}
 	c := vida.NewCompiler(r, module)
 	m := c.CompileModule()
+	if printBytecode {
+		fmt.Println(vida.PrintBytecode(m, m.Name))
+		return
+	}
 	vm, vmerr := vida.NewVM(m)
 	if vmerr != nil {
 		fmt.Println(vmerr)

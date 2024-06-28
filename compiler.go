@@ -51,9 +51,9 @@ func (c *Compiler) compileStmt(node ast.Node) {
 	case *ast.Set:
 		switch lhs := n.LHS.(type) {
 		case *ast.Identifier:
-			dest := c.kb.StringIndex(lhs.Value)
-			if src, flag, isSK := c.compileExpr(n.Expr); isSK {
-				c.emitSetSK(src, dest, flag)
+			to := c.kb.StringIndex(lhs.Value)
+			if from, flag, isSK := c.compileExpr(n.Expr); isSK {
+				c.emitSetSK(from, to, flag)
 			}
 		}
 	case *ast.Loc:
