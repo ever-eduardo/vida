@@ -51,19 +51,29 @@ func (c *Compiler) compileStmt(node ast.Node) {
 	case *ast.Set:
 		switch lhs := n.LHS.(type) {
 		case *ast.Identifier:
-			to := c.kb.StringIndex(lhs.Value)
-			if from, flag, isSK := c.compileExpr(n.Expr); isSK {
+			if to, isLocal := c.lb.IsLocal(lhs.Value, c.level, c.scope); isLocal {
+				if from, flag, isSK := c.compileExpr(n.Expr); isSK {
+					c.emitLocSK(from, to, flag)
+				} else {
+					c.emitMove(byte(from), to)
+				}
+			} else if to, isGlobal := c.kb.IsGlobal(lhs.Value); isGlobal {
+				from, flag, _ := c.compileExpr(n.Expr)
+				c.emitSetSK(from, to, flag)
+			} else {
+				to := c.kb.StringIndex(lhs.Value)
+				from, flag, _ := c.compileExpr(n.Expr)
 				c.emitSetSK(from, to, flag)
 			}
 		}
 	case *ast.Loc:
-		reg := c.lrAlloc
+		to := c.lrAlloc
 		c.lb.AddLocal(n.Identifier, c.level, c.scope, c.lrAlloc)
 		c.lrAlloc++
-		if idx, flag, isSK := c.compileExpr(n.Expr); isSK {
-			c.emitLocSK(idx, reg, flag)
+		if from, flag, isSK := c.compileExpr(n.Expr); isSK {
+			c.emitLocSK(from, to, flag)
 		} else {
-			c.emitMove(reg, byte(idx))
+			c.emitMove(byte(from), to)
 		}
 	}
 }

@@ -29,9 +29,15 @@ func (vm *VM) Inspect(ip int) {
 	}
 	fmt.Println()
 	fmt.Println("Stack")
+	fmt.Print("[")
 	for _, v := range vm.Stack {
-		fmt.Printf("%v, ", v)
+		if v == nil {
+			fmt.Printf(" %5v ", "_")
+		} else {
+			fmt.Printf(" %5v ", v)
+		}
 	}
+	fmt.Print("]")
 	fmt.Println()
 	fmt.Printf("Press 'Enter' to continue => ")
 	fmt.Scanf(" ")
@@ -40,6 +46,7 @@ func (vm *VM) Inspect(ip int) {
 func (vm *VM) Debug() (Result, error) {
 	frame := &vm.Frames[vm.fp]
 	frame.code = vm.Module.Code
+	frame.stack = vm.Stack[:]
 	ip := 8
 	for {
 		vm.Inspect(ip)
@@ -53,22 +60,40 @@ func (vm *VM) Debug() (Result, error) {
 			ip += 2
 			to := binary.NativeEndian.Uint16(frame.code[ip:])
 			ip += 2
-			if flag == refKns {
+			switch flag {
+			case refKns:
 				vm.Module.Store[vm.Module.Konstants[to].(string)] = vm.Module.Konstants[from]
-			} else {
-				vm.Module.Store[vm.Module.Konstants[to].(string)] = vm.Module.Store[vm.Module.Konstants[from].(string)]
+			case refStr:
+				if v, defined := vm.Module.Store[vm.Module.Konstants[from].(string)]; defined {
+					vm.Module.Store[vm.Module.Konstants[to].(string)] = v
+				} else {
+					vm.Module.Store[vm.Module.Konstants[to].(string)] = globalNil
+				}
+			case refReg:
+				vm.Module.Store[vm.Module.Konstants[to].(string)] = frame.stack[from]
 			}
 		case locks:
 			flag := frame.code[ip]
 			ip++
-			dest := frame.code[ip]
+			from := binary.NativeEndian.Uint16(frame.code[ip:])
+			ip += 2
+			to := frame.code[ip]
 			ip++
-			src := binary.NativeEndian.Uint16(frame.code[ip:])
 			if flag == refKns {
-				frame.stack[dest] = vm.Module.Konstants[src]
+				frame.stack[to] = vm.Module.Konstants[from]
 			} else {
-				frame.stack[dest] = vm.Module.Store[vm.Module.Konstants[src].(string)]
+				if v, defined := vm.Module.Store[vm.Module.Konstants[from].(string)]; defined {
+					frame.stack[to] = v
+				} else {
+					frame.stack[to] = globalNil
+				}
 			}
+		case move:
+			from := frame.code[ip]
+			ip++
+			to := frame.code[ip]
+			ip++
+			frame.stack[to] = frame.stack[from]
 		case end:
 			return Success, nil
 		default:

@@ -1,7 +1,1 @@
-alligator = true
-bethulia = alligator
-celtics = bethulia
-alligator = nil
-c=true
-d=nil
-alligator=a
+loc a = a

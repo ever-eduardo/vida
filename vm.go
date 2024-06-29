@@ -39,6 +39,7 @@ func NewVM(m *Module) (*VM, error) {
 func (vm *VM) Run() (Result, error) {
 	frame := &vm.Frames[vm.fp]
 	frame.code = vm.Module.Code
+	frame.stack = vm.Stack[:]
 	ip := 8
 	for {
 		op := frame.code[ip]
