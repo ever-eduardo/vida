@@ -2,8 +2,8 @@ package vida
 
 const (
 	end = iota
-	setks
-	locks
+	setG
+	setL
 	move
 	// Old School
 	setAtom
@@ -19,8 +19,8 @@ const atomFalse = 2
 
 var opcodes = [...]string{
 	end:        "End",
-	setks:      "SetKS",
-	locks:      "LocKS",
+	setG:       "SetG",
+	setL:       "SetL",
 	move:       "Move",
 	setAtom:    "SetAtom",
 	loadAtom:   "LoadAtom",

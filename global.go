@@ -2,4 +2,12 @@ package vida
 
 var globalNil = Nil{}
 
-var topStore = make(map[string]Value)
+var prelude = loadPrelude()
+
+func loadPrelude() map[string]Value {
+	p := make(map[string]Value)
+	p["print"] = "~Print"
+	p["len"] = "~Len"
+	p["type"] = "~Type"
+	return p
+}

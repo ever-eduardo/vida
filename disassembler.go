@@ -28,7 +28,7 @@ func processBytecode(code []byte, konst []Value) string {
 		sb.WriteString(fmt.Sprintf("%7v", opcodes[op]))
 		ip++
 		switch op {
-		case setks:
+		case setG:
 			sb.WriteRune(32)
 			sb.WriteString(fmt.Sprintf("%v", int(code[ip])))
 			ip++
@@ -38,7 +38,7 @@ func processBytecode(code []byte, konst []Value) string {
 			sb.WriteRune(32)
 			sb.WriteString(fmt.Sprintf("%v", binary.NativeEndian.Uint16(code[ip:])))
 			ip += 2
-		case locks:
+		case setL:
 			sb.WriteRune(32)
 			sb.WriteString(fmt.Sprintf("%v", int(code[ip])))
 			ip++

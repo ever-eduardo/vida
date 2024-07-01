@@ -49,8 +49,3 @@ func (kb *KonstBuilder) NilIndex() int {
 	kb.index++
 	return kb.nilIndex
 }
-
-func (kb *KonstBuilder) IsGlobal(value string) (int, bool) {
-	idx, isPresent := kb.stringMap[value]
-	return idx, isPresent
-}

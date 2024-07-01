@@ -53,36 +53,51 @@ func (vm *VM) Debug() (Result, error) {
 		op := frame.code[ip]
 		ip++
 		switch op {
-		case setks:
-			flag := frame.code[ip]
+		case setG:
+			scope := frame.code[ip]
 			ip++
 			from := binary.NativeEndian.Uint16(frame.code[ip:])
 			ip += 2
 			to := binary.NativeEndian.Uint16(frame.code[ip:])
 			ip += 2
-			switch flag {
-			case refKns:
+			switch scope {
+			case rKonst:
 				vm.Module.Store[vm.Module.Konstants[to].(string)] = vm.Module.Konstants[from]
-			case refStr:
+			case rGlobal:
 				if v, defined := vm.Module.Store[vm.Module.Konstants[from].(string)]; defined {
 					vm.Module.Store[vm.Module.Konstants[to].(string)] = v
 				} else {
 					vm.Module.Store[vm.Module.Konstants[to].(string)] = globalNil
 				}
-			case refReg:
+			case rLocal:
 				vm.Module.Store[vm.Module.Konstants[to].(string)] = frame.stack[from]
+			case rPrelude:
+				if v, defined := vm.Prelude[vm.Module.Konstants[from].(string)]; defined {
+					vm.Module.Store[vm.Module.Konstants[to].(string)] = v
+				} else {
+					vm.Module.Store[vm.Module.Konstants[to].(string)] = globalNil
+				}
 			}
-		case locks:
-			flag := frame.code[ip]
+		case setL:
+			scope := frame.code[ip]
 			ip++
 			from := binary.NativeEndian.Uint16(frame.code[ip:])
 			ip += 2
 			to := frame.code[ip]
 			ip++
-			if flag == refKns {
+			switch scope {
+			case rKonst:
 				frame.stack[to] = vm.Module.Konstants[from]
-			} else {
+			case rLocal:
+				frame.stack[to] = frame.stack[from]
+			case rGlobal:
 				if v, defined := vm.Module.Store[vm.Module.Konstants[from].(string)]; defined {
+					frame.stack[to] = v
+				} else {
+					frame.stack[to] = globalNil
+				}
+			case rPrelude:
+				if v, defined := vm.Prelude[vm.Module.Konstants[from].(string)]; defined {
 					frame.stack[to] = v
 				} else {
 					frame.stack[to] = globalNil

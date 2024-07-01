@@ -25,15 +25,15 @@ type frame struct {
 }
 
 type VM struct {
-	Module   *Module
-	Frames   [callStackSize]frame
-	Stack    [stackSize]Value
-	TopStore map[string]Value
-	fp       int
+	Module  *Module
+	Frames  [callStackSize]frame
+	Stack   [stackSize]Value
+	Prelude map[string]Value
+	fp      int
 }
 
 func NewVM(m *Module) (*VM, error) {
-	return &VM{Module: m}, checkISACompatibility(m)
+	return &VM{Module: m, Prelude: loadPrelude()}, checkISACompatibility(m)
 }
 
 func (vm *VM) Run() (Result, error) {
@@ -45,48 +45,62 @@ func (vm *VM) Run() (Result, error) {
 		op := frame.code[ip]
 		ip++
 		switch op {
-		case setks:
-			flag := frame.code[ip]
+		case setG:
+			scope := frame.code[ip]
 			ip++
 			from := binary.NativeEndian.Uint16(frame.code[ip:])
 			ip += 2
 			to := binary.NativeEndian.Uint16(frame.code[ip:])
 			ip += 2
-			if flag == refKns {
+			switch scope {
+			case rKonst:
 				vm.Module.Store[vm.Module.Konstants[to].(string)] = vm.Module.Konstants[from]
-			} else {
-				vm.Module.Store[vm.Module.Konstants[to].(string)] = vm.Module.Store[vm.Module.Konstants[from].(string)]
+			case rGlobal:
+				if v, defined := vm.Module.Store[vm.Module.Konstants[from].(string)]; defined {
+					vm.Module.Store[vm.Module.Konstants[to].(string)] = v
+				} else {
+					vm.Module.Store[vm.Module.Konstants[to].(string)] = globalNil
+				}
+			case rLocal:
+				vm.Module.Store[vm.Module.Konstants[to].(string)] = frame.stack[from]
+			case rPrelude:
+				if v, defined := vm.Prelude[vm.Module.Konstants[from].(string)]; defined {
+					vm.Module.Store[vm.Module.Konstants[to].(string)] = v
+				} else {
+					vm.Module.Store[vm.Module.Konstants[to].(string)] = globalNil
+				}
 			}
-		case loadAtom:
-			dest := frame.code[ip]
+		case setL:
+			scope := frame.code[ip]
 			ip++
-			atom := frame.code[ip]
+			from := binary.NativeEndian.Uint16(frame.code[ip:])
+			ip += 2
+			to := frame.code[ip]
 			ip++
-			switch atom {
-			case atomTrue:
-				frame.stack[dest] = true
-			case atomFalse:
-				frame.stack[dest] = false
-			case atomNil:
-				frame.stack[dest] = globalNil
+			switch scope {
+			case rKonst:
+				frame.stack[to] = vm.Module.Konstants[from]
+			case rLocal:
+				frame.stack[to] = frame.stack[from]
+			case rGlobal:
+				if v, defined := vm.Module.Store[vm.Module.Konstants[from].(string)]; defined {
+					frame.stack[to] = v
+				} else {
+					frame.stack[to] = globalNil
+				}
+			case rPrelude:
+				if v, defined := vm.Prelude[vm.Module.Konstants[from].(string)]; defined {
+					frame.stack[to] = v
+				} else {
+					frame.stack[to] = globalNil
+				}
 			}
-		case loadGlobal:
-			addr := binary.NativeEndian.Uint16(frame.code[ip:])
-			ip += 2
-			dest := frame.code[ip]
+		case move:
+			from := frame.code[ip]
 			ip++
-			frame.stack[dest] = vm.Module.Store[vm.Module.Konstants[addr].(string)]
+			to := frame.code[ip]
 			ip++
-		case setGlobal:
-			src := binary.NativeEndian.Uint16(frame.code[ip:])
-			ip += 2
-			dest := binary.NativeEndian.Uint16(frame.code[ip:])
-			ip += 2
-			if val, isPresent := vm.Module.Store[vm.Module.Konstants[src].(string)]; isPresent {
-				vm.Module.Store[vm.Module.Konstants[dest].(string)] = val
-			} else {
-				vm.Module.Store[vm.Module.Konstants[dest].(string)] = globalNil
-			}
+			frame.stack[to] = frame.stack[from]
 		case end:
 			return Success, nil
 		default:

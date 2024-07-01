@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"os"
+	"time"
 
 	"github.com/ever-eduardo/vida"
 	"github.com/ever-eduardo/vida/ast"
@@ -10,51 +12,65 @@ import (
 func main() {
 	clear()
 	println(vida.Name(), vida.Version())
-	debug := true
+	debug := false
 	module := "sketchpad.vida"
-	testModule := "../../tests/setSK.vida"
+	test := "../../tests/setG.vida"
+	if debug {
+		debugPath(module)
+	} else {
+		normalPath(test)
+	}
+}
+
+func debugPath(module string) {
 	var src []byte
 	var err error
-	if debug {
-		src, err = vida.ReadFile(module)
-	} else {
-		src, err = vida.ReadFile(testModule)
-	}
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
+	src, err = vida.ReadModule(module)
+	handleError(err)
 	p := vida.NewParser(src, module)
 	r, err := p.Parse()
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	if debug {
-		fmt.Println(ast.PrintAST(r))
-		fmt.Scanf(" ")
-	}
+	handleError(err)
+	fmt.Println(ast.PrintAST(r))
+	fmt.Scanf(" ")
 	c := vida.NewCompiler(r, module)
 	m := c.CompileModule()
 	fmt.Println(vida.PrintBytecode(m, m.Name))
 	fmt.Scanf(" ")
-	vm, vmerr := vida.NewVM(m)
-	if vmerr != nil {
-		fmt.Println(vmerr)
-		return
-	}
-	var res vida.Result
-	var rterr error
-	if debug {
-		res, rterr = vm.Debug()
-	} else {
-		res, rterr = vm.Run()
-	}
-	if rterr != nil {
-		fmt.Println(rterr)
-		return
-	}
+	vm, err := vida.NewVM(m)
+	handleError(err)
+	res, err := vm.Debug()
+	handleError(err)
 	fmt.Println(res)
+}
+
+func normalPath(module string) {
+	var src []byte
+	var err error
+	init := time.Now()
+	src, err = vida.ReadModule(module)
+	handleError(err)
+	p := vida.NewParser(src, module)
+	r, err := p.Parse()
+	handleError(err)
+	c := vida.NewCompiler(r, module)
+	m := c.CompileModule()
+	fmt.Printf("Compiler time = %vs\n", time.Since(init).Seconds())
+	fmt.Printf("Compiler time = %v\n", time.Since(init))
+	vm, err := vida.NewVM(m)
+	handleError(err)
+	init = time.Now()
+	res, err := vm.Run()
+	fmt.Printf("VM time = %vs\n", time.Since(init).Seconds())
+	fmt.Printf("VM time = %v\n", time.Since(init))
+	handleError(err)
+	fmt.Println(res)
+}
+
+func handleError(err error) {
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(0)
+	}
 }
 
 func clear() {
