@@ -1,1 +1,1 @@
-a = (true or false) and true
+a = true or false

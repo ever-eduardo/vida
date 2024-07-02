@@ -7,12 +7,18 @@ import (
 )
 
 type Value interface {
+	Boolean() Bool
 	Prefix(byte) Value
+	Binary(byte, Value) (Value, error)
 	String() string
 	Type() string
 }
 
 type Nil struct{}
+
+func (n Nil) Boolean() Bool {
+	return Bool(false)
+}
 
 func (n Nil) Prefix(op byte) Value {
 	switch op {
@@ -20,6 +26,17 @@ func (n Nil) Prefix(op byte) Value {
 		return Bool(true)
 	default:
 		return globalNil
+	}
+}
+
+func (n Nil) Binary(op byte, rhs Value) (Value, error) {
+	switch op {
+	case byte(token.AND):
+		return globalNil, nil
+	case byte(token.OR):
+		return rhs, nil
+	default:
+		return globalNil, nil
 	}
 }
 
@@ -33,12 +50,27 @@ func (n Nil) Type() string {
 
 type Bool bool
 
+func (b Bool) Boolean() Bool {
+	return b
+}
+
 func (b Bool) Prefix(op byte) Value {
 	switch op {
 	case byte(token.NOT):
 		return !b
 	default:
 		return globalNil
+	}
+}
+
+func (b Bool) Binary(op byte, rhs Value) (Value, error) {
+	switch op {
+	case byte(token.AND):
+		return b && rhs.Boolean(), nil
+	case byte(token.OR):
+		return b || rhs.Boolean(), nil
+	default:
+		return globalNil, nil
 	}
 }
 
@@ -55,6 +87,21 @@ func (b Bool) Type() string {
 
 type String struct {
 	Value string
+}
+
+func (s String) Boolean() Bool {
+	return Bool(true)
+}
+
+func (s String) Binary(op byte, rhs Value) (Value, error) {
+	switch op {
+	case byte(token.OR):
+		return s.Boolean() || rhs.Boolean(), nil
+	case byte(token.AND):
+		return s.Boolean() && rhs.Boolean(), nil
+	default:
+		return globalNil, nil
+	}
 }
 
 func (s String) Prefix(op byte) Value {
