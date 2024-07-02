@@ -70,14 +70,22 @@ func (p *Parser) localStmt() ast.Node {
 
 func (p *Parser) expression() ast.Node {
 	switch p.current.Token {
+	case token.NOT:
+		p.advance()
+		e := p.expression()
+		return &ast.PrefixExpr{Op: token.NOT, Expr: e}
 	case token.TRUE:
 		return &ast.Boolean{Value: true}
 	case token.FALSE:
 		return &ast.Boolean{Value: false}
 	case token.NIL:
 		return &ast.Nil{}
-	default:
+	case token.IDENTIFIER:
 		return &ast.Reference{Value: p.current.Lit}
+	default:
+		p.err = verror.New(p.lexer.ModuleName, "Expected expression", verror.SyntaxError, p.current.Line)
+		p.ok = false
+		return &ast.Nil{}
 	}
 }
 

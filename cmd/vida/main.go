@@ -12,7 +12,7 @@ import (
 func main() {
 	clear()
 	println(vida.Name(), vida.Version())
-	debug := false
+	debug := true
 	module := "sketchpad.vida"
 	test := "../../tests/setG.vida"
 	if debug {
@@ -56,9 +56,9 @@ func normalPath(module string) {
 	m := c.CompileModule()
 	fmt.Printf("Compiler time = %vs\n", time.Since(init).Seconds())
 	fmt.Printf("Compiler time = %v\n", time.Since(init))
+	init = time.Now()
 	vm, err := vida.NewVM(m)
 	handleError(err)
-	init = time.Now()
 	res, err := vm.Run()
 	fmt.Printf("VM time = %vs\n", time.Since(init).Seconds())
 	fmt.Printf("VM time = %v\n", time.Since(init))

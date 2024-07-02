@@ -22,7 +22,7 @@ func (kb *KonstBuilder) StringIndex(value string) int {
 		return idx
 	}
 	i := kb.index
-	kb.Konstants = append(kb.Konstants, value)
+	kb.Konstants = append(kb.Konstants, String{Value: value})
 	kb.stringMap[value] = i
 	kb.index++
 	return i
@@ -34,7 +34,7 @@ func (kb *KonstBuilder) BooleanIndex(value bool) int {
 		return idx
 	}
 	i := kb.index
-	kb.Konstants = append(kb.Konstants, value)
+	kb.Konstants = append(kb.Konstants, Bool(value))
 	kb.booleanMap[value] = i
 	kb.index++
 	return i

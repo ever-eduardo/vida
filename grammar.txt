@@ -4,7 +4,10 @@ statement	:= 	global
 global		:=	ident '=' expr
 local		:=	'loc' ident '=' expr
 ident		:=	['_' | letter]+ ['_' | letter | number]*
-expr		:=	'true'
+expr		:=	prefix
+prefix		:=	'not' expr
+			|	primary
+primary		:=	'true'
 			|	'false'
 			|	'nil'
 			|	ident

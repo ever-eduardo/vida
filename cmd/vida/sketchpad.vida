@@ -1,6 +1,4 @@
-alligator = true
-bethulia = false
-coriolis = nil
-dreamer = alligator
-elementor = bethulia
-coriolis = elementor
+loc k = k
+loc j = not k
+loc h = not j
+loc e = not h

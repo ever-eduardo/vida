@@ -15,6 +15,10 @@ const (
 	rFreevar
 )
 
+const (
+	opNot byte = iota
+)
+
 func (c *Compiler) appendHeader() {
 	c.module.Code = append(c.module.Code, byte(v))
 	c.module.Code = append(c.module.Code, byte(i))
@@ -47,6 +51,13 @@ func (c *Compiler) emitLoc(from int, to byte, scope byte) {
 func (c *Compiler) emitMove(from byte, to byte) {
 	c.module.Code = append(c.module.Code, move)
 	c.module.Code = append(c.module.Code, from)
+	c.module.Code = append(c.module.Code, to)
+}
+
+func (c *Compiler) emitNot(from int, to byte, scope byte) {
+	c.module.Code = append(c.module.Code, not)
+	c.module.Code = append(c.module.Code, scope)
+	c.module.Code = binary.NativeEndian.AppendUint16(c.module.Code, uint16(from))
 	c.module.Code = append(c.module.Code, to)
 }
 

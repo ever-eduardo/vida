@@ -2,12 +2,57 @@ package vida
 
 import "fmt"
 
-type Value any
+type Value interface {
+	Boolean() bool
+	String() string
+	Type() string
+}
 
 type Nil struct{}
 
+func (n Nil) Boolean() bool {
+	return false
+}
+
 func (n Nil) String() string {
 	return "nil"
+}
+
+func (n Nil) Type() string {
+	return "nil"
+}
+
+type Bool bool
+
+func (b Bool) Boolean() bool {
+	return bool(b)
+}
+
+func (b Bool) String() string {
+	if b {
+		return "true"
+	}
+	return "false"
+}
+
+func (b Bool) Type() string {
+	return "bool"
+}
+
+type String struct {
+	Value string
+}
+
+func (s String) Boolean() bool {
+	return len(s.Value) != 0
+}
+
+func (s String) String() string {
+	return s.Value
+}
+
+func (s String) Type() string {
+	return "string"
 }
 
 type Module struct {

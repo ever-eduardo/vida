@@ -62,20 +62,20 @@ func (vm *VM) Debug() (Result, error) {
 			ip += 2
 			switch scope {
 			case rKonst:
-				vm.Module.Store[vm.Module.Konstants[to].(string)] = vm.Module.Konstants[from]
+				vm.Module.Store[vm.Module.Konstants[to].(String).Value] = vm.Module.Konstants[from]
 			case rGlobal:
-				if v, defined := vm.Module.Store[vm.Module.Konstants[from].(string)]; defined {
-					vm.Module.Store[vm.Module.Konstants[to].(string)] = v
+				if v, defined := vm.Module.Store[vm.Module.Konstants[from].(String).Value]; defined {
+					vm.Module.Store[vm.Module.Konstants[to].(String).Value] = v
 				} else {
-					vm.Module.Store[vm.Module.Konstants[to].(string)] = globalNil
+					vm.Module.Store[vm.Module.Konstants[to].(String).Value] = globalNil
 				}
 			case rLocal:
-				vm.Module.Store[vm.Module.Konstants[to].(string)] = frame.stack[from]
+				vm.Module.Store[vm.Module.Konstants[to].(String).Value] = frame.stack[from]
 			case rPrelude:
-				if v, defined := vm.Prelude[vm.Module.Konstants[from].(string)]; defined {
-					vm.Module.Store[vm.Module.Konstants[to].(string)] = v
+				if v, defined := vm.Prelude[vm.Module.Konstants[from].(String).Value]; defined {
+					vm.Module.Store[vm.Module.Konstants[to].(String).Value] = v
 				} else {
-					vm.Module.Store[vm.Module.Konstants[to].(string)] = globalNil
+					vm.Module.Store[vm.Module.Konstants[to].(String).Value] = globalNil
 				}
 			}
 		case setL:
@@ -91,13 +91,13 @@ func (vm *VM) Debug() (Result, error) {
 			case rLocal:
 				frame.stack[to] = frame.stack[from]
 			case rGlobal:
-				if v, defined := vm.Module.Store[vm.Module.Konstants[from].(string)]; defined {
+				if v, defined := vm.Module.Store[vm.Module.Konstants[from].(String).Value]; defined {
 					frame.stack[to] = v
 				} else {
 					frame.stack[to] = globalNil
 				}
 			case rPrelude:
-				if v, defined := vm.Prelude[vm.Module.Konstants[from].(string)]; defined {
+				if v, defined := vm.Prelude[vm.Module.Konstants[from].(String).Value]; defined {
 					frame.stack[to] = v
 				} else {
 					frame.stack[to] = globalNil
@@ -109,10 +109,35 @@ func (vm *VM) Debug() (Result, error) {
 			to := frame.code[ip]
 			ip++
 			frame.stack[to] = frame.stack[from]
+		case not:
+			scope := frame.code[ip]
+			ip++
+			from := binary.NativeEndian.Uint16(frame.code[ip:])
+			ip += 2
+			to := frame.code[ip]
+			ip++
+			switch scope {
+			case rKonst:
+				frame.stack[to] = Bool(!vm.Module.Konstants[from].Boolean())
+			case rLocal:
+				frame.stack[to] = Bool(!frame.stack[from].Boolean())
+			case rGlobal:
+				if v, defined := vm.Module.Store[vm.Module.Konstants[from].(String).Value]; defined {
+					frame.stack[to] = Bool(!v.Boolean())
+				} else {
+					frame.stack[to] = Bool(true)
+				}
+			case rPrelude:
+				if v, defined := vm.Prelude[vm.Module.Konstants[from].(String).Value]; defined {
+					frame.stack[to] = Bool(!v.Boolean())
+				} else {
+					frame.stack[to] = Bool(false)
+				}
+			}
 		case end:
 			return Success, nil
 		default:
-			message := fmt.Sprintf("Unknown vm instruction %v", ip)
+			message := fmt.Sprintf("Unknown instruction %v", ip)
 			return Failure, verror.New(vm.Module.Name, message, verror.SyntaxError, math.MaxUint16)
 		}
 	}

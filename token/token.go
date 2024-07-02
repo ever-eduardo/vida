@@ -23,6 +23,9 @@ const (
 	FALSE
 	NIL
 	LOC
+	AND
+	OR
+	NOT
 	keyword_end
 )
 
@@ -33,6 +36,9 @@ var tokens = [...]string{
 	IDENTIFIER: "Identifier",
 	ASSIGN:     "Assign",
 	COMMA:      "Comma",
+	AND:        "and",
+	OR:         "or",
+	NOT:        "not",
 	TRUE:       "true",
 	FALSE:      "false",
 	NIL:        "nil",
@@ -92,4 +98,20 @@ func IsIdentifier(name string) bool {
 		}
 	}
 	return true
+}
+
+const (
+	LowestPrec  = 0
+	UnaryPrec   = 6
+	HighestPrec = 7
+)
+
+func (op Token) Precedence() int {
+	switch op {
+	case OR:
+		return 1
+	case AND:
+		return 2
+	}
+	return LowestPrec
 }

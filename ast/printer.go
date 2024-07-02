@@ -70,5 +70,22 @@ func printAST(node Node, sb *strings.Builder, level int) {
 	case *Nil:
 		buildIndent(sb, level+1)
 		sb.WriteString("nil")
+	case *PrefixExpr:
+		buildIndent(sb, level+1)
+		sb.WriteString("Prefix")
+		sb.WriteRune(10)
+		buildIndent(sb, level+2)
+		sb.WriteString(n.Op.String())
+		sb.WriteRune(10)
+		printAST(n.Expr, sb, level+1)
+	case *BinaryExpr:
+		buildIndent(sb, level+1)
+		sb.WriteString("Binary")
+		sb.WriteRune(10)
+		sb.WriteString(n.Op.String())
+		sb.WriteRune(10)
+		printAST(n.Lhs, sb, level+1)
+		sb.WriteRune(10)
+		printAST(n.Rhs, sb, level+1)
 	}
 }

@@ -5,6 +5,7 @@ const (
 	setG
 	setL
 	move
+	not
 	// Old School
 	setAtom
 	loadAtom
@@ -22,6 +23,7 @@ var opcodes = [...]string{
 	setG:       "SetG",
 	setL:       "SetL",
 	move:       "Move",
+	not:        "Not",
 	setAtom:    "SetAtom",
 	loadAtom:   "LoadAtom",
 	setGlobal:  "SetGlobal",

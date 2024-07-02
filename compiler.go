@@ -77,6 +77,10 @@ func (c *Compiler) compileStmt(node ast.Node) {
 
 func (c *Compiler) compileExpr(node ast.Node) (int, byte) {
 	switch n := node.(type) {
+	case *ast.PrefixExpr:
+		idx, scope := c.compileExpr(n.Expr)
+		c.emitNot(idx, c.rAlloc, scope)
+		return int(c.rAlloc), rLocal
 	case *ast.Boolean:
 		idx := c.kb.BooleanIndex(n.Value)
 		return idx, rKonst
