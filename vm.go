@@ -101,7 +101,9 @@ func (vm *VM) Run() (Result, error) {
 			to := frame.code[ip]
 			ip++
 			frame.stack[to] = frame.stack[from]
-		case not:
+		case prefix:
+			op := frame.code[ip]
+			ip++
 			scope := frame.code[ip]
 			ip++
 			from := binary.NativeEndian.Uint16(frame.code[ip:])
@@ -110,20 +112,20 @@ func (vm *VM) Run() (Result, error) {
 			ip++
 			switch scope {
 			case rKonst:
-				frame.stack[to] = Bool(!vm.Module.Konstants[from].Boolean())
+				frame.stack[to] = vm.Module.Konstants[from].Prefix(op)
 			case rLocal:
-				frame.stack[to] = Bool(!frame.stack[from].Boolean())
+				frame.stack[to] = frame.stack[from].Prefix(op)
 			case rGlobal:
 				if v, defined := vm.Module.Store[vm.Module.Konstants[from].(String).Value]; defined {
-					frame.stack[to] = Bool(!v.Boolean())
+					frame.stack[to] = v.Prefix(op)
 				} else {
 					frame.stack[to] = Bool(true)
 				}
 			case rPrelude:
 				if v, defined := vm.Prelude[vm.Module.Konstants[from].(String).Value]; defined {
-					frame.stack[to] = Bool(!v.Boolean())
+					frame.stack[to] = v.Prefix(op)
 				} else {
-					frame.stack[to] = Bool(false)
+					frame.stack[to] = Bool(true)
 				}
 			}
 		case end:

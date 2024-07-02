@@ -79,7 +79,7 @@ func (c *Compiler) compileExpr(node ast.Node) (int, byte) {
 	switch n := node.(type) {
 	case *ast.PrefixExpr:
 		idx, scope := c.compileExpr(n.Expr)
-		c.emitNot(idx, c.rAlloc, scope)
+		c.emitPrefix(idx, c.rAlloc, scope, byte(n.Op))
 		return int(c.rAlloc), rLocal
 	case *ast.Boolean:
 		idx := c.kb.BooleanIndex(n.Value)

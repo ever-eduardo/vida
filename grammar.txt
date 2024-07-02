@@ -5,9 +5,13 @@ global		:=	ident '=' expr
 local		:=	'loc' ident '=' expr
 ident		:=	['_' | letter]+ ['_' | letter | number]*
 expr		:=	prefix
+			|	binary
 prefix		:=	'not' expr
 			|	primary
+binary		:=	expr binop expr
 primary		:=	'true'
 			|	'false'
 			|	'nil'
 			|	ident
+binop		:=	'and'
+			|	'or'

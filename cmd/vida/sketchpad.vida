@@ -1,4 +1,3 @@
-loc k = k
-loc j = not k
-loc h = not j
-loc e = not h
+a = not true
+b = not false
+c = not nil

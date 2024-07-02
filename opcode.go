@@ -5,28 +5,13 @@ const (
 	setG
 	setL
 	move
-	not
-	// Old School
-	setAtom
-	loadAtom
-	setGlobal
-	loadGlobal
-	setLocal
+	prefix
 )
 
-const atomNil = 0
-const atomTrue = 1
-const atomFalse = 2
-
 var opcodes = [...]string{
-	end:        "End",
-	setG:       "SetG",
-	setL:       "SetL",
-	move:       "Move",
-	not:        "Not",
-	setAtom:    "SetAtom",
-	loadAtom:   "LoadAtom",
-	setGlobal:  "SetGlobal",
-	loadGlobal: "LoadGlobal",
-	setLocal:   "SetLocal",
+	end:    "End",
+	setG:   "SetG",
+	setL:   "SetL",
+	move:   "Move",
+	prefix: "Prefix",
 }

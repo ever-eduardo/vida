@@ -2,7 +2,7 @@ package token
 
 import "unicode"
 
-type Token int
+type Token byte
 
 const (
 	UNEXPECTED Token = iota
@@ -17,6 +17,9 @@ const (
 	ASSIGN
 	COMMA
 	operator_end
+
+	binary_op_init
+	binary_op_end
 
 	keyword_init
 	TRUE
@@ -47,8 +50,8 @@ var tokens = [...]string{
 
 type TokenInfo struct {
 	Lit   string
-	Token Token
 	Line  uint
+	Token Token
 }
 
 var keywords map[string]Token
@@ -72,8 +75,8 @@ func (token Token) IsKeyword() bool {
 	return keyword_init < token && token < keyword_end
 }
 
-func (token Token) IsOperator() bool {
-	return operator_init < token && token < operator_end
+func (token Token) IsBinaryOperator() bool {
+	return (binary_op_init < token && token < binary_op_end) || token == AND || token == OR
 }
 
 func IsKeyword(name string) bool {
@@ -102,7 +105,7 @@ func IsIdentifier(name string) bool {
 
 const (
 	LowestPrec  = 0
-	UnaryPrec   = 6
+	PrefixPrec  = 6
 	HighestPrec = 7
 )
 

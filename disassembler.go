@@ -30,40 +30,43 @@ func processBytecode(code []byte, konst []Value) string {
 		switch op {
 		case setG:
 			sb.WriteRune(32)
-			sb.WriteString(fmt.Sprintf("%v", int(code[ip])))
+			sb.WriteString(fmt.Sprintf("%3v", int(code[ip])))
 			ip++
 			sb.WriteRune(32)
-			sb.WriteString(fmt.Sprintf("%v", binary.NativeEndian.Uint16(code[ip:])))
+			sb.WriteString(fmt.Sprintf("%3v", binary.NativeEndian.Uint16(code[ip:])))
 			ip += 2
 			sb.WriteRune(32)
-			sb.WriteString(fmt.Sprintf("%v", binary.NativeEndian.Uint16(code[ip:])))
+			sb.WriteString(fmt.Sprintf("%3v", binary.NativeEndian.Uint16(code[ip:])))
 			ip += 2
 		case setL:
 			sb.WriteRune(32)
-			sb.WriteString(fmt.Sprintf("%v", int(code[ip])))
+			sb.WriteString(fmt.Sprintf("%3v", int(code[ip])))
 			ip++
 			sb.WriteRune(32)
-			sb.WriteString(fmt.Sprintf("%v", binary.NativeEndian.Uint16(code[ip:])))
+			sb.WriteString(fmt.Sprintf("%3v", binary.NativeEndian.Uint16(code[ip:])))
 			ip += 2
 			sb.WriteRune(32)
-			sb.WriteString(fmt.Sprintf("%v", int(code[ip])))
+			sb.WriteString(fmt.Sprintf("%3v", int(code[ip])))
 			ip++
 		case move:
 			sb.WriteRune(32)
-			sb.WriteString(fmt.Sprintf("%v", int(code[ip])))
+			sb.WriteString(fmt.Sprintf("%3v", int(code[ip])))
 			ip++
 			sb.WriteRune(32)
-			sb.WriteString(fmt.Sprintf("%v", int(code[ip])))
+			sb.WriteString(fmt.Sprintf("%3v", int(code[ip])))
 			ip++
-		case not:
+		case prefix:
 			sb.WriteRune(32)
-			sb.WriteString(fmt.Sprintf("%v", int(code[ip])))
+			sb.WriteString(fmt.Sprintf("%3v", int(code[ip])))
 			ip++
 			sb.WriteRune(32)
-			sb.WriteString(fmt.Sprintf("%v", binary.NativeEndian.Uint16(code[ip:])))
+			sb.WriteString(fmt.Sprintf("%3v", int(code[ip])))
+			ip++
+			sb.WriteRune(32)
+			sb.WriteString(fmt.Sprintf("%3v", binary.NativeEndian.Uint16(code[ip:])))
 			ip += 2
 			sb.WriteRune(32)
-			sb.WriteString(fmt.Sprintf("%v", int(code[ip])))
+			sb.WriteString(fmt.Sprintf("%3v", int(code[ip])))
 			ip++
 		case end:
 			sb.WriteRune(10)

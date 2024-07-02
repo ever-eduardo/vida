@@ -1,17 +1,26 @@
 package vida
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/ever-eduardo/vida/token"
+)
 
 type Value interface {
-	Boolean() bool
+	Prefix(byte) Value
 	String() string
 	Type() string
 }
 
 type Nil struct{}
 
-func (n Nil) Boolean() bool {
-	return false
+func (n Nil) Prefix(op byte) Value {
+	switch op {
+	case byte(token.NOT):
+		return Bool(true)
+	default:
+		return globalNil
+	}
 }
 
 func (n Nil) String() string {
@@ -24,8 +33,13 @@ func (n Nil) Type() string {
 
 type Bool bool
 
-func (b Bool) Boolean() bool {
-	return bool(b)
+func (b Bool) Prefix(op byte) Value {
+	switch op {
+	case byte(token.NOT):
+		return !b
+	default:
+		return globalNil
+	}
 }
 
 func (b Bool) String() string {
@@ -43,8 +57,13 @@ type String struct {
 	Value string
 }
 
-func (s String) Boolean() bool {
-	return len(s.Value) != 0
+func (s String) Prefix(op byte) Value {
+	switch op {
+	case byte(token.NOT):
+		return Bool(len(s.Value) != 0)
+	default:
+		return globalNil
+	}
 }
 
 func (s String) String() string {

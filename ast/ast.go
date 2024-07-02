@@ -37,14 +37,14 @@ type Nil struct {
 }
 
 type PrefixExpr struct {
-	Op   token.Token
 	Expr Node
+	Op   token.Token
 }
 
 type BinaryExpr struct {
-	Op  token.Token
 	Lhs Node
 	Rhs Node
+	Op  token.Token
 }
 
 func (ast *Ast) _node()       {}
