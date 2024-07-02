@@ -1,3 +1,1 @@
-a = not true
-b = not false
-c = not nil
+a = (true or false) and true

@@ -16,6 +16,8 @@ const (
 	operator_init
 	ASSIGN
 	COMMA
+	LPAREN
+	RPAREN
 	operator_end
 
 	binary_op_init
@@ -39,6 +41,8 @@ var tokens = [...]string{
 	IDENTIFIER: "Identifier",
 	ASSIGN:     "Assign",
 	COMMA:      "Comma",
+	LPAREN:     "(",
+	RPAREN:     ")",
 	AND:        "and",
 	OR:         "or",
 	NOT:        "not",

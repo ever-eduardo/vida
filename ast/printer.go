@@ -82,10 +82,11 @@ func printAST(node Node, sb *strings.Builder, level int) {
 		buildIndent(sb, level+1)
 		sb.WriteString("Binary")
 		sb.WriteRune(10)
+		buildIndent(sb, level+2)
 		sb.WriteString(n.Op.String())
 		sb.WriteRune(10)
-		printAST(n.Lhs, sb, level+1)
+		printAST(n.Lhs, sb, level+2)
 		sb.WriteRune(10)
-		printAST(n.Rhs, sb, level+1)
+		printAST(n.Rhs, sb, level+2)
 	}
 }

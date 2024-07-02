@@ -51,7 +51,7 @@ func (p *Parser) identPath() ast.Node {
 	p.advance()
 	p.expect(token.ASSIGN)
 	p.advance()
-	e := p.expression()
+	e := p.expression(token.LowestPrec)
 	p.advance()
 	return &ast.Set{LHS: &ast.Identifier{Value: i}, Expr: e}
 }
@@ -63,16 +63,28 @@ func (p *Parser) localStmt() ast.Node {
 	p.advance()
 	p.expect(token.ASSIGN)
 	p.advance()
-	e := p.expression()
+	e := p.expression(token.LowestPrec)
 	p.advance()
 	return &ast.Loc{Identifier: i, Expr: e}
 }
 
-func (p *Parser) expression() ast.Node {
+func (p *Parser) expression(precedence int) ast.Node {
+	e := p.prefix()
+	for p.next.Token.IsBinaryOperator() && p.next.Token.Precedence() > precedence {
+		p.advance()
+		op := p.current.Token
+		p.advance()
+		r := p.expression(op.Precedence())
+		e = &ast.BinaryExpr{Op: op, Lhs: e, Rhs: r}
+	}
+	return e
+}
+
+func (p *Parser) prefix() ast.Node {
 	switch p.current.Token {
 	case token.NOT:
 		p.advance()
-		e := p.expression()
+		e := p.expression(token.PrefixPrec)
 		return &ast.PrefixExpr{Op: token.NOT, Expr: e}
 	case token.TRUE:
 		return &ast.Boolean{Value: true}
@@ -82,6 +94,12 @@ func (p *Parser) expression() ast.Node {
 		return &ast.Nil{}
 	case token.IDENTIFIER:
 		return &ast.Reference{Value: p.current.Lit}
+	case token.LPAREN:
+		p.advance()
+		e := p.expression(token.LowestPrec)
+		p.advance()
+		p.expect(token.RPAREN)
+		return e
 	default:
 		p.err = verror.New(p.lexer.ModuleName, "Expected expression", verror.SyntaxError, p.current.Line)
 		p.ok = false
