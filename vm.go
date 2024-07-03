@@ -91,10 +91,7 @@ func (vm *VM) Run() (Result, error) {
 			ip += 2
 			to := vm.CurrentFrame.code[ip]
 			ip++
-			l := vm.valueFrom(scopeLHS, fromLHS)
-			r := vm.valueFrom(scopeRHS, fromRHS)
-			val, _ := l.Binary(op, r)
-			vm.CurrentFrame.stack[to] = val
+			vm.CurrentFrame.stack[to] = vm.valueFrom(scopeLHS, fromLHS).Binary(op, vm.valueFrom(scopeRHS, fromRHS))
 		case end:
 			return Success, nil
 		default:
@@ -114,16 +111,16 @@ func (vm *VM) valueFrom(scope byte, from uint16) Value {
 		if v, defined := vm.Module.Store[vm.Module.Konstants[from].(String).Value]; defined {
 			return v
 		} else {
-			return globalNil
+			return NilValue
 		}
 	case rPrelude:
 		if v, defined := vm.Prelude[vm.Module.Konstants[from].(String).Value]; defined {
 			return v
 		} else {
-			return globalNil
+			return NilValue
 		}
 	default:
-		return globalNil
+		return NilValue
 	}
 }
 

@@ -1,13 +1,12 @@
 package vida
 
-var globalNil = Nil{}
-
-var prelude = loadPrelude()
+var NilValue = Nil{}
 
 func loadPrelude() map[string]Value {
 	p := make(map[string]Value)
-	p["print"] = globalNil
-	p["len"] = globalNil
-	p["type"] = globalNil
+	p["print"] = NilValue
+	p["len"] = NilValue
+	p["type"] = NilValue
+	p["assert"] = NilValue
 	return p
 }

@@ -9,7 +9,7 @@ import (
 type Value interface {
 	Boolean() Bool
 	Prefix(byte) Value
-	Binary(byte, Value) (Value, error)
+	Binary(byte, Value) Value
 	String() string
 	Type() string
 }
@@ -25,18 +25,18 @@ func (n Nil) Prefix(op byte) Value {
 	case byte(token.NOT):
 		return Bool(true)
 	default:
-		return globalNil
+		return NilValue
 	}
 }
 
-func (n Nil) Binary(op byte, rhs Value) (Value, error) {
+func (n Nil) Binary(op byte, rhs Value) Value {
 	switch op {
 	case byte(token.AND):
-		return globalNil, nil
+		return NilValue
 	case byte(token.OR):
-		return rhs, nil
+		return rhs
 	default:
-		return globalNil, nil
+		return NilValue
 	}
 }
 
@@ -59,18 +59,18 @@ func (b Bool) Prefix(op byte) Value {
 	case byte(token.NOT):
 		return !b
 	default:
-		return globalNil
+		return NilValue
 	}
 }
 
-func (b Bool) Binary(op byte, rhs Value) (Value, error) {
+func (b Bool) Binary(op byte, rhs Value) Value {
 	switch op {
 	case byte(token.AND):
-		return b && rhs.Boolean(), nil
+		return b && rhs.Boolean()
 	case byte(token.OR):
-		return b || rhs.Boolean(), nil
+		return b || rhs.Boolean()
 	default:
-		return globalNil, nil
+		return NilValue
 	}
 }
 
@@ -93,14 +93,14 @@ func (s String) Boolean() Bool {
 	return Bool(true)
 }
 
-func (s String) Binary(op byte, rhs Value) (Value, error) {
+func (s String) Binary(op byte, rhs Value) Value {
 	switch op {
 	case byte(token.OR):
-		return s.Boolean() || rhs.Boolean(), nil
+		return s.Boolean() || rhs.Boolean()
 	case byte(token.AND):
-		return s.Boolean() && rhs.Boolean(), nil
+		return s.Boolean() && rhs.Boolean()
 	default:
-		return globalNil, nil
+		return NilValue
 	}
 }
 
@@ -109,7 +109,7 @@ func (s String) Prefix(op byte) Value {
 	case byte(token.NOT):
 		return Bool(len(s.Value) != 0)
 	default:
-		return globalNil
+		return NilValue
 	}
 }
 

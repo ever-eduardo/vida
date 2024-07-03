@@ -98,10 +98,7 @@ func (vm *VM) Debug() (Result, error) {
 			ip += 2
 			to := vm.CurrentFrame.code[ip]
 			ip++
-			l := vm.valueFrom(scopeLHS, fromLHS)
-			r := vm.valueFrom(scopeRHS, fromRHS)
-			val, _ := l.Binary(op, r)
-			vm.CurrentFrame.stack[to] = val
+			vm.CurrentFrame.stack[to] = vm.valueFrom(scopeLHS, fromLHS).Binary(op, vm.valueFrom(scopeRHS, fromRHS))
 		case end:
 			return Success, nil
 		default:

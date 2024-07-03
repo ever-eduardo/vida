@@ -45,7 +45,7 @@ func (kb *KonstBuilder) NilIndex() int {
 		return kb.nilIndex
 	}
 	kb.nilIndex = kb.index
-	kb.Konstants = append(kb.Konstants, globalNil)
+	kb.Konstants = append(kb.Konstants, NilValue)
 	kb.index++
 	return kb.nilIndex
 }
