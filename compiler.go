@@ -77,6 +77,15 @@ func (c *Compiler) compileStmt(node ast.Node) {
 
 func (c *Compiler) compileExpr(node ast.Node) (int, byte) {
 	switch n := node.(type) {
+	case *ast.BinaryExpr:
+		opReg := c.rAlloc
+		c.rAlloc++
+		lidx, lscope := c.compileExpr(n.Lhs)
+		c.rAlloc++
+		ridx, rscope := c.compileExpr(n.Rhs)
+		c.rAlloc = opReg
+		c.emitBinary(lidx, ridx, lscope, rscope, opReg, byte(n.Op))
+		return int(opReg), rLocal
 	case *ast.PrefixExpr:
 		idx, scope := c.compileExpr(n.Expr)
 		c.emitPrefix(idx, c.rAlloc, scope, byte(n.Op))

@@ -6,6 +6,7 @@ const (
 	setL
 	move
 	prefix
+	binop
 )
 
 var opcodes = [...]string{
@@ -14,4 +15,5 @@ var opcodes = [...]string{
 	setL:   "SetL",
 	move:   "Move",
 	prefix: "Prefix",
+	binop:  "Binary",
 }

@@ -1,1 +1,7 @@
-a = true or false
+loc x = true
+loc y = false
+
+a = not (x and x)
+b = not (x and y)
+c = not (y and x)
+d = not (y and y)

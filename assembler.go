@@ -62,6 +62,16 @@ func (c *Compiler) emitPrefix(from int, to byte, scope byte, operator byte) {
 	c.module.Code = append(c.module.Code, to)
 }
 
+func (c *Compiler) emitBinary(fromLHS int, fromRHS int, scopeLHS byte, scopeRHS byte, to byte, operator byte) {
+	c.module.Code = append(c.module.Code, binop)
+	c.module.Code = append(c.module.Code, operator)
+	c.module.Code = append(c.module.Code, scopeLHS)
+	c.module.Code = append(c.module.Code, scopeRHS)
+	c.module.Code = binary.NativeEndian.AppendUint16(c.module.Code, uint16(fromLHS))
+	c.module.Code = binary.NativeEndian.AppendUint16(c.module.Code, uint16(fromRHS))
+	c.module.Code = append(c.module.Code, to)
+}
+
 func (c *Compiler) refScope(id string) (int, byte) {
 	if to, isLocal := c.sb.isLocal(id, c.level, c.scope); isLocal {
 		return int(to), rLocal
