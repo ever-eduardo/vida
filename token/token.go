@@ -18,6 +18,8 @@ const (
 	COMMA
 	LPAREN
 	RPAREN
+	LCURLY
+	RCURLY
 	operator_end
 
 	binary_op_init
@@ -43,6 +45,8 @@ var tokens = [...]string{
 	COMMA:      "Comma",
 	LPAREN:     "(",
 	RPAREN:     ")",
+	LCURLY:     "{",
+	RCURLY:     "}",
 	AND:        "and",
 	OR:         "or",
 	NOT:        "not",

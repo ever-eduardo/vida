@@ -1,8 +1,10 @@
 module		:=	statement*
 statement	:= 	global
 			| 	local
+			|	block
 global		:=	ident '=' expr
 local		:=	'loc' ident '=' expr
+block		:=	statement*
 ident		:=	['_' | letter]+ ['_' | letter | number]*
 expr		:=	prefix
 			|	binary

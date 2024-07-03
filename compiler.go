@@ -51,7 +51,7 @@ func (c *Compiler) compileStmt(node ast.Node) {
 		from, scope := c.compileExpr(n.Expr)
 		switch lhs := n.LHS.(type) {
 		case *ast.Identifier:
-			if to, isLocal := c.sb.isLocal(lhs.Value, c.level, c.scope); isLocal {
+			if to, isLocal := c.sb.isLocal(lhs.Value); isLocal {
 				if scope == rLocal {
 					c.emitMove(byte(from), to)
 				} else {
@@ -72,6 +72,13 @@ func (c *Compiler) compileStmt(node ast.Node) {
 		from, scope := c.compileExpr(n.Expr)
 		c.sb.addLocal(n.Identifier, c.level, c.scope, to)
 		c.emitLoc(from, to, scope)
+	case *ast.Block:
+		c.scope++
+		for i := range len(n.Statement) {
+			c.compileStmt(n.Statement[i])
+		}
+		c.rAlloc -= byte(c.sb.clearLocals(c.level, c.scope))
+		c.scope--
 	}
 }
 

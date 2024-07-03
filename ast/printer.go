@@ -91,6 +91,13 @@ func printAST(node Node, sb *strings.Builder, level int) {
 		printAST(n.Lhs, sb, level+twoLevels)
 		sb.WriteRune(nl)
 		printAST(n.Rhs, sb, level+twoLevels)
+	case *Block:
+		sb.WriteRune(nl)
+		buildIndent(sb, level+oneLevel)
+		sb.WriteString("Block")
+		for i := range len(n.Statement) {
+			printAST(n.Statement[i], sb, level+twoLevels)
+		}
 	}
 }
 

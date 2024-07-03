@@ -36,6 +36,8 @@ func (p *Parser) Parse() (*ast.Ast, error) {
 			p.ast.Statement = append(p.ast.Statement, p.identPath())
 		case token.LOC:
 			p.ast.Statement = append(p.ast.Statement, p.localStmt())
+		case token.LCURLY:
+			p.ast.Statement = append(p.ast.Statement, p.block())
 		case token.EOF:
 			return p.ast, nil
 		default:
@@ -66,6 +68,26 @@ func (p *Parser) localStmt() ast.Node {
 	e := p.expression(token.LowestPrec)
 	p.advance()
 	return &ast.Loc{Identifier: i, Expr: e}
+}
+
+func (p *Parser) block() ast.Node {
+	block := &ast.Block{}
+	p.advance()
+	for p.current.Token != token.RCURLY {
+		switch p.current.Token {
+		case token.IDENTIFIER:
+			block.Statement = append(block.Statement, p.identPath())
+		case token.LOC:
+			block.Statement = append(block.Statement, p.localStmt())
+		case token.LCURLY:
+			block.Statement = append(block.Statement, p.block())
+		default:
+			p.err = verror.New(p.lexer.ModuleName, "Expected statement", verror.SyntaxError, p.current.Line)
+			return block
+		}
+	}
+	p.advance()
+	return block
 }
 
 func (p *Parser) expression(precedence int) ast.Node {

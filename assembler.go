@@ -73,7 +73,7 @@ func (c *Compiler) emitBinary(fromLHS int, fromRHS int, scopeLHS byte, scopeRHS 
 }
 
 func (c *Compiler) refScope(id string) (int, byte) {
-	if to, isLocal := c.sb.isLocal(id, c.level, c.scope); isLocal {
+	if to, isLocal := c.sb.isLocal(id); isLocal {
 		return int(to), rLocal
 	}
 	if isGlobal := c.sb.isGlobal(id); isGlobal {

@@ -142,6 +142,10 @@ func (l *Lexer) Next() (line uint, tok token.Token, lit string) {
 			tok = token.LPAREN
 		case ')':
 			tok = token.RPAREN
+		case '{':
+			tok = token.LCURLY
+		case '}':
+			tok = token.RCURLY
 		default:
 			tok = token.UNEXPECTED
 			lit = string(ch)

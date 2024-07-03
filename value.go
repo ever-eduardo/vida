@@ -66,9 +66,15 @@ func (b Bool) Prefix(op byte) Value {
 func (b Bool) Binary(op byte, rhs Value) Value {
 	switch op {
 	case byte(token.AND):
-		return b && rhs.Boolean()
+		if b {
+			return rhs
+		}
+		return b
 	case byte(token.OR):
-		return b || rhs.Boolean()
+		if b {
+			return b
+		}
+		return rhs
 	default:
 		return NilValue
 	}

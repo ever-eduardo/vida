@@ -47,6 +47,10 @@ type BinaryExpr struct {
 	Op  token.Token
 }
 
+type Block struct {
+	Statement []Node
+}
+
 func (ast *Ast) _node()       {}
 func (loc *Loc) _node()       {}
 func (mut *Set) _node()       {}
@@ -56,3 +60,4 @@ func (b *Boolean) _node()     {}
 func (n *Nil) _node()         {}
 func (n *PrefixExpr) _node()  {}
 func (n *BinaryExpr) _node()  {}
+func (n *Block) _node()       {}
