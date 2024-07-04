@@ -11,6 +11,7 @@ const (
 
 	literal_init
 	IDENTIFIER
+	INTEGER
 	literal_end
 
 	operator_init
@@ -41,6 +42,7 @@ var tokens = [...]string{
 	EOF:        "EOF",
 	COMMENT:    "Comment",
 	IDENTIFIER: "Identifier",
+	INTEGER:    "Integer",
 	ASSIGN:     "Assign",
 	COMMA:      "Comma",
 	LPAREN:     "(",

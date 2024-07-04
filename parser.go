@@ -2,6 +2,7 @@ package vida
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/ever-eduardo/vida/ast"
 	"github.com/ever-eduardo/vida/lexer"
@@ -108,6 +109,13 @@ func (p *Parser) prefix() ast.Node {
 		p.advance()
 		e := p.expression(token.PrefixPrec)
 		return &ast.PrefixExpr{Op: token.NOT, Expr: e}
+	case token.INTEGER:
+		if i, err := strconv.ParseInt(p.current.Lit, 0, 64); err == nil {
+			return &ast.Integer{Value: i}
+		}
+		p.err = verror.New(p.lexer.ModuleName, "Integer value could not be processed", verror.SyntaxError, p.current.Line)
+		p.ok = false
+		return &ast.Nil{}
 	case token.TRUE:
 		return &ast.Boolean{Value: true}
 	case token.FALSE:

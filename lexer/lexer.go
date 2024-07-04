@@ -66,12 +66,12 @@ func (l *Lexer) next() {
 	}
 }
 
-// func (l *Lexer) peek() byte {
-// 	if l.leadPointer < l.srcLen {
-// 		return l.src[l.leadPointer]
-// 	}
-// 	return 0
-// }
+func (l *Lexer) peek() byte {
+	if l.leadPointer < l.srcLen {
+		return l.src[l.leadPointer]
+	}
+	return 0
+}
 
 func (l *Lexer) skipWhitespace() {
 	for l.c == ' ' || l.c == '\t' || l.c == '\n' || l.c == '\r' {
@@ -85,6 +85,18 @@ func lower(c rune) rune {
 
 func isDecimal(c rune) bool {
 	return '0' <= c && c <= '9'
+}
+
+func isOctal(c rune) bool {
+	return '0' <= c && c <= '7'
+}
+
+func isBin(c rune) bool {
+	return '0' <= c && c <= '1'
+}
+
+func isHex(ch rune) bool {
+	return '0' <= ch && ch <= '9' || 'a' <= lower(ch) && lower(ch) <= 'f'
 }
 
 func isLetter(c rune) bool {
@@ -118,6 +130,40 @@ exit:
 	return string(l.src[pointer:l.pointer])
 }
 
+func (l *Lexer) scanNumber() (token.Token, string) {
+	init := l.pointer
+	tok := token.INTEGER
+	if l.c == '0' {
+		l.next()
+		switch lower(l.c) {
+		case 'x':
+			l.next()
+			for isHex(l.c) || l.c == '_' {
+				l.next()
+			}
+		case 'b':
+			l.next()
+			for isBin(l.c) || l.c == '_' {
+				l.next()
+			}
+		case 'o':
+			l.next()
+			for isOctal(l.c) || l.c == '_' {
+				l.next()
+			}
+		default:
+			for isOctal(l.c) || l.c == '_' {
+				l.next()
+			}
+		}
+	} else {
+		for isDecimal(l.c) || l.c == '_' {
+			l.next()
+		}
+	}
+	return tok, string(l.src[init:l.pointer])
+}
+
 func (l *Lexer) Next() (line uint, tok token.Token, lit string) {
 	l.skipWhitespace()
 	line = l.line
@@ -129,6 +175,8 @@ func (l *Lexer) Next() (line uint, tok token.Token, lit string) {
 		} else {
 			tok = token.IDENTIFIER
 		}
+	case isDecimal(ch):
+		tok, lit = l.scanNumber()
 	default:
 		l.next()
 		switch ch {
@@ -136,8 +184,8 @@ func (l *Lexer) Next() (line uint, tok token.Token, lit string) {
 			tok = token.EOF
 		case '=':
 			tok = token.ASSIGN
-		case ',':
-			tok = token.COMMA
+		// case ',':
+		// 	tok = token.COMMA
 		case '(':
 			tok = token.LPAREN
 		case ')':

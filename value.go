@@ -2,6 +2,7 @@ package vida
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/ever-eduardo/vida/token"
 )
@@ -125,6 +126,28 @@ func (s String) String() string {
 
 func (s String) Type() string {
 	return "string"
+}
+
+type Integer int64
+
+func (i Integer) Boolean() Bool {
+	return Bool(true)
+}
+
+func (i Integer) Prefix(op byte) Value {
+	return NilValue
+}
+
+func (i Integer) Binary(op byte, rhs Value) Value {
+	return NilValue
+}
+
+func (i Integer) String() string {
+	return strconv.FormatInt(int64(i), 10)
+}
+
+func (i Integer) Type() string {
+	return "int"
 }
 
 type Module struct {

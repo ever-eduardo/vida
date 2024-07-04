@@ -3,6 +3,7 @@ package vida
 type KonstBuilder struct {
 	stringMap  map[string]int
 	booleanMap map[bool]int
+	integerMap map[int64]int
 	index      int
 	nilIndex   int
 	Konstants  []Value
@@ -12,6 +13,7 @@ func newKonstBuilder() *KonstBuilder {
 	return &KonstBuilder{
 		stringMap:  make(map[string]int),
 		booleanMap: make(map[bool]int),
+		integerMap: make(map[int64]int),
 		nilIndex:   -1,
 	}
 }
@@ -48,4 +50,16 @@ func (kb *KonstBuilder) NilIndex() int {
 	kb.Konstants = append(kb.Konstants, NilValue)
 	kb.index++
 	return kb.nilIndex
+}
+
+func (kb *KonstBuilder) IntegerMap(value int64) int {
+	idx, isPresent := kb.integerMap[value]
+	if isPresent {
+		return idx
+	}
+	i := kb.index
+	kb.Konstants = append(kb.Konstants, Integer(value))
+	kb.integerMap[value] = i
+	kb.index++
+	return i
 }

@@ -32,6 +32,10 @@ type Boolean struct {
 	Value bool
 }
 
+type Integer struct {
+	Value int64
+}
+
 type Nil struct {
 	Value struct{}
 }
@@ -61,3 +65,4 @@ func (n *Nil) _node()         {}
 func (n *PrefixExpr) _node()  {}
 func (n *BinaryExpr) _node()  {}
 func (n *Block) _node()       {}
+func (n *Integer) _node()     {}
