@@ -105,10 +105,11 @@ func (p *Parser) expression(precedence int) ast.Node {
 
 func (p *Parser) prefix() ast.Node {
 	switch p.current.Token {
-	case token.NOT:
+	case token.NOT, token.SUB, token.ADD:
+		t := p.current.Token
 		p.advance()
 		e := p.expression(token.PrefixPrec)
-		return &ast.PrefixExpr{Op: token.NOT, Expr: e}
+		return &ast.PrefixExpr{Op: t, Expr: e}
 	case token.INTEGER:
 		if i, err := strconv.ParseInt(p.current.Lit, 0, 64); err == nil {
 			return &ast.Integer{Value: i}

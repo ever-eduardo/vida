@@ -1,16 +1,18 @@
 package vida
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 
 	"github.com/ever-eduardo/vida/token"
+	"github.com/ever-eduardo/vida/verror"
 )
 
 type Value interface {
 	Boolean() Bool
-	Prefix(byte) Value
-	Binary(byte, Value) Value
+	Prefix(byte) (Value, error)
+	Binop(byte, Value) (Value, error)
 	String() string
 	Type() string
 }
@@ -21,23 +23,23 @@ func (n Nil) Boolean() Bool {
 	return Bool(false)
 }
 
-func (n Nil) Prefix(op byte) Value {
+func (n Nil) Prefix(op byte) (Value, error) {
 	switch op {
 	case byte(token.NOT):
-		return Bool(true)
+		return Bool(true), nil
 	default:
-		return NilValue
+		return NilValue, errors.New(verror.RunTimeError)
 	}
 }
 
-func (n Nil) Binary(op byte, rhs Value) Value {
+func (n Nil) Binop(op byte, rhs Value) (Value, error) {
 	switch op {
 	case byte(token.AND):
-		return NilValue
+		return NilValue, nil
 	case byte(token.OR):
-		return rhs
+		return rhs, nil
 	default:
-		return NilValue
+		return NilValue, errors.New(verror.RunTimeError)
 	}
 }
 
@@ -55,29 +57,29 @@ func (b Bool) Boolean() Bool {
 	return b
 }
 
-func (b Bool) Prefix(op byte) Value {
+func (b Bool) Prefix(op byte) (Value, error) {
 	switch op {
 	case byte(token.NOT):
-		return !b
+		return !b, nil
 	default:
-		return NilValue
+		return NilValue, errors.New(verror.RunTimeError)
 	}
 }
 
-func (b Bool) Binary(op byte, rhs Value) Value {
+func (b Bool) Binop(op byte, rhs Value) (Value, error) {
 	switch op {
 	case byte(token.AND):
 		if b {
-			return rhs
+			return rhs, nil
 		}
-		return b
+		return b, nil
 	case byte(token.OR):
 		if b {
-			return b
+			return b, nil
 		}
-		return rhs
+		return rhs, nil
 	default:
-		return NilValue
+		return NilValue, errors.New(verror.RunTimeError)
 	}
 }
 
@@ -100,23 +102,23 @@ func (s String) Boolean() Bool {
 	return Bool(true)
 }
 
-func (s String) Binary(op byte, rhs Value) Value {
+func (s String) Binop(op byte, rhs Value) (Value, error) {
 	switch op {
 	case byte(token.OR):
-		return s.Boolean() || rhs.Boolean()
+		return s.Boolean() || rhs.Boolean(), nil
 	case byte(token.AND):
-		return s.Boolean() && rhs.Boolean()
+		return s.Boolean() && rhs.Boolean(), nil
 	default:
-		return NilValue
+		return NilValue, errors.New(verror.RunTimeError)
 	}
 }
 
-func (s String) Prefix(op byte) Value {
+func (s String) Prefix(op byte) (Value, error) {
 	switch op {
 	case byte(token.NOT):
-		return Bool(len(s.Value) != 0)
+		return Bool(len(s.Value) != 0), nil
 	default:
-		return NilValue
+		return NilValue, errors.New(verror.RunTimeError)
 	}
 }
 
@@ -134,12 +136,55 @@ func (i Integer) Boolean() Bool {
 	return Bool(true)
 }
 
-func (i Integer) Prefix(op byte) Value {
-	return NilValue
+func (i Integer) Prefix(op byte) (Value, error) {
+	switch op {
+	case byte(token.SUB):
+		return -i, nil
+	case byte(token.ADD):
+		return i, nil
+	case byte(token.NOT):
+		return Bool(false), nil
+	}
+	return NilValue, errors.New(verror.RunTimeError)
 }
 
-func (i Integer) Binary(op byte, rhs Value) Value {
-	return NilValue
+func (l Integer) Binop(op byte, rhs Value) (Value, error) {
+	switch r := rhs.(type) {
+	case Integer:
+		switch op {
+		case byte(token.ADD):
+			return l + r, nil
+		case byte(token.SUB):
+			return l - r, nil
+		case byte(token.MUL):
+			return l * r, nil
+		case byte(token.DIV):
+			if r == 0 {
+				return NilValue, errors.New(verror.RunTimeError)
+			}
+			return l / r, nil
+		case byte(token.REM):
+			if r == 0 {
+				return NilValue, errors.New(verror.RunTimeError)
+			}
+			return l % r, nil
+		default:
+			switch op {
+			case byte(token.AND):
+				return r, nil
+			case byte(token.OR):
+				return l, nil
+			}
+		}
+	default:
+		switch op {
+		case byte(token.AND):
+			return r, nil
+		case byte(token.OR):
+			return l, nil
+		}
+	}
+	return NilValue, errors.New(verror.RunTimeError)
 }
 
 func (i Integer) String() string {

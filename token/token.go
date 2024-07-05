@@ -24,6 +24,11 @@ const (
 	operator_end
 
 	binary_op_init
+	ADD
+	SUB
+	MUL
+	DIV
+	REM
 	binary_op_end
 
 	keyword_init
@@ -49,6 +54,11 @@ var tokens = [...]string{
 	RPAREN:     ")",
 	LCURLY:     "{",
 	RCURLY:     "}",
+	ADD:        "+",
+	SUB:        "-",
+	MUL:        "*",
+	DIV:        "/",
+	REM:        "%",
 	AND:        "and",
 	OR:         "or",
 	NOT:        "not",
@@ -125,6 +135,10 @@ func (op Token) Precedence() int {
 		return 1
 	case AND:
 		return 2
+	case ADD, SUB:
+		return 4
+	case MUL, DIV, REM:
+		return 5
 	}
 	return LowestPrec
 }

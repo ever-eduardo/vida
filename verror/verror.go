@@ -5,7 +5,7 @@ import "fmt"
 const FileError = "File"
 const LexicalError = "Lexical"
 const SyntaxError = "Syntax"
-const runTimeError = "Runtime"
+const RunTimeError = "Runtime"
 
 type VidaError struct {
 	ModuleName   string

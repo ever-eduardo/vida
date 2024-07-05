@@ -77,7 +77,11 @@ func (vm *VM) Run() (Result, error) {
 			ip += 2
 			to := vm.CurrentFrame.code[ip]
 			ip++
-			vm.CurrentFrame.stack[to] = vm.valueFrom(scope, from).Prefix(op)
+			val, err := vm.valueFrom(scope, from).Prefix(op)
+			if err != nil {
+				return Failure, verror.New(vm.Module.Name, "Runtime error", verror.RunTimeError, math.MaxUint16)
+			}
+			vm.CurrentFrame.stack[to] = val
 		case binop:
 			op := vm.CurrentFrame.code[ip]
 			ip++
@@ -91,7 +95,11 @@ func (vm *VM) Run() (Result, error) {
 			ip += 2
 			to := vm.CurrentFrame.code[ip]
 			ip++
-			vm.CurrentFrame.stack[to] = vm.valueFrom(scopeLHS, fromLHS).Binary(op, vm.valueFrom(scopeRHS, fromRHS))
+			val, err := vm.valueFrom(scopeLHS, fromLHS).Binop(op, vm.valueFrom(scopeRHS, fromRHS))
+			if err != nil {
+				return Failure, verror.New(vm.Module.Name, "Runtime error", verror.RunTimeError, math.MaxUint16)
+			}
+			vm.CurrentFrame.stack[to] = val
 		case end:
 			return Success, nil
 		default:

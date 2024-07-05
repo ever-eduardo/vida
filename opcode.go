@@ -15,5 +15,5 @@ var opcodes = [...]string{
 	setL:   "SetL",
 	move:   "Move",
 	prefix: "Prefix",
-	binop:  "Binary",
+	binop:  "Binop",
 }

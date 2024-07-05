@@ -184,6 +184,16 @@ func (l *Lexer) Next() (line uint, tok token.Token, lit string) {
 			tok = token.EOF
 		case '=':
 			tok = token.ASSIGN
+		case '+':
+			tok = token.ADD
+		case '-':
+			tok = token.SUB
+		case '*':
+			tok = token.MUL
+		case '/':
+			tok = token.DIV
+		case '%':
+			tok = token.REM
 		// case ',':
 		// 	tok = token.COMMA
 		case '(':

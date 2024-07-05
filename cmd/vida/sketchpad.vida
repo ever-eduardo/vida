@@ -1,3 +1,4 @@
-a = 0x100
-b = ((((((((((0x_FFFF_FFFF))))))))))
-c = 10_000_000
+i = not nil
+i = not false
+i = not 0
+i = not not nil
