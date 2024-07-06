@@ -2,6 +2,7 @@ package vida
 
 import (
 	"fmt"
+	"math"
 	"strconv"
 
 	"github.com/ever-eduardo/vida/token"
@@ -189,6 +190,62 @@ func (i Integer) String() string {
 
 func (i Integer) Type() string {
 	return "int"
+}
+
+type Float float64
+
+func (f Float) Boolean() Bool {
+	return Bool(true)
+}
+
+func (f Float) Prefix(op byte) (Value, error) {
+	switch op {
+	case byte(token.SUB):
+		return -f, nil
+	case byte(token.ADD):
+		return f, nil
+	case byte(token.NOT):
+		return Bool(false), nil
+	}
+	return NilValue, verror.RuntimeError
+}
+
+func (f Float) Binop(op byte, rhs Value) (Value, error) {
+	switch r := rhs.(type) {
+	case Float:
+		switch op {
+		case byte(token.ADD):
+			return f + r, nil
+		case byte(token.SUB):
+			return f - r, nil
+		case byte(token.MUL):
+			return f * r, nil
+		case byte(token.DIV):
+			return f / r, nil
+		case byte(token.REM):
+			return Float(math.Remainder(float64(f), float64(r))), nil
+		case byte(token.AND):
+			return r, nil
+		case byte(token.OR):
+			return f, nil
+		}
+	default:
+		switch op {
+		case byte(token.AND):
+			return r, nil
+		case byte(token.OR):
+			return f, nil
+		}
+	}
+	return NilValue, verror.RuntimeError
+}
+
+func (f Float) String() string {
+	return strconv.FormatFloat(float64(f), 'g', -1, 64)
+}
+
+func (f Float) Type() string {
+	return "float"
 }
 
 type Module struct {
