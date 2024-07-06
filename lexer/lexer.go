@@ -133,34 +133,58 @@ exit:
 func (l *Lexer) scanNumber() (token.Token, string) {
 	init := l.pointer
 	tok := token.INTEGER
-	if l.c == '0' {
-		l.next()
-		switch lower(l.c) {
-		case 'x':
+	if l.c != '.' {
+		if l.c == '0' {
 			l.next()
-			for isHex(l.c) || l.c == '_' {
+			switch lower(l.c) {
+			case 'x':
 				l.next()
-			}
-		case 'b':
-			l.next()
-			for isBin(l.c) || l.c == '_' {
+				for isHex(l.c) || l.c == '_' {
+					l.next()
+				}
+			case 'b':
 				l.next()
-			}
-		case 'o':
-			l.next()
-			for isOctal(l.c) || l.c == '_' {
+				for isBin(l.c) || l.c == '_' {
+					l.next()
+				}
+			case 'o':
 				l.next()
+				for isOctal(l.c) || l.c == '_' {
+					l.next()
+				}
+			case '.':
+				goto fractional
+			default:
+				for isOctal(l.c) || l.c == '_' {
+					l.next()
+				}
 			}
-		default:
-			for isOctal(l.c) || l.c == '_' {
+		} else {
+			for isDecimal(l.c) || l.c == '_' {
 				l.next()
 			}
 		}
-	} else {
+	}
+fractional:
+	if l.c == '.' {
+		tok = token.FLOAT
+		l.next()
 		for isDecimal(l.c) || l.c == '_' {
 			l.next()
 		}
 	}
+
+	if e := lower(l.c); e == 'e' || e == 'p' {
+		l.next()
+		tok = token.FLOAT
+		if l.c == '+' || l.c == '-' {
+			l.next()
+		}
+		for isDecimal(l.c) || l.c == '_' {
+			l.next()
+		}
+	}
+	println("debug number", string(l.src[init:l.pointer]), tok.String())
 	return tok, string(l.src[init:l.pointer])
 }
 
@@ -175,7 +199,7 @@ func (l *Lexer) Next() (line uint, tok token.Token, lit string) {
 		} else {
 			tok = token.IDENTIFIER
 		}
-	case isDecimal(ch):
+	case isDecimal(ch) || l.c == '.' && isDecimal(rune(l.peek())):
 		tok, lit = l.scanNumber()
 	default:
 		l.next()
