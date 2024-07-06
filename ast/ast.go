@@ -36,6 +36,10 @@ type Integer struct {
 	Value int64
 }
 
+type Float struct {
+	Value float64
+}
+
 type Nil struct {
 	Value struct{}
 }
@@ -66,3 +70,4 @@ func (n *PrefixExpr) _node()  {}
 func (n *BinaryExpr) _node()  {}
 func (n *Block) _node()       {}
 func (n *Integer) _node()     {}
+func (n *Float) _node()       {}

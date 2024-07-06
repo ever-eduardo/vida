@@ -117,6 +117,13 @@ func (p *Parser) prefix() ast.Node {
 		p.err = verror.New(p.lexer.ModuleName, "Integer value could not be processed", verror.SyntaxErrMsg, p.current.Line)
 		p.ok = false
 		return &ast.Nil{}
+	case token.FLOAT:
+		if f, err := strconv.ParseFloat(p.current.Lit, 64); err == nil {
+			return &ast.Float{Value: f}
+		}
+		p.err = verror.New(p.lexer.ModuleName, "Float value could not be processed", verror.SyntaxErrMsg, p.current.Line)
+		p.ok = false
+		return &ast.Nil{}
 	case token.TRUE:
 		return &ast.Boolean{Value: true}
 	case token.FALSE:

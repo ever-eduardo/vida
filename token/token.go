@@ -12,6 +12,7 @@ const (
 	literal_init
 	IDENTIFIER
 	INTEGER
+	FLOAT
 	literal_end
 
 	operator_init
@@ -48,6 +49,7 @@ var tokens = [...]string{
 	COMMENT:    "Comment",
 	IDENTIFIER: "Identifier",
 	INTEGER:    "Integer",
+	FLOAT:      "Float",
 	ASSIGN:     "Assign",
 	COMMA:      "Comma",
 	LPAREN:     "(",

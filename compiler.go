@@ -85,7 +85,7 @@ func (c *Compiler) compileStmt(node ast.Node) {
 func (c *Compiler) compileExpr(node ast.Node) (int, byte) {
 	switch n := node.(type) {
 	case *ast.Integer:
-		idx := c.kb.IntegerMap(n.Value)
+		idx := c.kb.IntegerIndex(n.Value)
 		return idx, rKonst
 	case *ast.BinaryExpr:
 		opReg := c.rAlloc

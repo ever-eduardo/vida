@@ -4,6 +4,7 @@ type KonstBuilder struct {
 	stringMap  map[string]int
 	booleanMap map[bool]int
 	integerMap map[int64]int
+	floatMap   map[float64]int
 	index      int
 	nilIndex   int
 	Konstants  []Value
@@ -14,6 +15,7 @@ func newKonstBuilder() *KonstBuilder {
 		stringMap:  make(map[string]int),
 		booleanMap: make(map[bool]int),
 		integerMap: make(map[int64]int),
+		floatMap:   make(map[float64]int),
 		nilIndex:   -1,
 	}
 }
@@ -52,7 +54,7 @@ func (kb *KonstBuilder) NilIndex() int {
 	return kb.nilIndex
 }
 
-func (kb *KonstBuilder) IntegerMap(value int64) int {
+func (kb *KonstBuilder) IntegerIndex(value int64) int {
 	idx, isPresent := kb.integerMap[value]
 	if isPresent {
 		return idx
@@ -60,6 +62,18 @@ func (kb *KonstBuilder) IntegerMap(value int64) int {
 	i := kb.index
 	kb.Konstants = append(kb.Konstants, Integer(value))
 	kb.integerMap[value] = i
+	kb.index++
+	return i
+}
+
+func (kb *KonstBuilder) FloatIndex(value float64) int {
+	idx, isPresent := kb.floatMap[value]
+	if isPresent {
+		return idx
+	}
+	i := kb.index
+	kb.Konstants = append(kb.Konstants, Integer(value))
+	kb.floatMap[value] = i
 	kb.index++
 	return i
 }
