@@ -184,7 +184,6 @@ fractional:
 			l.next()
 		}
 	}
-	println("debug number", string(l.src[init:l.pointer]), tok.String())
 	return tok, string(l.src[init:l.pointer])
 }
 

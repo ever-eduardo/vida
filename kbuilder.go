@@ -72,7 +72,7 @@ func (kb *KonstBuilder) FloatIndex(value float64) int {
 		return idx
 	}
 	i := kb.index
-	kb.Konstants = append(kb.Konstants, Integer(value))
+	kb.Konstants = append(kb.Konstants, Float(value))
 	kb.floatMap[value] = i
 	kb.index++
 	return i

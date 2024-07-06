@@ -87,6 +87,9 @@ func (c *Compiler) compileExpr(node ast.Node) (int, byte) {
 	case *ast.Integer:
 		idx := c.kb.IntegerIndex(n.Value)
 		return idx, rKonst
+	case *ast.Float:
+		idx := c.kb.FloatIndex(n.Value)
+		return idx, rKonst
 	case *ast.BinaryExpr:
 		opReg := c.rAlloc
 		c.rAlloc++

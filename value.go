@@ -140,8 +140,6 @@ func (i Integer) Prefix(op byte) (Value, error) {
 	switch op {
 	case byte(token.SUB):
 		return -i, nil
-	case byte(token.ADD):
-		return i, nil
 	case byte(token.NOT):
 		return Bool(false), nil
 	}
@@ -168,6 +166,23 @@ func (l Integer) Binop(op byte, rhs Value) (Value, error) {
 				return NilValue, verror.RuntimeError
 			}
 			return l % r, nil
+		case byte(token.AND):
+			return r, nil
+		case byte(token.OR):
+			return l, nil
+		}
+	case Float:
+		switch op {
+		case byte(token.ADD):
+			return Float(Float(l) + r), nil
+		case byte(token.SUB):
+			return Float(Float(l) - r), nil
+		case byte(token.MUL):
+			return Float(Float(l) * r), nil
+		case byte(token.DIV):
+			return Float(Float(l) / r), nil
+		case byte(token.REM):
+			return Float(math.Remainder(float64(l), float64(r))), nil
 		case byte(token.AND):
 			return r, nil
 		case byte(token.OR):
@@ -202,8 +217,6 @@ func (f Float) Prefix(op byte) (Value, error) {
 	switch op {
 	case byte(token.SUB):
 		return -f, nil
-	case byte(token.ADD):
-		return f, nil
 	case byte(token.NOT):
 		return Bool(false), nil
 	}
@@ -222,6 +235,23 @@ func (f Float) Binop(op byte, rhs Value) (Value, error) {
 			return f * r, nil
 		case byte(token.DIV):
 			return f / r, nil
+		case byte(token.REM):
+			return Float(math.Remainder(float64(f), float64(r))), nil
+		case byte(token.AND):
+			return r, nil
+		case byte(token.OR):
+			return f, nil
+		}
+	case Integer:
+		switch op {
+		case byte(token.ADD):
+			return f + Float(r), nil
+		case byte(token.SUB):
+			return f - Float(r), nil
+		case byte(token.MUL):
+			return f * Float(r), nil
+		case byte(token.DIV):
+			return f / Float(r), nil
 		case byte(token.REM):
 			return Float(math.Remainder(float64(f), float64(r))), nil
 		case byte(token.AND):
