@@ -1,11 +1,14 @@
 package verror
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+)
 
-const FileError = "File"
-const LexicalError = "Lexical"
-const SyntaxError = "Syntax"
-const RunTimeError = "Runtime"
+const FileErrMsg = "File"
+const LexicalErrMsg = "Lexical"
+const SyntaxErrMsg = "Syntax"
+const RunTimeErrMsg = "Runtime"
 
 type VidaError struct {
 	ModuleName   string
@@ -31,3 +34,8 @@ func New(moduleName string, message string, errorType string, line uint) VidaErr
 		FromCompiler: false,
 	}
 }
+
+var (
+	RuntimeError   = errors.New(RunTimeErrMsg)
+	ErrStringLimit = errors.New("String Limit")
+)

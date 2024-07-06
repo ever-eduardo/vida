@@ -79,7 +79,7 @@ func (vm *VM) Run() (Result, error) {
 			ip++
 			val, err := vm.valueFrom(scope, from).Prefix(op)
 			if err != nil {
-				return Failure, verror.New(vm.Module.Name, "Runtime error", verror.RunTimeError, math.MaxUint16)
+				return Failure, verror.New(vm.Module.Name, "Runtime error", verror.RunTimeErrMsg, math.MaxUint16)
 			}
 			vm.CurrentFrame.stack[to] = val
 		case binop:
@@ -97,14 +97,14 @@ func (vm *VM) Run() (Result, error) {
 			ip++
 			val, err := vm.valueFrom(scopeLHS, fromLHS).Binop(op, vm.valueFrom(scopeRHS, fromRHS))
 			if err != nil {
-				return Failure, verror.New(vm.Module.Name, "Runtime error", verror.RunTimeError, math.MaxUint16)
+				return Failure, verror.New(vm.Module.Name, "Runtime error", verror.RunTimeErrMsg, math.MaxUint16)
 			}
 			vm.CurrentFrame.stack[to] = val
 		case end:
 			return Success, nil
 		default:
 			message := fmt.Sprintf("Unknown vm instruction %v", ip)
-			return Failure, verror.New(vm.Module.Name, message, verror.SyntaxError, math.MaxUint16)
+			return Failure, verror.New(vm.Module.Name, message, verror.SyntaxErrMsg, math.MaxUint16)
 		}
 	}
 }
@@ -136,5 +136,5 @@ func checkISACompatibility(m *Module) error {
 	if m.Code[4] == major {
 		return nil
 	}
-	return verror.New(m.Name, "The module was compilated with another ABI version", verror.FileError, 0)
+	return verror.New(m.Name, "The module was compilated with another ABI version", verror.FileErrMsg, 0)
 }

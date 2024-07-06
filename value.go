@@ -1,7 +1,6 @@
 package vida
 
 import (
-	"errors"
 	"fmt"
 	"strconv"
 
@@ -28,7 +27,7 @@ func (n Nil) Prefix(op byte) (Value, error) {
 	case byte(token.NOT):
 		return Bool(true), nil
 	default:
-		return NilValue, errors.New(verror.RunTimeError)
+		return NilValue, verror.RuntimeError
 	}
 }
 
@@ -39,7 +38,7 @@ func (n Nil) Binop(op byte, rhs Value) (Value, error) {
 	case byte(token.OR):
 		return rhs, nil
 	default:
-		return NilValue, errors.New(verror.RunTimeError)
+		return NilValue, verror.RuntimeError
 	}
 }
 
@@ -62,7 +61,7 @@ func (b Bool) Prefix(op byte) (Value, error) {
 	case byte(token.NOT):
 		return !b, nil
 	default:
-		return NilValue, errors.New(verror.RunTimeError)
+		return NilValue, verror.RuntimeError
 	}
 }
 
@@ -79,7 +78,7 @@ func (b Bool) Binop(op byte, rhs Value) (Value, error) {
 		}
 		return rhs, nil
 	default:
-		return NilValue, errors.New(verror.RunTimeError)
+		return NilValue, verror.RuntimeError
 	}
 }
 
@@ -109,7 +108,7 @@ func (s String) Binop(op byte, rhs Value) (Value, error) {
 	case byte(token.AND):
 		return s.Boolean() && rhs.Boolean(), nil
 	default:
-		return NilValue, errors.New(verror.RunTimeError)
+		return NilValue, verror.RuntimeError
 	}
 }
 
@@ -118,7 +117,7 @@ func (s String) Prefix(op byte) (Value, error) {
 	case byte(token.NOT):
 		return Bool(len(s.Value) != 0), nil
 	default:
-		return NilValue, errors.New(verror.RunTimeError)
+		return NilValue, verror.RuntimeError
 	}
 }
 
@@ -145,7 +144,7 @@ func (i Integer) Prefix(op byte) (Value, error) {
 	case byte(token.NOT):
 		return Bool(false), nil
 	}
-	return NilValue, errors.New(verror.RunTimeError)
+	return NilValue, verror.RuntimeError
 }
 
 func (l Integer) Binop(op byte, rhs Value) (Value, error) {
@@ -160,21 +159,18 @@ func (l Integer) Binop(op byte, rhs Value) (Value, error) {
 			return l * r, nil
 		case byte(token.DIV):
 			if r == 0 {
-				return NilValue, errors.New(verror.RunTimeError)
+				return NilValue, verror.RuntimeError
 			}
 			return l / r, nil
 		case byte(token.REM):
 			if r == 0 {
-				return NilValue, errors.New(verror.RunTimeError)
+				return NilValue, verror.RuntimeError
 			}
 			return l % r, nil
-		default:
-			switch op {
-			case byte(token.AND):
-				return r, nil
-			case byte(token.OR):
-				return l, nil
-			}
+		case byte(token.AND):
+			return r, nil
+		case byte(token.OR):
+			return l, nil
 		}
 	default:
 		switch op {
@@ -184,7 +180,7 @@ func (l Integer) Binop(op byte, rhs Value) (Value, error) {
 			return l, nil
 		}
 	}
-	return NilValue, errors.New(verror.RunTimeError)
+	return NilValue, verror.RuntimeError
 }
 
 func (i Integer) String() string {
@@ -238,6 +234,22 @@ func (c Closure) String() string {
 
 type GoFn func(args ...Value) (Value, error)
 
+func (gfn GoFn) Boolean() Bool {
+	return Bool(true)
+}
+
+func (gfn GoFn) Prefix(op byte) (Value, error) {
+	return NilValue, verror.RuntimeError
+}
+
+func (gfn GoFn) Binop(op byte, rhs Value) (Value, error) {
+	return NilValue, verror.RuntimeError
+}
+
 func (gfn GoFn) String() string {
-	return "Function"
+	return "GFunction"
+}
+
+func (gfn GoFn) Type() string {
+	return "function"
 }
