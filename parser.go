@@ -42,7 +42,7 @@ func (p *Parser) Parse() (*ast.Ast, error) {
 		case token.EOF:
 			return p.ast, nil
 		default:
-			p.err = verror.New(p.lexer.ModuleName, "Expected statement", verror.SyntaxError, p.current.Line)
+			p.err = verror.New(p.lexer.ModuleName, "Expected statement", verror.SyntaxErrMsg, p.current.Line)
 			return nil, p.err
 		}
 	}
@@ -83,7 +83,7 @@ func (p *Parser) block() ast.Node {
 		case token.LCURLY:
 			block.Statement = append(block.Statement, p.block())
 		default:
-			p.err = verror.New(p.lexer.ModuleName, "Expected statement", verror.SyntaxError, p.current.Line)
+			p.err = verror.New(p.lexer.ModuleName, "Expected statement", verror.SyntaxErrMsg, p.current.Line)
 			return block
 		}
 	}
@@ -114,7 +114,7 @@ func (p *Parser) prefix() ast.Node {
 		if i, err := strconv.ParseInt(p.current.Lit, 0, 64); err == nil {
 			return &ast.Integer{Value: i}
 		}
-		p.err = verror.New(p.lexer.ModuleName, "Integer value could not be processed", verror.SyntaxError, p.current.Line)
+		p.err = verror.New(p.lexer.ModuleName, "Integer value could not be processed", verror.SyntaxErrMsg, p.current.Line)
 		p.ok = false
 		return &ast.Nil{}
 	case token.TRUE:
@@ -132,7 +132,7 @@ func (p *Parser) prefix() ast.Node {
 		p.expect(token.RPAREN)
 		return e
 	default:
-		p.err = verror.New(p.lexer.ModuleName, "Expected expression", verror.SyntaxError, p.current.Line)
+		p.err = verror.New(p.lexer.ModuleName, "Expected expression", verror.SyntaxErrMsg, p.current.Line)
 		p.ok = false
 		return &ast.Nil{}
 	}
@@ -142,7 +142,7 @@ func (p *Parser) expect(tok token.Token) {
 	if p.current.Token != tok && p.ok {
 		p.ok = false
 		message := fmt.Sprintf("Expected token %v and got token %v", tok, p.current.Token)
-		p.err = verror.New(p.lexer.ModuleName, message, verror.SyntaxError, p.current.Line)
+		p.err = verror.New(p.lexer.ModuleName, message, verror.SyntaxErrMsg, p.current.Line)
 	}
 }
 

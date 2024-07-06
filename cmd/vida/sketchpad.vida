@@ -1,4 +1,0 @@
-i = not nil
-i = not false
-i = not 0
-i = not not nil

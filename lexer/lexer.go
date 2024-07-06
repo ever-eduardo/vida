@@ -53,10 +53,10 @@ func (l *Lexer) next() {
 			r, w = utf8.DecodeRune(l.src[l.leadPointer:])
 			if r == utf8.RuneError && w == 1 {
 				r = unexpected
-				l.LexicalError = verror.New(l.ModuleName, fmt.Sprintf("The file %v is not has not correct utf-8 encoding", l.ModuleName), verror.FileError, l.line)
+				l.LexicalError = verror.New(l.ModuleName, fmt.Sprintf("The file %v is not has not correct utf-8 encoding", l.ModuleName), verror.FileErrMsg, l.line)
 			} else if r == bom && l.pointer > 0 {
 				r = unexpected
-				l.LexicalError = verror.New(l.ModuleName, fmt.Sprintf("The file %v has a bom in an expectec place", l.ModuleName), verror.FileError, l.line)
+				l.LexicalError = verror.New(l.ModuleName, fmt.Sprintf("The file %v has a bom in an expectec place", l.ModuleName), verror.FileErrMsg, l.line)
 			}
 		}
 		l.c = r
@@ -207,7 +207,7 @@ func (l *Lexer) Next() (line uint, tok token.Token, lit string) {
 		default:
 			tok = token.UNEXPECTED
 			lit = string(ch)
-			l.LexicalError = verror.New(l.ModuleName, "Unexpected symbol "+lit, verror.LexicalError, l.line)
+			l.LexicalError = verror.New(l.ModuleName, "Unexpected symbol "+lit, verror.LexicalErrMsg, l.line)
 		}
 	}
 	return
