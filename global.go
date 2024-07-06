@@ -18,8 +18,10 @@ func loadPrelude() map[string]Value {
 }
 
 func gfnPrint(args ...Value) (Value, error) {
+	var s []any
 	for i := range args {
-		fmt.Println(args[i].String())
+		s = append(s, args[i].String(), ' ')
 	}
+	fmt.Println(s...)
 	return NilValue, nil
 }
