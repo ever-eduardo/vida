@@ -86,6 +86,12 @@ func printAST(node Node, sb *strings.Builder, level int) {
 		sb.WriteRune(nl)
 		buildIndent(sb, level+twoLevels)
 		sb.WriteString(fmt.Sprint(n.Value))
+	case *String:
+		buildIndent(sb, level+oneLevel)
+		sb.WriteString("String")
+		sb.WriteRune(nl)
+		buildIndent(sb, level+twoLevels)
+		sb.WriteString(n.Value)
 	case *PrefixExpr:
 		buildIndent(sb, level+oneLevel)
 		sb.WriteString("Prefix")

@@ -14,6 +14,7 @@ func loadPrelude() map[string]Value {
 	p["load"] = NilValue
 	p["type"] = NilValue
 	p["assert"] = NilValue
+	p["format"] = NilValue
 	return p
 }
 

@@ -13,10 +13,12 @@ const (
 	IDENTIFIER
 	INTEGER
 	FLOAT
+	STRING
 	literal_end
 
 	operator_init
 	ASSIGN
+	QUOTE
 	COMMA
 	LPAREN
 	RPAREN
@@ -50,7 +52,9 @@ var tokens = [...]string{
 	IDENTIFIER: "Identifier",
 	INTEGER:    "Integer",
 	FLOAT:      "Float",
+	STRING:     "String",
 	ASSIGN:     "Assign",
+	QUOTE:      "\"",
 	COMMA:      "Comma",
 	LPAREN:     "(",
 	RPAREN:     ")",

@@ -40,6 +40,10 @@ type Float struct {
 	Value float64
 }
 
+type String struct {
+	Value string
+}
+
 type Nil struct {
 	Value struct{}
 }
@@ -71,3 +75,4 @@ func (n *BinaryExpr) _node()  {}
 func (n *Block) _node()       {}
 func (n *Integer) _node()     {}
 func (n *Float) _node()       {}
+func (n *String) _node()      {}

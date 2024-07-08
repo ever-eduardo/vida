@@ -103,20 +103,28 @@ func (s String) Boolean() Bool {
 }
 
 func (s String) Binop(op byte, rhs Value) (Value, error) {
-	switch op {
-	case byte(token.OR):
-		return s.Boolean() || rhs.Boolean(), nil
-	case byte(token.AND):
-		return s.Boolean() && rhs.Boolean(), nil
+	switch r := rhs.(type) {
+	case String:
+		switch op {
+		case byte(token.ADD):
+			str := String{Value: s.Value + r.Value}
+			return str, nil
+		}
 	default:
-		return NilValue, verror.RuntimeError
+		switch op {
+		case byte(token.OR):
+			return s, nil
+		case byte(token.AND):
+			return r, nil
+		}
 	}
+	return NilValue, verror.RuntimeError
 }
 
 func (s String) Prefix(op byte) (Value, error) {
 	switch op {
 	case byte(token.NOT):
-		return Bool(len(s.Value) != 0), nil
+		return Bool(false), nil
 	default:
 		return NilValue, verror.RuntimeError
 	}
@@ -142,6 +150,8 @@ func (i Integer) Prefix(op byte) (Value, error) {
 		return -i, nil
 	case byte(token.NOT):
 		return Bool(false), nil
+	case byte(token.ADD):
+		return i, nil
 	}
 	return NilValue, verror.RuntimeError
 }
@@ -219,6 +229,8 @@ func (f Float) Prefix(op byte) (Value, error) {
 		return -f, nil
 	case byte(token.NOT):
 		return Bool(false), nil
+	case byte(token.ADD):
+		return f, nil
 	}
 	return NilValue, verror.RuntimeError
 }

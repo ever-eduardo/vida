@@ -107,6 +107,26 @@ func isDigit(c rune) bool {
 	return isDecimal(c) || c >= utf8.RuneSelf && unicode.IsDigit(c)
 }
 
+func (l *Lexer) scanString() (token.Token, string) {
+	init := l.pointer
+	for {
+		ch := l.c
+		if ch == '\n' {
+			l.line++
+		}
+		if ch < 0 {
+			l.c = unexpected
+			l.LexicalError = verror.New(l.ModuleName, fmt.Sprintf("The file %v has an unterminated string literal", l.ModuleName), verror.FileErrMsg, l.line)
+			return token.UNEXPECTED, ""
+		}
+		l.next()
+		if ch == '"' {
+			break
+		}
+	}
+	return token.STRING, string(l.src[init : l.pointer-1])
+}
+
 func (l *Lexer) scanIdentifier() string {
 	pointer := l.pointer
 	for leadPointer, b := range l.src[l.leadPointer:] {
@@ -207,6 +227,8 @@ func (l *Lexer) Next() (line uint, tok token.Token, lit string) {
 			tok = token.EOF
 		case '=':
 			tok = token.ASSIGN
+		case '"':
+			tok, lit = l.scanString()
 		case '+':
 			tok = token.ADD
 		case '-':

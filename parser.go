@@ -105,7 +105,7 @@ func (p *Parser) expression(precedence int) ast.Node {
 
 func (p *Parser) prefix() ast.Node {
 	switch p.current.Token {
-	case token.NOT, token.SUB:
+	case token.NOT, token.SUB, token.ADD:
 		t := p.current.Token
 		p.advance()
 		e := p.expression(token.PrefixPrec)
@@ -124,6 +124,8 @@ func (p *Parser) prefix() ast.Node {
 		p.err = verror.New(p.lexer.ModuleName, "Float value could not be processed", verror.SyntaxErrMsg, p.current.Line)
 		p.ok = false
 		return &ast.Nil{}
+	case token.STRING:
+		return &ast.String{Value: p.current.Lit}
 	case token.TRUE:
 		return &ast.Boolean{Value: true}
 	case token.FALSE:
