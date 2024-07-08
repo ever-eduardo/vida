@@ -239,8 +239,8 @@ func (l *Lexer) Next() (line uint, tok token.Token, lit string) {
 			tok = token.DIV
 		case '%':
 			tok = token.REM
-		// case ',':
-		// 	tok = token.COMMA
+		case ',':
+			tok = token.COMMA
 		case '(':
 			tok = token.LPAREN
 		case ')':
@@ -249,6 +249,10 @@ func (l *Lexer) Next() (line uint, tok token.Token, lit string) {
 			tok = token.LCURLY
 		case '}':
 			tok = token.RCURLY
+		case '[':
+			tok = token.LBRACKET
+		case ']':
+			tok = token.RBRACKET
 		default:
 			tok = token.UNEXPECTED
 			lit = string(ch)

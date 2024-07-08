@@ -134,6 +134,22 @@ func (p *Parser) prefix() ast.Node {
 		return &ast.Nil{}
 	case token.IDENTIFIER:
 		return &ast.Reference{Value: p.current.Lit}
+	case token.LBRACKET:
+		xs := &ast.List{}
+		p.advance()
+		for p.current.Token != token.RBRACKET {
+			e := p.expression(token.LowestPrec)
+			p.advance()
+			xs.Expr = append(xs.Expr, e)
+			for p.current.Token == token.COMMA {
+				p.advance()
+				e := p.expression(token.LowestPrec)
+				p.advance()
+				xs.Expr = append(xs.Expr, e)
+			}
+		}
+		p.expect(token.RBRACKET)
+		return xs
 	case token.LPAREN:
 		p.advance()
 		e := p.expression(token.LowestPrec)

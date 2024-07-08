@@ -92,6 +92,19 @@ func printAST(node Node, sb *strings.Builder, level int) {
 		sb.WriteRune(nl)
 		buildIndent(sb, level+twoLevels)
 		sb.WriteString(n.Value)
+	case *List:
+		buildIndent(sb, level+oneLevel)
+		sb.WriteString("List")
+		sb.WriteRune(nl)
+		if len(n.Expr) == 0 {
+			buildIndent(sb, level+twoLevels)
+			sb.WriteString("[]")
+		} else {
+			for _, v := range n.Expr {
+				printAST(v, sb, level+oneLevel)
+				sb.WriteRune(nl)
+			}
+		}
 	case *PrefixExpr:
 		buildIndent(sb, level+oneLevel)
 		sb.WriteString("Prefix")

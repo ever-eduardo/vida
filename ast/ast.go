@@ -48,6 +48,10 @@ type Nil struct {
 	Value struct{}
 }
 
+type List struct {
+	Expr []Node
+}
+
 type PrefixExpr struct {
 	Expr Node
 	Op   token.Token
@@ -76,3 +80,4 @@ func (n *Block) _node()       {}
 func (n *Integer) _node()     {}
 func (n *Float) _node()       {}
 func (n *String) _node()      {}
+func (n *List) _node()        {}

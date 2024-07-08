@@ -24,6 +24,8 @@ const (
 	RPAREN
 	LCURLY
 	RCURLY
+	LBRACKET
+	RBRACKET
 	operator_end
 
 	binary_op_init
@@ -60,6 +62,8 @@ var tokens = [...]string{
 	RPAREN:     ")",
 	LCURLY:     "{",
 	RCURLY:     "}",
+	LBRACKET:   "[",
+	RBRACKET:   "]",
 	ADD:        "+",
 	SUB:        "-",
 	MUL:        "*",

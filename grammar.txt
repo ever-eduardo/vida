@@ -8,7 +8,7 @@ block		:=	statement*
 ident		:=	['_' | letter]+ ['_' | letter | number]*
 expr		:=	prefix
 			|	binary
-prefix		:=	'not' expr
+prefix		:=	'not' | '+' | '-' expr
 			|	primary
 binary		:=	expr binop expr
 primary		:=	'true'
@@ -16,5 +16,15 @@ primary		:=	'true'
 			|	'nil'
 			|	ident
 			|	'(' expr ')'
+			|	Integer
+			|	Float
+			|	String
+			|	List
 binop		:=	'and'
 			|	'or'
+			|	'+'
+			|	'-'
+			|	'*'
+			|	'/'
+			|	'%'
+List		:=	'[' (expr (',' expr)*)? ']'
