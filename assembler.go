@@ -72,6 +72,13 @@ func (c *Compiler) emitBinary(fromLHS int, fromRHS int, scopeLHS byte, scopeRHS 
 	c.module.Code = append(c.module.Code, to)
 }
 
+func (c *Compiler) emitList(length byte, from byte, to byte) {
+	c.module.Code = append(c.module.Code, list)
+	c.module.Code = append(c.module.Code, length)
+	c.module.Code = append(c.module.Code, from)
+	c.module.Code = append(c.module.Code, to)
+}
+
 func (c *Compiler) refScope(id string) (int, byte) {
 	if to, isLocal := c.sb.isLocal(id); isLocal {
 		return int(to), rLocal

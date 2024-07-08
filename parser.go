@@ -140,12 +140,16 @@ func (p *Parser) prefix() ast.Node {
 		for p.current.Token != token.RBRACKET {
 			e := p.expression(token.LowestPrec)
 			p.advance()
-			xs.Expr = append(xs.Expr, e)
+			xs.ExprList = append(xs.ExprList, e)
 			for p.current.Token == token.COMMA {
 				p.advance()
+				if p.current.Token == token.RBRACKET {
+					p.expect(token.RBRACKET)
+					return xs
+				}
 				e := p.expression(token.LowestPrec)
 				p.advance()
-				xs.Expr = append(xs.Expr, e)
+				xs.ExprList = append(xs.ExprList, e)
 			}
 		}
 		p.expect(token.RBRACKET)

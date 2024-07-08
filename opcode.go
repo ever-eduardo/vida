@@ -7,6 +7,7 @@ const (
 	move
 	prefix
 	binop
+	list
 )
 
 var opcodes = [...]string{
@@ -16,4 +17,5 @@ var opcodes = [...]string{
 	move:   "Move",
 	prefix: "Prefix",
 	binop:  "Binop",
+	list:   "List",
 }

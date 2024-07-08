@@ -96,11 +96,11 @@ func printAST(node Node, sb *strings.Builder, level int) {
 		buildIndent(sb, level+oneLevel)
 		sb.WriteString("List")
 		sb.WriteRune(nl)
-		if len(n.Expr) == 0 {
+		if len(n.ExprList) == 0 {
 			buildIndent(sb, level+twoLevels)
 			sb.WriteString("[]")
 		} else {
-			for _, v := range n.Expr {
+			for _, v := range n.ExprList {
 				printAST(v, sb, level+oneLevel)
 				sb.WriteRune(nl)
 			}

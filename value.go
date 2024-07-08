@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 	"strconv"
+	"strings"
 
 	"github.com/ever-eduardo/vida/token"
 	"github.com/ever-eduardo/vida/verror"
@@ -292,6 +293,65 @@ func (f Float) String() string {
 
 func (f Float) Type() string {
 	return "float"
+}
+
+type List struct {
+	Value []Value
+}
+
+func (xs *List) Boolean() Bool {
+	return Bool(true)
+}
+
+func (xs *List) Prefix(op byte) (Value, error) {
+	switch op {
+	case byte(token.NOT):
+		return Bool(false), nil
+	default:
+		return NilValue, verror.RuntimeError
+	}
+}
+
+func (xs *List) Binop(op byte, rhs Value) (Value, error) {
+	switch r := rhs.(type) {
+	case *List:
+		switch op {
+		case byte(token.ADD):
+			lLen := len(xs.Value)
+			rLen := len(r.Value)
+			values := make([]Value, lLen+rLen)
+			copy(values[:lLen], xs.Value)
+			copy(values[lLen:], r.Value)
+			return &List{Value: values}, nil
+		case byte(token.AND):
+			return r, nil
+		case byte(token.OR):
+			return xs, nil
+		}
+	default:
+		switch op {
+		case byte(token.OR):
+			return xs, nil
+		case byte(token.AND):
+			return r, nil
+		}
+	}
+	return NilValue, verror.RuntimeError
+}
+
+func (xs List) String() string {
+	if len(xs.Value) == 0 {
+		return "[]"
+	}
+	var r []string
+	for _, v := range xs.Value {
+		r = append(r, v.String())
+	}
+	return fmt.Sprintf("[%v]", strings.Join(r, ", "))
+}
+
+func (xs *List) Type() string {
+	return "list"
 }
 
 type Module struct {

@@ -115,6 +115,25 @@ func (c *Compiler) compileExpr(node ast.Node) (int, byte) {
 	case *ast.Reference:
 		idx, scope := c.refScope(n.Value)
 		return idx, scope
+	case *ast.List:
+		if len(n.ExprList) == 0 {
+			c.emitList(0, c.rAlloc, c.rAlloc)
+			return int(c.rAlloc), rLocal
+		}
+		var count int
+		for _, v := range n.ExprList {
+			idx, scope := c.compileExpr(v)
+			if scope != rLocal {
+				c.emitLoc(idx, c.rAlloc, scope)
+			} else if idx != int(c.rAlloc) {
+				c.emitMove(byte(idx), c.rAlloc)
+			}
+			c.rAlloc++
+			count++
+		}
+		c.rAlloc -= byte(count)
+		c.emitList(byte(count), c.rAlloc, c.rAlloc)
+		return int(c.rAlloc), rLocal
 	default:
 		return 0, rKonst
 	}

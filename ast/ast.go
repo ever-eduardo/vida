@@ -49,7 +49,7 @@ type Nil struct {
 }
 
 type List struct {
-	Expr []Node
+	ExprList []Node
 }
 
 type PrefixExpr struct {
