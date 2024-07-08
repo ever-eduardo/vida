@@ -152,6 +152,11 @@ func (p *Parser) prefix() ast.Node {
 		return xs
 	case token.LPAREN:
 		p.advance()
+		if p.current.Token == token.RPAREN {
+			p.err = verror.New(p.lexer.ModuleName, "Expected expression", verror.SyntaxErrMsg, p.current.Line)
+			p.ok = false
+			return &ast.Nil{}
+		}
 		e := p.expression(token.LowestPrec)
 		p.advance()
 		p.expect(token.RPAREN)
