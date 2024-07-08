@@ -109,6 +109,10 @@ func (s String) Binop(op byte, rhs Value) (Value, error) {
 		case byte(token.ADD):
 			str := String{Value: s.Value + r.Value}
 			return str, nil
+		case byte(token.AND):
+			return r, nil
+		case byte(token.OR):
+			return s, nil
 		}
 	default:
 		switch op {
