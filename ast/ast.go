@@ -67,6 +67,17 @@ type Block struct {
 	Statement []Node
 }
 
+type IndexGet struct {
+	Indexable Node
+	Index     Node
+}
+
+type SliceGet struct {
+	List  Node
+	First Node
+	Last  Node
+}
+
 func (ast *Ast) _node()       {}
 func (loc *Loc) _node()       {}
 func (mut *Set) _node()       {}
@@ -81,3 +92,5 @@ func (n *Integer) _node()     {}
 func (n *Float) _node()       {}
 func (n *String) _node()      {}
 func (n *List) _node()        {}
+func (n *IndexGet) _node()    {}
+func (n *SliceGet) _node()    {}

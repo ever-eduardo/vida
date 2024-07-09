@@ -8,6 +8,8 @@ const (
 	prefix
 	binop
 	list
+	iGet
+	slice
 )
 
 var opcodes = [...]string{
@@ -18,4 +20,6 @@ var opcodes = [...]string{
 	prefix: "Prefix",
 	binop:  "Binop",
 	list:   "List",
+	iGet:   "IGet",
+	slice:  "Slice",
 }

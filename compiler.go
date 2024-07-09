@@ -134,6 +134,15 @@ func (c *Compiler) compileExpr(node ast.Node) (int, byte) {
 		c.rAlloc -= byte(count)
 		c.emitList(byte(count), c.rAlloc, c.rAlloc)
 		return int(c.rAlloc), rLocal
+	case *ast.IndexGet:
+		opReg := c.rAlloc
+		c.rAlloc++
+		i, s := c.compileExpr(n.Indexable)
+		c.rAlloc++
+		j, t := c.compileExpr(n.Index)
+		c.rAlloc = opReg
+		c.emitIndexGet(i, j, s, t, opReg)
+		return int(opReg), rLocal
 	default:
 		return 0, rKonst
 	}

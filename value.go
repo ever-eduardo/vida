@@ -14,6 +14,7 @@ type Value interface {
 	Boolean() Bool
 	Prefix(byte) (Value, error)
 	Binop(byte, Value) (Value, error)
+	IGet(Value) (Value, error)
 	String() string
 	Type() string
 }
@@ -42,6 +43,10 @@ func (n Nil) Binop(op byte, rhs Value) (Value, error) {
 	default:
 		return NilValue, verror.RuntimeError
 	}
+}
+
+func (n Nil) IGet(index Value) (Value, error) {
+	return NilValue, verror.RuntimeError
 }
 
 func (n Nil) String() string {
@@ -84,6 +89,10 @@ func (b Bool) Binop(op byte, rhs Value) (Value, error) {
 	}
 }
 
+func (b Bool) IGet(index Value) (Value, error) {
+	return NilValue, verror.RuntimeError
+}
+
 func (b Bool) String() string {
 	if b {
 		return "true"
@@ -121,6 +130,20 @@ func (s String) Binop(op byte, rhs Value) (Value, error) {
 			return s, nil
 		case byte(token.AND):
 			return r, nil
+		}
+	}
+	return NilValue, verror.RuntimeError
+}
+
+func (s String) IGet(index Value) (Value, error) {
+	switch r := index.(type) {
+	case Integer:
+		l := len(s.Value)
+		if -l <= int(r) && int(r) <= l-1 {
+			if r < 0 {
+				return String{Value: s.Value[l+int(r) : l+int(r)+1]}, nil
+			}
+			return String{Value: s.Value[int(r) : int(r)+1]}, nil
 		}
 	}
 	return NilValue, verror.RuntimeError
@@ -214,6 +237,10 @@ func (l Integer) Binop(op byte, rhs Value) (Value, error) {
 	return NilValue, verror.RuntimeError
 }
 
+func (i Integer) IGet(index Value) (Value, error) {
+	return NilValue, verror.RuntimeError
+}
+
 func (i Integer) String() string {
 	return strconv.FormatInt(int64(i), 10)
 }
@@ -287,6 +314,10 @@ func (f Float) Binop(op byte, rhs Value) (Value, error) {
 	return NilValue, verror.RuntimeError
 }
 
+func (f Float) IGet(index Value) (Value, error) {
+	return NilValue, verror.RuntimeError
+}
+
 func (f Float) String() string {
 	return strconv.FormatFloat(float64(f), 'g', -1, 64)
 }
@@ -317,8 +348,11 @@ func (xs *List) Binop(op byte, rhs Value) (Value, error) {
 	case *List:
 		switch op {
 		case byte(token.ADD):
-			lLen := len(xs.Value)
 			rLen := len(r.Value)
+			if rLen == 0 {
+				return xs, nil
+			}
+			lLen := len(xs.Value)
 			values := make([]Value, lLen+rLen)
 			copy(values[:lLen], xs.Value)
 			copy(values[lLen:], r.Value)
@@ -334,6 +368,20 @@ func (xs *List) Binop(op byte, rhs Value) (Value, error) {
 			return xs, nil
 		case byte(token.AND):
 			return r, nil
+		}
+	}
+	return NilValue, verror.RuntimeError
+}
+
+func (xs *List) IGet(index Value) (Value, error) {
+	switch r := index.(type) {
+	case Integer:
+		l := len(xs.Value)
+		if -l <= int(r) && int(r) <= l-1 {
+			if r < 0 {
+				return xs.Value[l+int(r)], nil
+			}
+			return xs.Value[r], nil
 		}
 	}
 	return NilValue, verror.RuntimeError
@@ -406,6 +454,10 @@ func (gfn GoFn) Prefix(op byte) (Value, error) {
 }
 
 func (gfn GoFn) Binop(op byte, rhs Value) (Value, error) {
+	return NilValue, verror.RuntimeError
+}
+
+func (gfn GoFn) IGet(index Value) (Value, error) {
 	return NilValue, verror.RuntimeError
 }
 

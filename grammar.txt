@@ -8,8 +8,8 @@ block		:=	statement*
 ident		:=	['_' | letter]+ ['_' | letter | number]*
 expr		:=	prefix
 			|	binary
-prefix		:=	'not' | '+' | '-' expr
-			|	primary
+prefix		:=	'not' | '+' | '-' prefix
+			|	primary Select*
 binary		:=	expr binop expr
 primary		:=	'true'
 			|	'false'
@@ -28,3 +28,7 @@ binop		:=	'and'
 			|	'/'
 			|	'%'
 List		:=	'[' (expr (',' expr)*)? ']'
+Select		:=	'[' expr | ':' | ':' expr | expr ':' | expr ':' expr ']' Select*
+			|	'.' ident Select*
+			|	'(' (expr (',' expr)*)? ')' Select*
+			|	':' ident '(' (expr (',' expr)*)? ')' Select*

@@ -107,6 +107,22 @@ func (vm *VM) Debug() (Result, error) {
 				return Failure, verror.New(vm.Module.Name, "Runtime error", verror.RunTimeErrMsg, math.MaxUint16)
 			}
 			vm.CurrentFrame.stack[to] = val
+		case iGet:
+			scopeIndexable := vm.CurrentFrame.code[ip]
+			ip++
+			scopeIndex := vm.CurrentFrame.code[ip]
+			ip++
+			fromIndexable := binary.NativeEndian.Uint16(vm.CurrentFrame.code[ip:])
+			ip += 2
+			fromIndex := binary.NativeEndian.Uint16(vm.CurrentFrame.code[ip:])
+			ip += 2
+			to := vm.CurrentFrame.code[ip]
+			ip++
+			val, err := vm.valueFrom(scopeIndexable, fromIndexable).IGet(vm.valueFrom(scopeIndex, fromIndex))
+			if err != nil {
+				return Failure, verror.New(vm.Module.Name, "Runtime error", verror.RunTimeErrMsg, math.MaxUint16)
+			}
+			vm.CurrentFrame.stack[to] = val
 		case list:
 			length := vm.CurrentFrame.code[ip]
 			ip++

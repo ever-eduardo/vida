@@ -108,8 +108,29 @@ func (p *Parser) prefix() ast.Node {
 	case token.NOT, token.SUB, token.ADD:
 		t := p.current.Token
 		p.advance()
-		e := p.expression(token.PrefixPrec)
+		e := p.prefix()
 		return &ast.PrefixExpr{Op: t, Expr: e}
+	}
+	return p.primary()
+}
+
+func (p *Parser) primary() ast.Node {
+	e := p.operand()
+Loop:
+	for p.next.Token == token.LBRACKET {
+		p.advance()
+		switch p.current.Token {
+		case token.LBRACKET:
+			e = p.indexOrSlice(e)
+		default:
+			break Loop
+		}
+	}
+	return e
+}
+
+func (p *Parser) operand() ast.Node {
+	switch p.current.Token {
 	case token.INTEGER:
 		if i, err := strconv.ParseInt(p.current.Lit, 0, 64); err == nil {
 			return &ast.Integer{Value: i}
@@ -169,6 +190,36 @@ func (p *Parser) prefix() ast.Node {
 		p.err = verror.New(p.lexer.ModuleName, "Expected expression", verror.SyntaxErrMsg, p.current.Line)
 		p.ok = false
 		return &ast.Nil{}
+	}
+}
+
+func (p *Parser) indexOrSlice(e ast.Node) ast.Node {
+	p.advance()
+	var index [2]ast.Node
+	if p.current.Token != token.COLON {
+		index[0] = p.expression(token.LowestPrec)
+		p.advance()
+	}
+	var numColons int
+	if p.current.Token == token.COLON {
+		numColons++
+		p.advance()
+		if p.current.Token != token.RBRACKET && p.current.Token != token.EOF {
+			index[1] = p.expression(token.LowestPrec)
+			p.advance()
+		}
+	}
+	p.expect(token.RBRACKET)
+	if numColons > 0 {
+		return &ast.SliceGet{
+			List:  e,
+			First: index[0],
+			Last:  index[1],
+		}
+	}
+	return &ast.IndexGet{
+		Indexable: e,
+		Index:     index[0],
 	}
 }
 

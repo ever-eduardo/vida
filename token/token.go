@@ -20,6 +20,7 @@ const (
 	ASSIGN
 	QUOTE
 	COMMA
+	COLON
 	LPAREN
 	RPAREN
 	LCURLY
@@ -58,6 +59,7 @@ var tokens = [...]string{
 	ASSIGN:     "Assign",
 	QUOTE:      "\"",
 	COMMA:      "Comma",
+	COLON:      ":",
 	LPAREN:     "(",
 	RPAREN:     ")",
 	LCURLY:     "{",

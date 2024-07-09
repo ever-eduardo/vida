@@ -79,6 +79,15 @@ func (c *Compiler) emitList(length byte, from byte, to byte) {
 	c.module.Code = append(c.module.Code, to)
 }
 
+func (c *Compiler) emitIndexGet(fromIndexable int, fromIndex int, scopeIndexable byte, scopeIndex byte, to byte) {
+	c.module.Code = append(c.module.Code, iGet)
+	c.module.Code = append(c.module.Code, scopeIndexable)
+	c.module.Code = append(c.module.Code, scopeIndex)
+	c.module.Code = binary.NativeEndian.AppendUint16(c.module.Code, uint16(fromIndexable))
+	c.module.Code = binary.NativeEndian.AppendUint16(c.module.Code, uint16(fromIndex))
+	c.module.Code = append(c.module.Code, to)
+}
+
 func (c *Compiler) refScope(id string) (int, byte) {
 	if to, isLocal := c.sb.isLocal(id); isLocal {
 		return int(to), rLocal

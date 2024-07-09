@@ -99,6 +99,22 @@ func processBytecode(code []byte, konst []Value) string {
 			sb.WriteRune(32)
 			sb.WriteString(fmt.Sprintf("%3v", int(code[ip])))
 			ip++
+		case iGet:
+			sb.WriteRune(32)
+			sb.WriteString(fmt.Sprintf("%3v", int(code[ip])))
+			ip++
+			sb.WriteRune(32)
+			sb.WriteString(fmt.Sprintf("%3v", int(code[ip])))
+			ip++
+			sb.WriteRune(32)
+			sb.WriteString(fmt.Sprintf("%3v", binary.NativeEndian.Uint16(code[ip:])))
+			ip += 2
+			sb.WriteRune(32)
+			sb.WriteString(fmt.Sprintf("%3v", binary.NativeEndian.Uint16(code[ip:])))
+			ip += 2
+			sb.WriteRune(32)
+			sb.WriteString(fmt.Sprintf("%3v", int(code[ip])))
+			ip++
 		case end:
 			sb.WriteRune(10)
 			sb.WriteRune(10)

@@ -123,6 +123,22 @@ func printAST(node Node, sb *strings.Builder, level int) {
 		printAST(n.Lhs, sb, level+twoLevels)
 		sb.WriteRune(nl)
 		printAST(n.Rhs, sb, level+twoLevels)
+	case *IndexGet:
+		buildIndent(sb, level+oneLevel)
+		sb.WriteString("IndexGet")
+		sb.WriteRune(nl)
+		printAST(n.Indexable, sb, level+oneLevel)
+		sb.WriteRune(nl)
+		printAST(n.Index, sb, level+oneLevel)
+	case *SliceGet:
+		buildIndent(sb, level+oneLevel)
+		sb.WriteString("Slice")
+		sb.WriteRune(nl)
+		printAST(n.List, sb, level+oneLevel)
+		sb.WriteRune(nl)
+		printAST(n.First, sb, level+oneLevel)
+		sb.WriteRune(nl)
+		printAST(n.Last, sb, level+oneLevel)
 	case *Block:
 		sb.WriteRune(nl)
 		buildIndent(sb, level+oneLevel)
@@ -130,6 +146,9 @@ func printAST(node Node, sb *strings.Builder, level int) {
 		for i := range len(n.Statement) {
 			printAST(n.Statement[i], sb, level+twoLevels)
 		}
+	default:
+		buildIndent(sb, level+oneLevel)
+		sb.WriteString("Node")
 	}
 }
 
