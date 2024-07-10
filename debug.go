@@ -75,20 +75,6 @@ func (vm *VM) Debug() (Result, error) {
 			to := vm.CurrentFrame.code[ip]
 			ip++
 			vm.CurrentFrame.stack[to] = vm.CurrentFrame.stack[from]
-		case prefix:
-			op := vm.CurrentFrame.code[ip]
-			ip++
-			scope := vm.CurrentFrame.code[ip]
-			ip++
-			from := binary.NativeEndian.Uint16(vm.CurrentFrame.code[ip:])
-			ip += 2
-			to := vm.CurrentFrame.code[ip]
-			ip++
-			val, err := vm.valueFrom(scope, from).Prefix(op)
-			if err != nil {
-				return Failure, verror.New(vm.Module.Name, "Runtime error", verror.RunTimeErrMsg, math.MaxUint16)
-			}
-			vm.CurrentFrame.stack[to] = val
 		case binop:
 			op := vm.CurrentFrame.code[ip]
 			ip++
@@ -107,6 +93,20 @@ func (vm *VM) Debug() (Result, error) {
 				return Failure, verror.New(vm.Module.Name, "Runtime error", verror.RunTimeErrMsg, math.MaxUint16)
 			}
 			vm.CurrentFrame.stack[to] = val
+		case prefix:
+			op := vm.CurrentFrame.code[ip]
+			ip++
+			scope := vm.CurrentFrame.code[ip]
+			ip++
+			from := binary.NativeEndian.Uint16(vm.CurrentFrame.code[ip:])
+			ip += 2
+			to := vm.CurrentFrame.code[ip]
+			ip++
+			val, err := vm.valueFrom(scope, from).Prefix(op)
+			if err != nil {
+				return Failure, verror.New(vm.Module.Name, "Runtime error", verror.RunTimeErrMsg, math.MaxUint16)
+			}
+			vm.CurrentFrame.stack[to] = val
 		case iGet:
 			scopeIndexable := vm.CurrentFrame.code[ip]
 			ip++
@@ -119,6 +119,28 @@ func (vm *VM) Debug() (Result, error) {
 			to := vm.CurrentFrame.code[ip]
 			ip++
 			val, err := vm.valueFrom(scopeIndexable, fromIndexable).IGet(vm.valueFrom(scopeIndex, fromIndex))
+			if err != nil {
+				return Failure, verror.New(vm.Module.Name, "Runtime error", verror.RunTimeErrMsg, math.MaxUint16)
+			}
+			vm.CurrentFrame.stack[to] = val
+		case slice:
+			mode := vm.CurrentFrame.code[ip]
+			ip++
+			scopeV := vm.CurrentFrame.code[ip]
+			ip++
+			scopeL := vm.CurrentFrame.code[ip]
+			ip++
+			scopeR := vm.CurrentFrame.code[ip]
+			ip++
+			fromV := binary.NativeEndian.Uint16(vm.CurrentFrame.code[ip:])
+			ip += 2
+			fromL := binary.NativeEndian.Uint16(vm.CurrentFrame.code[ip:])
+			ip += 2
+			fromR := binary.NativeEndian.Uint16(vm.CurrentFrame.code[ip:])
+			ip += 2
+			to := vm.CurrentFrame.code[ip]
+			ip++
+			val, err := vm.processSlice(mode, fromV, fromL, fromR, scopeV, scopeL, scopeR)
 			if err != nil {
 				return Failure, verror.New(vm.Module.Name, "Runtime error", verror.RunTimeErrMsg, math.MaxUint16)
 			}

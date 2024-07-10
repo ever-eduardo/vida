@@ -68,20 +68,6 @@ func (vm *VM) Run() (Result, error) {
 			to := vm.CurrentFrame.code[ip]
 			ip++
 			vm.CurrentFrame.stack[to] = vm.CurrentFrame.stack[from]
-		case prefix:
-			op := vm.CurrentFrame.code[ip]
-			ip++
-			scope := vm.CurrentFrame.code[ip]
-			ip++
-			from := binary.NativeEndian.Uint16(vm.CurrentFrame.code[ip:])
-			ip += 2
-			to := vm.CurrentFrame.code[ip]
-			ip++
-			val, err := vm.valueFrom(scope, from).Prefix(op)
-			if err != nil {
-				return Failure, verror.New(vm.Module.Name, "Runtime error", verror.RunTimeErrMsg, math.MaxUint16)
-			}
-			vm.CurrentFrame.stack[to] = val
 		case binop:
 			op := vm.CurrentFrame.code[ip]
 			ip++
@@ -100,6 +86,20 @@ func (vm *VM) Run() (Result, error) {
 				return Failure, verror.New(vm.Module.Name, "Runtime error", verror.RunTimeErrMsg, math.MaxUint16)
 			}
 			vm.CurrentFrame.stack[to] = val
+		case prefix:
+			op := vm.CurrentFrame.code[ip]
+			ip++
+			scope := vm.CurrentFrame.code[ip]
+			ip++
+			from := binary.NativeEndian.Uint16(vm.CurrentFrame.code[ip:])
+			ip += 2
+			to := vm.CurrentFrame.code[ip]
+			ip++
+			val, err := vm.valueFrom(scope, from).Prefix(op)
+			if err != nil {
+				return Failure, verror.New(vm.Module.Name, "Runtime error", verror.RunTimeErrMsg, math.MaxUint16)
+			}
+			vm.CurrentFrame.stack[to] = val
 		case iGet:
 			scopeIndexable := vm.CurrentFrame.code[ip]
 			ip++
@@ -112,6 +112,28 @@ func (vm *VM) Run() (Result, error) {
 			to := vm.CurrentFrame.code[ip]
 			ip++
 			val, err := vm.valueFrom(scopeIndexable, fromIndexable).IGet(vm.valueFrom(scopeIndex, fromIndex))
+			if err != nil {
+				return Failure, verror.New(vm.Module.Name, "Runtime error", verror.RunTimeErrMsg, math.MaxUint16)
+			}
+			vm.CurrentFrame.stack[to] = val
+		case slice:
+			mode := vm.CurrentFrame.code[ip]
+			ip++
+			scopeV := vm.CurrentFrame.code[ip]
+			ip++
+			scopeL := vm.CurrentFrame.code[ip]
+			ip++
+			scopeR := vm.CurrentFrame.code[ip]
+			ip++
+			fromV := binary.NativeEndian.Uint16(vm.CurrentFrame.code[ip:])
+			ip += 2
+			fromL := binary.NativeEndian.Uint16(vm.CurrentFrame.code[ip:])
+			ip += 2
+			fromR := binary.NativeEndian.Uint16(vm.CurrentFrame.code[ip:])
+			ip += 2
+			to := vm.CurrentFrame.code[ip]
+			ip++
+			val, err := vm.processSlice(mode, fromV, fromL, fromR, scopeV, scopeL, scopeR)
 			if err != nil {
 				return Failure, verror.New(vm.Module.Name, "Runtime error", verror.RunTimeErrMsg, math.MaxUint16)
 			}
@@ -159,6 +181,145 @@ func (vm *VM) valueFrom(scope byte, from uint16) Value {
 	default:
 		return NilValue
 	}
+}
+
+func (vm *VM) processSlice(mode byte, fromV uint16, fromL uint16, fromR uint16, scopeV byte, scopeL byte, scopeR byte) (Value, error) {
+	val := vm.valueFrom(scopeV, fromV)
+	switch v := val.(type) {
+	case *List:
+		switch mode {
+		case vcv:
+			return &List{Value: v.Value[:]}, nil
+		case vce:
+			e := vm.valueFrom(scopeR, fromR)
+			switch ee := e.(type) {
+			case Integer:
+				l := Integer(len(v.Value))
+				if ee < 0 {
+					ee += l
+				}
+				if 0 <= ee && ee <= l {
+					return &List{Value: v.Value[:ee]}, nil
+				}
+				if ee > l {
+					return &List{Value: v.Value[:]}, nil
+				}
+				return &List{}, nil
+			}
+		case ecv:
+			e := vm.valueFrom(scopeL, fromL)
+			switch ee := e.(type) {
+			case Integer:
+				l := Integer(len(v.Value))
+				if ee < 0 {
+					ee += l
+				}
+				if 0 <= ee && ee <= l {
+					return &List{Value: v.Value[ee:]}, nil
+				}
+				if ee < 0 {
+					return &List{Value: v.Value[:]}, nil
+				}
+				return &List{}, nil
+			}
+		case ece:
+			l := vm.valueFrom(scopeL, fromL)
+			r := vm.valueFrom(scopeR, fromR)
+			switch ll := l.(type) {
+			case Integer:
+				switch rr := r.(type) {
+				case Integer:
+					xslen := Integer(len(v.Value))
+					if ll < 0 {
+						ll += xslen
+					}
+					if rr < 0 {
+						rr += xslen
+					}
+					if ll < 0 {
+						if 0 <= rr && rr <= xslen {
+							return &List{Value: v.Value[:rr]}, nil
+						}
+						if rr > xslen {
+							return &List{Value: v.Value[:]}, nil
+						}
+					} else if rr > xslen {
+						if 0 <= ll && ll <= xslen {
+							return &List{Value: v.Value[ll:]}, nil
+						}
+					}
+				}
+				return &List{}, nil
+			}
+		}
+	case String:
+		switch mode {
+		case vcv:
+			return String{Value: v.Value[:]}, nil
+		case vce:
+			e := vm.valueFrom(scopeR, fromR)
+			switch ee := e.(type) {
+			case Integer:
+				l := Integer(len(v.Value))
+				if ee < 0 {
+					ee += l
+				}
+				if 0 <= ee && ee <= l {
+					return String{Value: v.Value[:ee]}, nil
+				}
+				if ee > l {
+					return String{Value: v.Value[:]}, nil
+				}
+				return String{}, nil
+			}
+		case ecv:
+			e := vm.valueFrom(scopeL, fromL)
+			switch ee := e.(type) {
+			case Integer:
+				l := Integer(len(v.Value))
+				if ee < 0 {
+					ee += l
+				}
+				if 0 <= ee && ee <= l {
+					return String{Value: v.Value[ee:]}, nil
+				}
+				if ee < 0 {
+					return String{Value: v.Value[:]}, nil
+				}
+				return String{}, nil
+			}
+		case ece:
+			l := vm.valueFrom(scopeL, fromL)
+			r := vm.valueFrom(scopeR, fromR)
+			switch ll := l.(type) {
+			case Integer:
+				switch rr := r.(type) {
+				case Integer:
+					xslen := Integer(len(v.Value))
+					if ll < 0 {
+						ll += xslen
+					}
+					if rr < 0 {
+						rr += xslen
+					}
+					if ll < 0 {
+						if 0 <= rr && rr <= xslen {
+							return String{Value: v.Value[:rr]}, nil
+						}
+						if rr > xslen {
+							return String{Value: v.Value[:]}, nil
+						}
+					} else if rr > xslen {
+						if 0 <= ll && ll <= xslen {
+							return String{Value: v.Value[ll:]}, nil
+						}
+					}
+				}
+				return String{}, nil
+			}
+		}
+	}
+	return NilValue, verror.RuntimeError
 }
 
 func checkISACompatibility(m *Module) error {

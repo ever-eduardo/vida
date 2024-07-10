@@ -138,12 +138,12 @@ func (s String) Binop(op byte, rhs Value) (Value, error) {
 func (s String) IGet(index Value) (Value, error) {
 	switch r := index.(type) {
 	case Integer:
-		l := len(s.Value)
-		if -l <= int(r) && int(r) <= l-1 {
-			if r < 0 {
-				return String{Value: s.Value[l+int(r) : l+int(r)+1]}, nil
-			}
-			return String{Value: s.Value[int(r) : int(r)+1]}, nil
+		l := Integer(len(s.Value))
+		if r < 0 {
+			r += l
+		}
+		if 0 <= r && r < l {
+			return String{Value: s.Value[r : r+Integer(1)]}, nil
 		}
 	}
 	return NilValue, verror.RuntimeError
@@ -376,11 +376,11 @@ func (xs *List) Binop(op byte, rhs Value) (Value, error) {
 func (xs *List) IGet(index Value) (Value, error) {
 	switch r := index.(type) {
 	case Integer:
-		l := len(xs.Value)
-		if -l <= int(r) && int(r) <= l-1 {
-			if r < 0 {
-				return xs.Value[l+int(r)], nil
-			}
+		l := Integer(len(xs.Value))
+		if r < 0 {
+			r += l
+		}
+		if 0 <= r && r < l {
 			return xs.Value[r], nil
 		}
 	}
