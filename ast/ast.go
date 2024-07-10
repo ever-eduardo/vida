@@ -61,7 +61,7 @@ type Pair struct {
 	Value Node
 }
 
-type Record struct {
+type Document struct {
 	Pairs []*Pair
 }
 
@@ -113,7 +113,7 @@ func (n *String) _node()      {}
 func (n *List) _node()        {}
 func (n *IndexGet) _node()    {}
 func (n *Slice) _node()       {}
-func (n *Record) _node()      {}
+func (n *Document) _node()    {}
 func (n *Pair) _node()        {}
 func (n *Property) _node()    {}
 func (n *Selector) _node()    {}

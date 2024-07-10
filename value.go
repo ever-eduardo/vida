@@ -402,15 +402,15 @@ func (xs *List) Type() string {
 	return "list"
 }
 
-type Record struct {
+type Document struct {
 	Value map[string]Value
 }
 
-func (m *Record) Boolean() Bool {
+func (m *Document) Boolean() Bool {
 	return Bool(true)
 }
 
-func (m *Record) Prefix(op byte) (Value, error) {
+func (m *Document) Prefix(op byte) (Value, error) {
 	switch op {
 	case byte(token.NOT):
 		return Bool(false), nil
@@ -419,9 +419,9 @@ func (m *Record) Prefix(op byte) (Value, error) {
 	}
 }
 
-func (m *Record) Binop(op byte, rhs Value) (Value, error) {
+func (m *Document) Binop(op byte, rhs Value) (Value, error) {
 	switch r := rhs.(type) {
-	case *Record:
+	case *Document:
 		switch op {
 		case byte(token.ADD):
 			rLen := len(r.Value)
@@ -435,7 +435,7 @@ func (m *Record) Binop(op byte, rhs Value) (Value, error) {
 			for k, v := range r.Value {
 				pairs[k] = v
 			}
-			return &Record{Value: pairs}, nil
+			return &Document{Value: pairs}, nil
 		case byte(token.AND):
 			return r, nil
 		case byte(token.OR):
@@ -452,7 +452,7 @@ func (m *Record) Binop(op byte, rhs Value) (Value, error) {
 	return NilValue, verror.RuntimeError
 }
 
-func (m *Record) IGet(index Value) (Value, error) {
+func (m *Document) IGet(index Value) (Value, error) {
 	switch r := index.(type) {
 	case String:
 		if val, ok := m.Value[r.Value]; ok {
@@ -463,7 +463,7 @@ func (m *Record) IGet(index Value) (Value, error) {
 	return NilValue, verror.RuntimeError
 }
 
-func (m *Record) String() string {
+func (m *Document) String() string {
 	if len(m.Value) == 0 {
 		return "{}"
 	}
@@ -474,8 +474,8 @@ func (m *Record) String() string {
 	return fmt.Sprintf("{%v}", strings.Join(r, ", "))
 }
 
-func (m *Record) Type() string {
-	return "record"
+func (m *Document) Type() string {
+	return "document"
 }
 
 type Module struct {

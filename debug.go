@@ -158,7 +158,7 @@ func (vm *VM) Debug() (Result, error) {
 				from++
 			}
 			vm.CurrentFrame.stack[to] = &List{Value: xs}
-		case record:
+		case document:
 			length := vm.CurrentFrame.code[ip]
 			ip++
 			from := vm.CurrentFrame.code[ip]
@@ -173,7 +173,7 @@ func (vm *VM) Debug() (Result, error) {
 				from++
 				rec[k] = v
 			}
-			vm.CurrentFrame.stack[to] = &Record{Value: rec}
+			vm.CurrentFrame.stack[to] = &Document{Value: rec}
 		case end:
 			return Success, nil
 		default:

@@ -134,7 +134,7 @@ func (c *Compiler) compileExpr(node ast.Node) (int, byte) {
 		c.rAlloc -= byte(count)
 		c.emitList(byte(count), c.rAlloc, c.rAlloc)
 		return int(c.rAlloc), rLocal
-	case *ast.Record:
+	case *ast.Document:
 		if len(n.Pairs) == 0 {
 			c.emitRecord(0, c.rAlloc, c.rAlloc)
 			return int(c.rAlloc), rLocal
@@ -165,6 +165,15 @@ func (c *Compiler) compileExpr(node ast.Node) (int, byte) {
 		i, s := c.compileExpr(n.Indexable)
 		c.rAlloc++
 		j, t := c.compileExpr(n.Index)
+		c.rAlloc = resultReg
+		c.emitIndexGet(i, j, s, t, resultReg)
+		return int(resultReg), rLocal
+	case *ast.Selector:
+		resultReg := c.rAlloc
+		c.rAlloc++
+		i, s := c.compileExpr(n.Selectable)
+		c.rAlloc++
+		j, t := c.compileExpr(n.Selector)
 		c.rAlloc = resultReg
 		c.emitIndexGet(i, j, s, t, resultReg)
 		return int(resultReg), rLocal

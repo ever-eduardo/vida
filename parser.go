@@ -186,7 +186,7 @@ func (p *Parser) operand() ast.Node {
 		p.expect(token.RBRACKET)
 		return xs
 	case token.LCURLY:
-		rec := &ast.Record{}
+		rec := &ast.Document{}
 		p.advance()
 		for p.current.Token != token.RCURLY {
 			p.expect(token.IDENTIFIER)
@@ -268,8 +268,7 @@ func (p *Parser) indexOrSlice(e ast.Node) ast.Node {
 }
 
 func (p *Parser) selector(e ast.Node) ast.Node {
-	sel := p.expression(token.LowestPrec)
-	return &ast.Selector{Selectable: e, Selector: sel}
+	return &ast.Selector{Selectable: e, Selector: &ast.Property{Value: p.current.Lit}}
 }
 
 func (p *Parser) expect(tok token.Token) {
