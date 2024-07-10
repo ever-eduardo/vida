@@ -130,11 +130,11 @@ func printAST(node Node, sb *strings.Builder, level int) {
 		printAST(n.Indexable, sb, level+oneLevel)
 		sb.WriteRune(nl)
 		printAST(n.Index, sb, level+oneLevel)
-	case *SliceGet:
+	case *Slice:
 		buildIndent(sb, level+oneLevel)
 		sb.WriteString("Slice")
 		sb.WriteRune(nl)
-		printAST(n.List, sb, level+oneLevel)
+		printAST(n.Value, sb, level+oneLevel)
 		sb.WriteRune(nl)
 		printAST(n.First, sb, level+oneLevel)
 		sb.WriteRune(nl)

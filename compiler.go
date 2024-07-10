@@ -135,14 +135,38 @@ func (c *Compiler) compileExpr(node ast.Node) (int, byte) {
 		c.emitList(byte(count), c.rAlloc, c.rAlloc)
 		return int(c.rAlloc), rLocal
 	case *ast.IndexGet:
-		opReg := c.rAlloc
+		resultReg := c.rAlloc
 		c.rAlloc++
 		i, s := c.compileExpr(n.Indexable)
 		c.rAlloc++
 		j, t := c.compileExpr(n.Index)
-		c.rAlloc = opReg
-		c.emitIndexGet(i, j, s, t, opReg)
-		return int(opReg), rLocal
+		c.rAlloc = resultReg
+		c.emitIndexGet(i, j, s, t, resultReg)
+		return int(resultReg), rLocal
+	case *ast.Slice:
+		resultReg := c.rAlloc
+		var scopeV, scopeL, scopeR byte
+		var fromV, fromL, fromR int
+		c.rAlloc++
+		fromV, scopeV = c.compileExpr(n.Value)
+		switch n.Mode {
+		case vcv:
+			break
+		case vce:
+			c.rAlloc++
+			fromR, scopeR = c.compileExpr(n.Last)
+		case ecv:
+			c.rAlloc++
+			fromL, scopeL = c.compileExpr(n.First)
+		case ece:
+			c.rAlloc++
+			fromL, scopeL = c.compileExpr(n.First)
+			c.rAlloc++
+			fromR, scopeR = c.compileExpr(n.Last)
+		}
+		c.rAlloc = resultReg
+		c.emitSlice(byte(n.Mode), fromV, fromL, fromR, scopeV, scopeL, scopeR, resultReg)
+		return int(resultReg), rLocal
 	default:
 		return 0, rKonst
 	}

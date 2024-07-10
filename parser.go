@@ -196,7 +196,9 @@ func (p *Parser) operand() ast.Node {
 func (p *Parser) indexOrSlice(e ast.Node) ast.Node {
 	p.advance()
 	var index [2]ast.Node
+	mode := 2
 	if p.current.Token != token.COLON {
+		mode |= 4
 		index[0] = p.expression(token.LowestPrec)
 		p.advance()
 	}
@@ -205,16 +207,18 @@ func (p *Parser) indexOrSlice(e ast.Node) ast.Node {
 		numColons++
 		p.advance()
 		if p.current.Token != token.RBRACKET && p.current.Token != token.EOF {
+			mode |= 1
 			index[1] = p.expression(token.LowestPrec)
 			p.advance()
 		}
 	}
 	p.expect(token.RBRACKET)
 	if numColons > 0 {
-		return &ast.SliceGet{
-			List:  e,
+		return &ast.Slice{
+			Value: e,
 			First: index[0],
 			Last:  index[1],
+			Mode:  mode,
 		}
 	}
 	return &ast.IndexGet{

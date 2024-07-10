@@ -19,6 +19,13 @@ const (
 	opNot byte = iota
 )
 
+const (
+	vcv = 2
+	vce = 3
+	ecv = 6
+	ece = 7
+)
+
 func (c *Compiler) appendHeader() {
 	c.module.Code = append(c.module.Code, byte(v))
 	c.module.Code = append(c.module.Code, byte(i))
@@ -85,6 +92,18 @@ func (c *Compiler) emitIndexGet(fromIndexable int, fromIndex int, scopeIndexable
 	c.module.Code = append(c.module.Code, scopeIndex)
 	c.module.Code = binary.NativeEndian.AppendUint16(c.module.Code, uint16(fromIndexable))
 	c.module.Code = binary.NativeEndian.AppendUint16(c.module.Code, uint16(fromIndex))
+	c.module.Code = append(c.module.Code, to)
+}
+
+func (c *Compiler) emitSlice(mode byte, fromV int, fromL int, fromR int, scopeV byte, scopeL byte, scopeR byte, to byte) {
+	c.module.Code = append(c.module.Code, slice)
+	c.module.Code = append(c.module.Code, mode)
+	c.module.Code = append(c.module.Code, scopeV)
+	c.module.Code = append(c.module.Code, scopeL)
+	c.module.Code = append(c.module.Code, scopeR)
+	c.module.Code = binary.NativeEndian.AppendUint16(c.module.Code, uint16(fromV))
+	c.module.Code = binary.NativeEndian.AppendUint16(c.module.Code, uint16(fromL))
+	c.module.Code = binary.NativeEndian.AppendUint16(c.module.Code, uint16(fromR))
 	c.module.Code = append(c.module.Code, to)
 }
 

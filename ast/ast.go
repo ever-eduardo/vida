@@ -72,10 +72,11 @@ type IndexGet struct {
 	Index     Node
 }
 
-type SliceGet struct {
-	List  Node
+type Slice struct {
+	Value Node
 	First Node
 	Last  Node
+	Mode  int
 }
 
 func (ast *Ast) _node()       {}
@@ -93,4 +94,4 @@ func (n *Float) _node()       {}
 func (n *String) _node()      {}
 func (n *List) _node()        {}
 func (n *IndexGet) _node()    {}
-func (n *SliceGet) _node()    {}
+func (n *Slice) _node()       {}

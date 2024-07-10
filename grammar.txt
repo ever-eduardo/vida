@@ -9,7 +9,7 @@ ident		:=	['_' | letter]+ ['_' | letter | number]*
 expr		:=	prefix
 			|	binary
 prefix		:=	'not' | '+' | '-' prefix
-			|	primary Select*
+			|	primary select*
 binary		:=	expr binop expr
 primary		:=	'true'
 			|	'false'
@@ -28,7 +28,7 @@ binop		:=	'and'
 			|	'/'
 			|	'%'
 List		:=	'[' (expr (',' expr)*)? ']'
-Select		:=	'[' expr | ':' | ':' expr | expr ':' | expr ':' expr ']' Select*
-			|	'.' ident Select*
-			|	'(' (expr (',' expr)*)? ')' Select*
-			|	':' ident '(' (expr (',' expr)*)? ')' Select*
+select		:=	'[' expr | ':' | ':' expr | expr ':' | expr ':' expr ']' select*
+			|	'.' ident select*
+			|	'(' (expr (',' expr)*)? ')' select*
+			|	':' ident '(' (expr (',' expr)*)? ')' select*
