@@ -402,6 +402,82 @@ func (xs *List) Type() string {
 	return "list"
 }
 
+type Map struct {
+	Value map[string]Value
+}
+
+func (m *Map) Boolean() Bool {
+	return Bool(true)
+}
+
+func (m *Map) Prefix(op byte) (Value, error) {
+	switch op {
+	case byte(token.NOT):
+		return Bool(false), nil
+	default:
+		return NilValue, verror.RuntimeError
+	}
+}
+
+func (m *Map) Binop(op byte, rhs Value) (Value, error) {
+	switch r := rhs.(type) {
+	case *Map:
+		switch op {
+		case byte(token.ADD):
+			rLen := len(r.Value)
+			if rLen == 0 {
+				return m, nil
+			}
+			pairs := make(map[string]Value)
+			for k, v := range m.Value {
+				pairs[k] = v
+			}
+			for k, v := range r.Value {
+				pairs[k] = v
+			}
+			return &Map{Value: pairs}, nil
+		case byte(token.AND):
+			return r, nil
+		case byte(token.OR):
+			return m, nil
+		}
+	default:
+		switch op {
+		case byte(token.OR):
+			return m, nil
+		case byte(token.AND):
+			return r, nil
+		}
+	}
+	return NilValue, verror.RuntimeError
+}
+
+func (m *Map) IGet(index Value) (Value, error) {
+	switch r := index.(type) {
+	case String:
+		if val, ok := m.Value[r.Value]; ok {
+			return val, nil
+		}
+		return NilValue, nil
+	}
+	return NilValue, verror.RuntimeError
+}
+
+func (m *Map) String() string {
+	if len(m.Value) == 0 {
+		return "{}"
+	}
+	var r []string
+	for k, v := range m.Value {
+		r = append(r, fmt.Sprintf("%v: %v", k, v.String()))
+	}
+	return fmt.Sprintf("{%v}", strings.Join(r, ", "))
+}
+
+func (m *Map) Type() string {
+	return "map"
+}
+
 type Module struct {
 	Konstants []Value
 	Code      []byte
