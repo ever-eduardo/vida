@@ -241,6 +241,8 @@ func (l *Lexer) Next() (line uint, tok token.Token, lit string) {
 			tok = token.REM
 		case ',':
 			tok = token.COMMA
+		case '.':
+			tok = token.DOT
 		case '(':
 			tok = token.LPAREN
 		case ')':

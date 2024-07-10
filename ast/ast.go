@@ -52,6 +52,15 @@ type List struct {
 	ExprList []Node
 }
 
+type MapPair struct {
+	Key   Node
+	Value Node
+}
+
+type Map struct {
+	MapPairs []*MapPair
+}
+
 type PrefixExpr struct {
 	Expr Node
 	Op   token.Token
@@ -79,6 +88,11 @@ type Slice struct {
 	Mode  int
 }
 
+type Selector struct {
+	Selectable Node
+	Selector   Node
+}
+
 func (ast *Ast) _node()       {}
 func (loc *Loc) _node()       {}
 func (mut *Set) _node()       {}
@@ -95,3 +109,6 @@ func (n *String) _node()      {}
 func (n *List) _node()        {}
 func (n *IndexGet) _node()    {}
 func (n *Slice) _node()       {}
+func (n *MapPair) _node()     {}
+func (n *Map) _node()         {}
+func (n *Selector) _node()    {}

@@ -21,6 +21,7 @@ const (
 	QUOTE
 	COMMA
 	COLON
+	DOT
 	LPAREN
 	RPAREN
 	LCURLY
@@ -60,6 +61,7 @@ var tokens = [...]string{
 	QUOTE:      "\"",
 	COMMA:      "Comma",
 	COLON:      ":",
+	DOT:        ".",
 	LPAREN:     "(",
 	RPAREN:     ")",
 	LCURLY:     "{",

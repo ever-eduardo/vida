@@ -105,6 +105,26 @@ func printAST(node Node, sb *strings.Builder, level int) {
 				sb.WriteRune(nl)
 			}
 		}
+	case *Map:
+		buildIndent(sb, level+oneLevel)
+		sb.WriteString("Map")
+		sb.WriteRune(nl)
+		if len(n.MapPairs) == 0 {
+			buildIndent(sb, level+twoLevels)
+			sb.WriteString("{}")
+		} else {
+			for _, v := range n.MapPairs {
+				printAST(v, sb, level+oneLevel)
+				sb.WriteRune(nl)
+			}
+		}
+	case *MapPair:
+		buildIndent(sb, level+oneLevel)
+		sb.WriteString("Pair")
+		sb.WriteRune(nl)
+		printAST(n.Key, sb, level+oneLevel)
+		sb.WriteRune(nl)
+		printAST(n.Value, sb, level+oneLevel)
 	case *PrefixExpr:
 		buildIndent(sb, level+oneLevel)
 		sb.WriteString("Prefix")
@@ -139,6 +159,13 @@ func printAST(node Node, sb *strings.Builder, level int) {
 		printAST(n.First, sb, level+oneLevel)
 		sb.WriteRune(nl)
 		printAST(n.Last, sb, level+oneLevel)
+	case *Selector:
+		buildIndent(sb, level+oneLevel)
+		sb.WriteString("Selector")
+		sb.WriteRune(nl)
+		printAST(n.Selectable, sb, level+oneLevel)
+		sb.WriteRune(nl)
+		printAST(n.Selector, sb, level+oneLevel)
 	case *Block:
 		sb.WriteRune(nl)
 		buildIndent(sb, level+oneLevel)

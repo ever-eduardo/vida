@@ -117,11 +117,21 @@ func (p *Parser) prefix() ast.Node {
 func (p *Parser) primary() ast.Node {
 	e := p.operand()
 Loop:
-	for p.next.Token == token.LBRACKET {
+	for p.next.Token == token.LBRACKET || p.next.Token == token.DOT {
 		p.advance()
 		switch p.current.Token {
 		case token.LBRACKET:
 			e = p.indexOrSlice(e)
+		case token.DOT:
+			p.advance()
+			switch p.current.Token {
+			case token.IDENTIFIER:
+				e = p.selector(e)
+			default:
+				p.err = verror.New(p.lexer.ModuleName, "Expected identifier", verror.SyntaxErrMsg, p.current.Line)
+				p.ok = false
+				return &ast.Nil{}
+			}
 		default:
 			break Loop
 		}
@@ -175,6 +185,34 @@ func (p *Parser) operand() ast.Node {
 		}
 		p.expect(token.RBRACKET)
 		return xs
+	case token.LCURLY:
+		m := &ast.Map{}
+		p.advance()
+		for p.current.Token != token.RCURLY {
+			k := p.expression(token.LowestPrec)
+			p.advance()
+			p.expect(token.COLON)
+			p.advance()
+			v := p.expression(token.LowestPrec)
+			p.advance()
+			m.MapPairs = append(m.MapPairs, &ast.MapPair{Key: k, Value: v})
+			for p.current.Token == token.COMMA {
+				p.advance()
+				if p.current.Token == token.RCURLY {
+					p.expect(token.RCURLY)
+					return m
+				}
+				k := p.expression(token.LowestPrec)
+				p.advance()
+				p.expect(token.COLON)
+				p.advance()
+				v := p.expression(token.LowestPrec)
+				p.advance()
+				m.MapPairs = append(m.MapPairs, &ast.MapPair{Key: k, Value: v})
+			}
+		}
+		p.expect(token.RCURLY)
+		return m
 	case token.LPAREN:
 		p.advance()
 		if p.current.Token == token.RPAREN {
@@ -225,6 +263,11 @@ func (p *Parser) indexOrSlice(e ast.Node) ast.Node {
 		Indexable: e,
 		Index:     index[0],
 	}
+}
+
+func (p *Parser) selector(e ast.Node) ast.Node {
+	sel := p.expression(token.LowestPrec)
+	return &ast.Selector{Selectable: e, Selector: sel}
 }
 
 func (p *Parser) expect(tok token.Token) {
