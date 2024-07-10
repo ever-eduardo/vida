@@ -151,6 +151,22 @@ func (vm *VM) Run() (Result, error) {
 				from++
 			}
 			vm.CurrentFrame.stack[to] = &List{Value: xs}
+		case record:
+			length := vm.CurrentFrame.code[ip]
+			ip++
+			from := vm.CurrentFrame.code[ip]
+			ip++
+			to := vm.CurrentFrame.code[ip]
+			ip++
+			rec := make(map[string]Value)
+			for i := 0; i < int(length); i += 2 {
+				k := vm.CurrentFrame.stack[from].(String).Value
+				from++
+				v := vm.CurrentFrame.stack[from]
+				from++
+				rec[k] = v
+			}
+			vm.CurrentFrame.stack[to] = &Record{Value: rec}
 		case end:
 			return Success, nil
 		default:

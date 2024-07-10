@@ -99,6 +99,16 @@ func processBytecode(code []byte, konst []Value) string {
 			sb.WriteRune(32)
 			sb.WriteString(fmt.Sprintf("%3v", int(code[ip])))
 			ip++
+		case record:
+			sb.WriteRune(32)
+			sb.WriteString(fmt.Sprintf("%3v", int(code[ip])))
+			ip++
+			sb.WriteRune(32)
+			sb.WriteString(fmt.Sprintf("%3v", int(code[ip])))
+			ip++
+			sb.WriteRune(32)
+			sb.WriteString(fmt.Sprintf("%3v", int(code[ip])))
+			ip++
 		case iGet:
 			sb.WriteRune(32)
 			sb.WriteString(fmt.Sprintf("%3v", int(code[ip])))

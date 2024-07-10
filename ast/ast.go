@@ -52,13 +52,17 @@ type List struct {
 	ExprList []Node
 }
 
-type MapPair struct {
+type Property struct {
+	Value string
+}
+
+type Pair struct {
 	Key   Node
 	Value Node
 }
 
-type Map struct {
-	MapPairs []*MapPair
+type Record struct {
+	Pairs []*Pair
 }
 
 type PrefixExpr struct {
@@ -109,6 +113,7 @@ func (n *String) _node()      {}
 func (n *List) _node()        {}
 func (n *IndexGet) _node()    {}
 func (n *Slice) _node()       {}
-func (n *MapPair) _node()     {}
-func (n *Map) _node()         {}
+func (n *Record) _node()      {}
+func (n *Pair) _node()        {}
+func (n *Property) _node()    {}
 func (n *Selector) _node()    {}

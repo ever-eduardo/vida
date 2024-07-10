@@ -186,33 +186,35 @@ func (p *Parser) operand() ast.Node {
 		p.expect(token.RBRACKET)
 		return xs
 	case token.LCURLY:
-		m := &ast.Map{}
+		rec := &ast.Record{}
 		p.advance()
 		for p.current.Token != token.RCURLY {
-			k := p.expression(token.LowestPrec)
+			p.expect(token.IDENTIFIER)
+			k := &ast.Property{Value: p.current.Lit}
 			p.advance()
 			p.expect(token.COLON)
 			p.advance()
 			v := p.expression(token.LowestPrec)
 			p.advance()
-			m.MapPairs = append(m.MapPairs, &ast.MapPair{Key: k, Value: v})
+			rec.Pairs = append(rec.Pairs, &ast.Pair{Key: k, Value: v})
 			for p.current.Token == token.COMMA {
 				p.advance()
 				if p.current.Token == token.RCURLY {
 					p.expect(token.RCURLY)
-					return m
+					return rec
 				}
-				k := p.expression(token.LowestPrec)
+				p.expect(token.IDENTIFIER)
+				k := &ast.Property{Value: p.current.Lit}
 				p.advance()
 				p.expect(token.COLON)
 				p.advance()
 				v := p.expression(token.LowestPrec)
 				p.advance()
-				m.MapPairs = append(m.MapPairs, &ast.MapPair{Key: k, Value: v})
+				rec.Pairs = append(rec.Pairs, &ast.Pair{Key: k, Value: v})
 			}
 		}
 		p.expect(token.RCURLY)
-		return m
+		return rec
 	case token.LPAREN:
 		p.advance()
 		if p.current.Token == token.RPAREN {

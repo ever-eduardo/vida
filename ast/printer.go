@@ -105,26 +105,32 @@ func printAST(node Node, sb *strings.Builder, level int) {
 				sb.WriteRune(nl)
 			}
 		}
-	case *Map:
+	case *Record:
 		buildIndent(sb, level+oneLevel)
-		sb.WriteString("Map")
+		sb.WriteString("Record")
 		sb.WriteRune(nl)
-		if len(n.MapPairs) == 0 {
+		if len(n.Pairs) == 0 {
 			buildIndent(sb, level+twoLevels)
 			sb.WriteString("{}")
 		} else {
-			for _, v := range n.MapPairs {
+			for _, v := range n.Pairs {
 				printAST(v, sb, level+oneLevel)
 				sb.WriteRune(nl)
 			}
 		}
-	case *MapPair:
+	case *Pair:
 		buildIndent(sb, level+oneLevel)
 		sb.WriteString("Pair")
 		sb.WriteRune(nl)
 		printAST(n.Key, sb, level+oneLevel)
 		sb.WriteRune(nl)
 		printAST(n.Value, sb, level+oneLevel)
+	case *Property:
+		buildIndent(sb, level+oneLevel)
+		sb.WriteString("Property")
+		sb.WriteRune(nl)
+		buildIndent(sb, level+twoLevels)
+		sb.WriteString(n.Value)
 	case *PrefixExpr:
 		buildIndent(sb, level+oneLevel)
 		sb.WriteString("Prefix")

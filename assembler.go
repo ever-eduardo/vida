@@ -86,6 +86,13 @@ func (c *Compiler) emitList(length byte, from byte, to byte) {
 	c.module.Code = append(c.module.Code, to)
 }
 
+func (c *Compiler) emitRecord(length byte, from byte, to byte) {
+	c.module.Code = append(c.module.Code, record)
+	c.module.Code = append(c.module.Code, length)
+	c.module.Code = append(c.module.Code, from)
+	c.module.Code = append(c.module.Code, to)
+}
+
 func (c *Compiler) emitIndexGet(fromIndexable int, fromIndex int, scopeIndexable byte, scopeIndex byte, to byte) {
 	c.module.Code = append(c.module.Code, iGet)
 	c.module.Code = append(c.module.Code, scopeIndexable)

@@ -134,6 +134,31 @@ func (c *Compiler) compileExpr(node ast.Node) (int, byte) {
 		c.rAlloc -= byte(count)
 		c.emitList(byte(count), c.rAlloc, c.rAlloc)
 		return int(c.rAlloc), rLocal
+	case *ast.Record:
+		if len(n.Pairs) == 0 {
+			c.emitRecord(0, c.rAlloc, c.rAlloc)
+			return int(c.rAlloc), rLocal
+		}
+		var count int
+		for _, v := range n.Pairs {
+			ik, scopeK := c.compileExpr(v.Key)
+			c.emitLoc(ik, c.rAlloc, scopeK)
+			c.rAlloc++
+			iv, scopeV := c.compileExpr(v.Value)
+			if scopeV != rLocal {
+				c.emitLoc(iv, c.rAlloc, scopeV)
+			} else if iv != int(c.rAlloc) {
+				c.emitMove(byte(iv), c.rAlloc)
+			}
+			c.rAlloc++
+			count += 2
+		}
+		c.rAlloc -= byte(count)
+		c.emitRecord(byte(count), c.rAlloc, c.rAlloc)
+		return int(c.rAlloc), rLocal
+	case *ast.Property:
+		idx := c.kb.StringIndex(n.Value)
+		return idx, rKonst
 	case *ast.IndexGet:
 		resultReg := c.rAlloc
 		c.rAlloc++
