@@ -20,6 +20,7 @@ primary		:=	'true'
 			|	Float
 			|	String
 			|	List
+			|	Map
 binop		:=	'and'
 			|	'or'
 			|	'+'
@@ -28,6 +29,8 @@ binop		:=	'and'
 			|	'/'
 			|	'%'
 List		:=	'[' (expr (',' expr)*)? ']'
+Map			:=	'{' (pair (',' pair))* '}'
+pair		:=	expr ':' expr
 select		:=	'[' expr | ':' | ':' expr | expr ':' | expr ':' expr ']' select*
 			|	'.' ident select*
 			|	'(' (expr (',' expr)*)? ')' select*
