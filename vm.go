@@ -236,6 +236,9 @@ func (vm *VM) processSlice(mode byte, fromV uint16, fromL uint16, fromR uint16, 
 					if rr < 0 {
 						rr += xslen
 					}
+					if 0 <= ll && ll <= xslen && 0 <= rr && rr <= xslen {
+						return &List{Value: v.Value[ll:rr]}, nil
+					}
 					if ll < 0 {
 						if 0 <= rr && rr <= xslen {
 							return &List{Value: v.Value[:rr]}, nil
@@ -301,6 +304,9 @@ func (vm *VM) processSlice(mode byte, fromV uint16, fromL uint16, fromR uint16, 
 					}
 					if rr < 0 {
 						rr += xslen
+					}
+					if 0 <= ll && ll <= xslen && 0 <= rr && rr <= xslen {
+						return String{Value: v.Value[ll:rr]}, nil
 					}
 					if ll < 0 {
 						if 0 <= rr && rr <= xslen {
