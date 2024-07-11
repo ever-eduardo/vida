@@ -107,7 +107,7 @@ func printAST(node Node, sb *strings.Builder, level int) {
 		}
 	case *Document:
 		buildIndent(sb, level+oneLevel)
-		sb.WriteString("Record")
+		sb.WriteString("Document")
 		sb.WriteRune(nl)
 		if len(n.Pairs) == 0 {
 			buildIndent(sb, level+twoLevels)

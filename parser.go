@@ -172,21 +172,25 @@ func (p *Parser) operand() ast.Node {
 			e := p.expression(token.LowestPrec)
 			p.advance()
 			xs.ExprList = append(xs.ExprList, e)
-			for p.current.Token == token.COMMA {
-				p.advance()
-				if p.current.Token == token.RBRACKET {
-					p.expect(token.RBRACKET)
-					return xs
+			if p.current.Token == token.COMMA {
+				for p.current.Token == token.COMMA {
+					p.advance()
+					if p.current.Token == token.RBRACKET {
+						p.expect(token.RBRACKET)
+						return xs
+					}
+					e := p.expression(token.LowestPrec)
+					p.advance()
+					xs.ExprList = append(xs.ExprList, e)
 				}
-				e := p.expression(token.LowestPrec)
-				p.advance()
-				xs.ExprList = append(xs.ExprList, e)
 			}
+			goto endList
 		}
+	endList:
 		p.expect(token.RBRACKET)
 		return xs
 	case token.LCURLY:
-		rec := &ast.Document{}
+		doc := &ast.Document{}
 		p.advance()
 		for p.current.Token != token.RCURLY {
 			p.expect(token.IDENTIFIER)
@@ -196,25 +200,29 @@ func (p *Parser) operand() ast.Node {
 			p.advance()
 			v := p.expression(token.LowestPrec)
 			p.advance()
-			rec.Pairs = append(rec.Pairs, &ast.Pair{Key: k, Value: v})
-			for p.current.Token == token.COMMA {
-				p.advance()
-				if p.current.Token == token.RCURLY {
-					p.expect(token.RCURLY)
-					return rec
+			doc.Pairs = append(doc.Pairs, &ast.Pair{Key: k, Value: v})
+			if p.current.Token == token.COMMA {
+				for p.current.Token == token.COMMA {
+					p.advance()
+					if p.current.Token == token.RCURLY {
+						p.expect(token.RCURLY)
+						return doc
+					}
+					p.expect(token.IDENTIFIER)
+					k := &ast.Property{Value: p.current.Lit}
+					p.advance()
+					p.expect(token.COLON)
+					p.advance()
+					v := p.expression(token.LowestPrec)
+					p.advance()
+					doc.Pairs = append(doc.Pairs, &ast.Pair{Key: k, Value: v})
 				}
-				p.expect(token.IDENTIFIER)
-				k := &ast.Property{Value: p.current.Lit}
-				p.advance()
-				p.expect(token.COLON)
-				p.advance()
-				v := p.expression(token.LowestPrec)
-				p.advance()
-				rec.Pairs = append(rec.Pairs, &ast.Pair{Key: k, Value: v})
 			}
+			goto endDoc
 		}
+	endDoc:
 		p.expect(token.RCURLY)
-		return rec
+		return doc
 	case token.LPAREN:
 		p.advance()
 		if p.current.Token == token.RPAREN {

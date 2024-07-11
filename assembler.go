@@ -86,7 +86,7 @@ func (c *Compiler) emitList(length byte, from byte, to byte) {
 	c.module.Code = append(c.module.Code, to)
 }
 
-func (c *Compiler) emitRecord(length byte, from byte, to byte) {
+func (c *Compiler) emitDocument(length byte, from byte, to byte) {
 	c.module.Code = append(c.module.Code, document)
 	c.module.Code = append(c.module.Code, length)
 	c.module.Code = append(c.module.Code, from)
