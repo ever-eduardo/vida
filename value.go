@@ -15,6 +15,7 @@ type Value interface {
 	Prefix(byte) (Value, error)
 	Binop(byte, Value) (Value, error)
 	IGet(Value) (Value, error)
+	ISet(Value, Value) error
 	String() string
 	Type() string
 }
@@ -47,6 +48,10 @@ func (n Nil) Binop(op byte, rhs Value) (Value, error) {
 
 func (n Nil) IGet(index Value) (Value, error) {
 	return NilValue, verror.RuntimeError
+}
+
+func (n Nil) ISet(index, val Value) error {
+	return verror.RuntimeError
 }
 
 func (n Nil) String() string {
@@ -91,6 +96,10 @@ func (b Bool) Binop(op byte, rhs Value) (Value, error) {
 
 func (b Bool) IGet(index Value) (Value, error) {
 	return NilValue, verror.RuntimeError
+}
+
+func (b Bool) ISet(index, val Value) error {
+	return verror.RuntimeError
 }
 
 func (b Bool) String() string {
@@ -147,6 +156,10 @@ func (s String) IGet(index Value) (Value, error) {
 		}
 	}
 	return NilValue, verror.RuntimeError
+}
+
+func (s String) ISet(index, val Value) error {
+	return verror.RuntimeError
 }
 
 func (s String) Prefix(op byte) (Value, error) {
@@ -241,6 +254,10 @@ func (i Integer) IGet(index Value) (Value, error) {
 	return NilValue, verror.RuntimeError
 }
 
+func (i Integer) ISet(index, val Value) error {
+	return verror.RuntimeError
+}
+
 func (i Integer) String() string {
 	return strconv.FormatInt(int64(i), 10)
 }
@@ -318,6 +335,10 @@ func (f Float) IGet(index Value) (Value, error) {
 	return NilValue, verror.RuntimeError
 }
 
+func (f Float) ISet(index, val Value) error {
+	return verror.RuntimeError
+}
+
 func (f Float) String() string {
 	return strconv.FormatFloat(float64(f), 'g', -1, 64)
 }
@@ -385,6 +406,21 @@ func (xs *List) IGet(index Value) (Value, error) {
 		}
 	}
 	return NilValue, verror.RuntimeError
+}
+
+func (xs *List) ISet(index, val Value) error {
+	switch r := index.(type) {
+	case Integer:
+		l := Integer(len(xs.Value))
+		if r < 0 {
+			r += l
+		}
+		if 0 <= r && r < l {
+			xs.Value[r] = val
+			return nil
+		}
+	}
+	return verror.RuntimeError
 }
 
 func (xs List) String() string {
@@ -463,6 +499,15 @@ func (m *Document) IGet(index Value) (Value, error) {
 	return NilValue, verror.RuntimeError
 }
 
+func (m *Document) ISet(index, val Value) error {
+	switch r := index.(type) {
+	case String:
+		m.Value[r.Value] = val
+		return nil
+	}
+	return verror.RuntimeError
+}
+
 func (m *Document) String() string {
 	if len(m.Value) == 0 {
 		return "{}"
@@ -535,6 +580,10 @@ func (gfn GoFn) Binop(op byte, rhs Value) (Value, error) {
 
 func (gfn GoFn) IGet(index Value) (Value, error) {
 	return NilValue, verror.RuntimeError
+}
+
+func (gfn GoFn) ISet(index, val Value) error {
+	return verror.RuntimeError
 }
 
 func (gfn GoFn) String() string {

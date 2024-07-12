@@ -116,6 +116,21 @@ func (vm *VM) Run() (Result, error) {
 				return Failure, verror.New(vm.Module.Name, "Runtime error", verror.RunTimeErrMsg, math.MaxUint16)
 			}
 			vm.CurrentFrame.stack[to] = val
+		case iSet:
+			scopeIndex := vm.CurrentFrame.code[ip]
+			ip++
+			scopeExpr := vm.CurrentFrame.code[ip]
+			ip++
+			fromIndex := binary.NativeEndian.Uint16(vm.CurrentFrame.code[ip:])
+			ip += 2
+			fromExpr := binary.NativeEndian.Uint16(vm.CurrentFrame.code[ip:])
+			ip += 2
+			from := vm.CurrentFrame.code[ip]
+			ip += 2
+			err := vm.valueFrom(rLocal, uint16(from)).ISet(vm.valueFrom(scopeIndex, fromIndex), vm.valueFrom(scopeExpr, fromExpr))
+			if err != nil {
+				return Failure, verror.New(vm.Module.Name, "Runtime error", verror.RunTimeErrMsg, math.MaxUint16)
+			}
 		case slice:
 			mode := vm.CurrentFrame.code[ip]
 			ip++
