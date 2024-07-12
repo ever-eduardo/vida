@@ -1,6 +1,9 @@
 package vida
 
-import "github.com/ever-eduardo/vida/ast"
+import (
+	"github.com/ever-eduardo/vida/ast"
+	"github.com/ever-eduardo/vida/token"
+)
 
 type Compiler struct {
 	ast      *ast.Ast
@@ -123,7 +126,12 @@ func (c *Compiler) compileExpr(node ast.Node) (int, byte) {
 		c.rAlloc++
 		ridx, rscope := c.compileExpr(n.Rhs)
 		c.rAlloc = opReg
-		c.emitBinary(lidx, ridx, lscope, rscope, opReg, byte(n.Op))
+		switch n.Op {
+		case token.EQ, token.NEQ:
+			c.emitEquatable(lidx, ridx, lscope, rscope, opReg, byte(n.Op))
+		default:
+			c.emitBinary(lidx, ridx, lscope, rscope, opReg, byte(n.Op))
+		}
 		return int(opReg), rLocal
 	case *ast.PrefixExpr:
 		idx, scope := c.compileExpr(n.Expr)

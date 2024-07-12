@@ -7,6 +7,7 @@ const (
 	move
 	prefix
 	binop
+	equals
 	list
 	document
 	iGet
@@ -21,6 +22,7 @@ var opcodes = [...]string{
 	move:     "Move",
 	prefix:   "Prefix",
 	binop:    "Binop",
+	equals:   "Eq",
 	list:     "List",
 	document: "Doc",
 	iGet:     "IGet",

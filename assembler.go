@@ -75,6 +75,16 @@ func (c *Compiler) emitBinary(fromLHS int, fromRHS int, scopeLHS byte, scopeRHS 
 	c.module.Code = append(c.module.Code, to)
 }
 
+func (c *Compiler) emitEquatable(fromLHS int, fromRHS int, scopeLHS byte, scopeRHS byte, to byte, operator byte) {
+	c.module.Code = append(c.module.Code, equals)
+	c.module.Code = append(c.module.Code, operator)
+	c.module.Code = append(c.module.Code, scopeLHS)
+	c.module.Code = append(c.module.Code, scopeRHS)
+	c.module.Code = binary.NativeEndian.AppendUint16(c.module.Code, uint16(fromLHS))
+	c.module.Code = binary.NativeEndian.AppendUint16(c.module.Code, uint16(fromRHS))
+	c.module.Code = append(c.module.Code, to)
+}
+
 func (c *Compiler) emitList(length byte, from byte, to byte) {
 	c.module.Code = append(c.module.Code, list)
 	c.module.Code = append(c.module.Code, length)
