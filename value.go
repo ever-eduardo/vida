@@ -16,6 +16,7 @@ type Value interface {
 	Binop(byte, Value) (Value, error)
 	IGet(Value) (Value, error)
 	ISet(Value, Value) error
+	Equals(Value) Bool
 	String() string
 	Type() string
 }
@@ -52,6 +53,11 @@ func (n Nil) IGet(index Value) (Value, error) {
 
 func (n Nil) ISet(index, val Value) error {
 	return verror.RuntimeError
+}
+
+func (n Nil) Equals(other Value) Bool {
+	_, ok := other.(Nil)
+	return Bool(ok)
 }
 
 func (n Nil) String() string {
@@ -102,6 +108,13 @@ func (b Bool) ISet(index, val Value) error {
 	return verror.RuntimeError
 }
 
+func (b Bool) Equals(other Value) Bool {
+	if val, ok := other.(Bool); ok {
+		return b == val
+	}
+	return false
+}
+
 func (b Bool) String() string {
 	if b {
 		return "true"
@@ -132,6 +145,14 @@ func (s String) Binop(op byte, rhs Value) (Value, error) {
 			return r, nil
 		case byte(token.OR):
 			return s, nil
+		case byte(token.LT):
+			return Bool(s.Value < r.Value), nil
+		case byte(token.LE):
+			return Bool(s.Value <= r.Value), nil
+		case byte(token.GT):
+			return Bool(s.Value > r.Value), nil
+		case byte(token.GE):
+			return Bool(s.Value >= r.Value), nil
 		}
 	default:
 		switch op {
@@ -169,6 +190,13 @@ func (s String) Prefix(op byte) (Value, error) {
 	default:
 		return NilValue, verror.RuntimeError
 	}
+}
+
+func (s String) Equals(other Value) Bool {
+	if val, ok := other.(String); ok {
+		return s.Value == val.Value
+	}
+	return false
 }
 
 func (s String) String() string {
@@ -221,6 +249,14 @@ func (l Integer) Binop(op byte, rhs Value) (Value, error) {
 			return r, nil
 		case byte(token.OR):
 			return l, nil
+		case byte(token.LT):
+			return Bool(l < r), nil
+		case byte(token.LE):
+			return Bool(l <= r), nil
+		case byte(token.GT):
+			return Bool(l > r), nil
+		case byte(token.GE):
+			return Bool(l >= r), nil
 		}
 	case Float:
 		switch op {
@@ -238,6 +274,14 @@ func (l Integer) Binop(op byte, rhs Value) (Value, error) {
 			return r, nil
 		case byte(token.OR):
 			return l, nil
+		case byte(token.LT):
+			return Bool(Float(l) < r), nil
+		case byte(token.LE):
+			return Bool(Float(l) <= r), nil
+		case byte(token.GT):
+			return Bool(Float(l) > r), nil
+		case byte(token.GE):
+			return Bool(Float(l) >= r), nil
 		}
 	default:
 		switch op {
@@ -256,6 +300,13 @@ func (i Integer) IGet(index Value) (Value, error) {
 
 func (i Integer) ISet(index, val Value) error {
 	return verror.RuntimeError
+}
+
+func (i Integer) Equals(other Value) Bool {
+	if val, ok := other.(Integer); ok {
+		return i == val
+	}
+	return false
 }
 
 func (i Integer) String() string {
@@ -302,6 +353,14 @@ func (f Float) Binop(op byte, rhs Value) (Value, error) {
 			return r, nil
 		case byte(token.OR):
 			return f, nil
+		case byte(token.LT):
+			return Bool(f < r), nil
+		case byte(token.LE):
+			return Bool(f <= r), nil
+		case byte(token.GT):
+			return Bool(f > r), nil
+		case byte(token.GE):
+			return Bool(f >= r), nil
 		}
 	case Integer:
 		switch op {
@@ -319,6 +378,14 @@ func (f Float) Binop(op byte, rhs Value) (Value, error) {
 			return r, nil
 		case byte(token.OR):
 			return f, nil
+		case byte(token.LT):
+			return Bool(f < Float(r)), nil
+		case byte(token.LE):
+			return Bool(f <= Float(r)), nil
+		case byte(token.GT):
+			return Bool(f > Float(r)), nil
+		case byte(token.GE):
+			return Bool(f >= Float(r)), nil
 		}
 	default:
 		switch op {
@@ -337,6 +404,13 @@ func (f Float) IGet(index Value) (Value, error) {
 
 func (f Float) ISet(index, val Value) error {
 	return verror.RuntimeError
+}
+
+func (f Float) Equals(other Value) Bool {
+	if val, ok := other.(Float); ok {
+		return f == val
+	}
+	return false
 }
 
 func (f Float) String() string {
@@ -423,6 +497,13 @@ func (xs *List) ISet(index, val Value) error {
 	return verror.RuntimeError
 }
 
+func (xs *List) Equals(other Value) Bool {
+	if val, ok := other.(*List); ok {
+		return xs == val
+	}
+	return false
+}
+
 func (xs List) String() string {
 	if len(xs.Value) == 0 {
 		return "[]"
@@ -442,11 +523,11 @@ type Document struct {
 	Value map[string]Value
 }
 
-func (m *Document) Boolean() Bool {
+func (d *Document) Boolean() Bool {
 	return Bool(true)
 }
 
-func (m *Document) Prefix(op byte) (Value, error) {
+func (d *Document) Prefix(op byte) (Value, error) {
 	switch op {
 	case byte(token.NOT):
 		return Bool(false), nil
@@ -455,17 +536,17 @@ func (m *Document) Prefix(op byte) (Value, error) {
 	}
 }
 
-func (m *Document) Binop(op byte, rhs Value) (Value, error) {
+func (d *Document) Binop(op byte, rhs Value) (Value, error) {
 	switch r := rhs.(type) {
 	case *Document:
 		switch op {
 		case byte(token.ADD):
 			rLen := len(r.Value)
 			if rLen == 0 {
-				return m, nil
+				return d, nil
 			}
 			pairs := make(map[string]Value)
-			for k, v := range m.Value {
+			for k, v := range d.Value {
 				pairs[k] = v
 			}
 			for k, v := range r.Value {
@@ -475,12 +556,12 @@ func (m *Document) Binop(op byte, rhs Value) (Value, error) {
 		case byte(token.AND):
 			return r, nil
 		case byte(token.OR):
-			return m, nil
+			return d, nil
 		}
 	default:
 		switch op {
 		case byte(token.OR):
-			return m, nil
+			return d, nil
 		case byte(token.AND):
 			return r, nil
 		}
@@ -488,10 +569,10 @@ func (m *Document) Binop(op byte, rhs Value) (Value, error) {
 	return NilValue, verror.RuntimeError
 }
 
-func (m *Document) IGet(index Value) (Value, error) {
+func (d *Document) IGet(index Value) (Value, error) {
 	switch r := index.(type) {
 	case String:
-		if val, ok := m.Value[r.Value]; ok {
+		if val, ok := d.Value[r.Value]; ok {
 			return val, nil
 		}
 		return NilValue, nil
@@ -499,27 +580,34 @@ func (m *Document) IGet(index Value) (Value, error) {
 	return NilValue, verror.RuntimeError
 }
 
-func (m *Document) ISet(index, val Value) error {
+func (d *Document) ISet(index, val Value) error {
 	switch r := index.(type) {
 	case String:
-		m.Value[r.Value] = val
+		d.Value[r.Value] = val
 		return nil
 	}
 	return verror.RuntimeError
 }
 
-func (m *Document) String() string {
-	if len(m.Value) == 0 {
+func (d *Document) Equals(other Value) Bool {
+	if val, ok := other.(*Document); ok {
+		return d == val
+	}
+	return false
+}
+
+func (d *Document) String() string {
+	if len(d.Value) == 0 {
 		return "{}"
 	}
 	var r []string
-	for k, v := range m.Value {
+	for k, v := range d.Value {
 		r = append(r, fmt.Sprintf("%v: %v", k, v.String()))
 	}
 	return fmt.Sprintf("{%v}", strings.Join(r, ", "))
 }
 
-func (m *Document) Type() string {
+func (d *Document) Type() string {
 	return "document"
 }
 
@@ -584,6 +672,10 @@ func (gfn GoFn) IGet(index Value) (Value, error) {
 
 func (gfn GoFn) ISet(index, val Value) error {
 	return verror.RuntimeError
+}
+
+func (gfn GoFn) Equals(other Value) Bool {
+	return false
 }
 
 func (gfn GoFn) String() string {

@@ -226,7 +226,12 @@ func (l *Lexer) Next() (line uint, tok token.Token, lit string) {
 		case eof:
 			tok = token.EOF
 		case '=':
-			tok = token.ASSIGN
+			if l.c == '=' {
+				l.next()
+				tok = token.EQ
+			} else {
+				tok = token.ASSIGN
+			}
 		case '"':
 			tok, lit = l.scanString()
 		case '+':
@@ -243,6 +248,27 @@ func (l *Lexer) Next() (line uint, tok token.Token, lit string) {
 			tok = token.COMMA
 		case '.':
 			tok = token.DOT
+		case '!':
+			if l.c == '=' {
+				l.next()
+				tok = token.NEQ
+			} else {
+				tok = token.NOT
+			}
+		case '<':
+			if l.c == '=' {
+				l.next()
+				tok = token.LE
+			} else {
+				tok = token.LT
+			}
+		case '>':
+			if l.c == '=' {
+				l.next()
+				tok = token.GE
+			} else {
+				tok = token.GT
+			}
 		case '(':
 			tok = token.LPAREN
 		case ')':

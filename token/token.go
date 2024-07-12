@@ -7,6 +7,7 @@ type Token byte
 const (
 	UNEXPECTED Token = iota
 	EOF
+	NOT
 	COMMENT
 
 	literal_init
@@ -36,6 +37,12 @@ const (
 	MUL
 	DIV
 	REM
+	LT
+	LE
+	GT
+	GE
+	EQ
+	NEQ
 	binary_op_end
 
 	keyword_init
@@ -45,7 +52,6 @@ const (
 	LOC
 	AND
 	OR
-	NOT
 	keyword_end
 )
 
@@ -73,6 +79,12 @@ var tokens = [...]string{
 	MUL:        "*",
 	DIV:        "/",
 	REM:        "%",
+	LT:         "<",
+	LE:         "<=",
+	GT:         ">",
+	GE:         ">=",
+	EQ:         "==",
+	NEQ:        "!=",
 	AND:        "and",
 	OR:         "or",
 	NOT:        "not",
@@ -149,6 +161,8 @@ func (op Token) Precedence() int {
 		return 1
 	case AND:
 		return 2
+	case EQ, NEQ, LT, LE, GT, GE:
+		return 3
 	case ADD, SUB:
 		return 4
 	case MUL, DIV, REM:
