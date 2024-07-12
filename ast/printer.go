@@ -51,6 +51,13 @@ func printAST(node Node, sb *strings.Builder, level int) {
 		sb.WriteRune(nl)
 		buildIndent(sb, level+twoLevels)
 		sb.WriteString(n.Value)
+	case *ReferenceStmt:
+		sb.WriteRune(nl)
+		buildIndent(sb, level+oneLevel)
+		sb.WriteString("Ref")
+		sb.WriteRune(nl)
+		buildIndent(sb, level+twoLevels)
+		sb.WriteString(n.Value)
 	case *Identifier:
 		sb.WriteRune(nl)
 		buildIndent(sb, level+oneLevel)
@@ -149,13 +156,28 @@ func printAST(node Node, sb *strings.Builder, level int) {
 		printAST(n.Lhs, sb, level+twoLevels)
 		sb.WriteRune(nl)
 		printAST(n.Rhs, sb, level+twoLevels)
-	case *IndexGet:
+	case *IGet:
 		buildIndent(sb, level+oneLevel)
-		sb.WriteString("IndexGet")
+		sb.WriteString("IGet")
 		sb.WriteRune(nl)
 		printAST(n.Indexable, sb, level+oneLevel)
 		sb.WriteRune(nl)
 		printAST(n.Index, sb, level+oneLevel)
+	case *IGetStmt:
+		sb.WriteRune(nl)
+		buildIndent(sb, level+oneLevel)
+		sb.WriteString("IGet")
+		printAST(n.Indexable, sb, level+oneLevel)
+		sb.WriteRune(nl)
+		printAST(n.Index, sb, level+oneLevel)
+	case *ISet:
+		sb.WriteRune(nl)
+		buildIndent(sb, level+oneLevel)
+		sb.WriteString("ISet")
+		sb.WriteRune(nl)
+		printAST(n.Index, sb, level+oneLevel)
+		sb.WriteRune(nl)
+		printAST(n.Expr, sb, level+oneLevel)
 	case *Slice:
 		buildIndent(sb, level+oneLevel)
 		sb.WriteString("Slice")
@@ -167,8 +189,15 @@ func printAST(node Node, sb *strings.Builder, level int) {
 		printAST(n.Last, sb, level+oneLevel)
 	case *Selector:
 		buildIndent(sb, level+oneLevel)
-		sb.WriteString("Selector")
+		sb.WriteString("Select")
 		sb.WriteRune(nl)
+		printAST(n.Selectable, sb, level+oneLevel)
+		sb.WriteRune(nl)
+		printAST(n.Selector, sb, level+oneLevel)
+	case *SelectorStmt:
+		sb.WriteRune(nl)
+		buildIndent(sb, level+oneLevel)
+		sb.WriteString("Select")
 		printAST(n.Selectable, sb, level+oneLevel)
 		sb.WriteRune(nl)
 		printAST(n.Selector, sb, level+oneLevel)

@@ -159,7 +159,7 @@ func (c *Compiler) compileExpr(node ast.Node) (int, byte) {
 	case *ast.Property:
 		idx := c.kb.StringIndex(n.Value)
 		return idx, rKonst
-	case *ast.IndexGet:
+	case *ast.IGet:
 		resultReg := c.rAlloc
 		c.rAlloc++
 		i, s := c.compileExpr(n.Indexable)

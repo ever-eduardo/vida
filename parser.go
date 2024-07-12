@@ -50,6 +50,9 @@ func (p *Parser) Parse() (*ast.Ast, error) {
 }
 
 func (p *Parser) identPath() ast.Node {
+	if p.next.Token == token.DOT || p.next.Token == token.LBRACKET {
+		return p.mutateDataStructure()
+	}
 	i := p.current.Lit
 	p.advance()
 	p.expect(token.ASSIGN)
@@ -62,6 +65,9 @@ func (p *Parser) identPath() ast.Node {
 func (p *Parser) localStmt() ast.Node {
 	p.advance()
 	p.expect(token.IDENTIFIER)
+	if p.next.Token == token.DOT || p.next.Token == token.LBRACKET {
+		return p.mutateDataStructure()
+	}
 	i := p.current.Lit
 	p.advance()
 	p.expect(token.ASSIGN)
@@ -89,6 +95,46 @@ func (p *Parser) block() ast.Node {
 	}
 	p.advance()
 	return block
+}
+
+func (p *Parser) mutateDataStructure() ast.Node {
+	var n ast.Node = &ast.ReferenceStmt{Value: p.current.Lit}
+	var i ast.Node
+Loop:
+	for p.next.Token == token.LBRACKET || p.next.Token == token.DOT {
+		p.advance()
+		switch p.current.Token {
+		case token.LBRACKET:
+			p.advance()
+			i = p.expression(token.LowestPrec)
+			p.advance()
+			p.expect(token.RBRACKET)
+			if p.next.Token == token.ASSIGN {
+				break Loop
+			}
+			n = &ast.IGetStmt{
+				Indexable: n,
+				Index:     i,
+			}
+		case token.DOT:
+			p.advance()
+			p.expect(token.IDENTIFIER)
+			i = &ast.Property{Value: p.current.Lit}
+			if p.next.Token == token.ASSIGN {
+				break Loop
+			}
+			n = &ast.SelectorStmt{Selectable: n, Selector: i}
+		default:
+			break Loop
+		}
+	}
+	p.ast.Statement = append(p.ast.Statement, n)
+	p.advance()
+	p.expect(token.ASSIGN)
+	p.advance()
+	e := p.expression(token.LowestPrec)
+	p.advance()
+	return &ast.ISet{Index: i, Expr: e}
 }
 
 func (p *Parser) expression(precedence int) ast.Node {
@@ -269,7 +315,7 @@ func (p *Parser) indexOrSlice(e ast.Node) ast.Node {
 			Mode:  mode,
 		}
 	}
-	return &ast.IndexGet{
+	return &ast.IGet{
 		Indexable: e,
 		Index:     index[0],
 	}

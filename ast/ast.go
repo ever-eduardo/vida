@@ -24,6 +24,10 @@ type Reference struct {
 	Value string
 }
 
+type ReferenceStmt struct {
+	Value string
+}
+
 type Identifier struct {
 	Value string
 }
@@ -80,7 +84,12 @@ type Block struct {
 	Statement []Node
 }
 
-type IndexGet struct {
+type IGet struct {
+	Indexable Node
+	Index     Node
+}
+
+type IGetStmt struct {
 	Indexable Node
 	Index     Node
 }
@@ -97,23 +106,37 @@ type Selector struct {
 	Selector   Node
 }
 
-func (ast *Ast) _node()       {}
-func (loc *Loc) _node()       {}
-func (mut *Set) _node()       {}
-func (ref *Reference) _node() {}
-func (id *Identifier) _node() {}
-func (b *Boolean) _node()     {}
-func (n *Nil) _node()         {}
-func (n *PrefixExpr) _node()  {}
-func (n *BinaryExpr) _node()  {}
-func (n *Block) _node()       {}
-func (n *Integer) _node()     {}
-func (n *Float) _node()       {}
-func (n *String) _node()      {}
-func (n *List) _node()        {}
-func (n *IndexGet) _node()    {}
-func (n *Slice) _node()       {}
-func (n *Document) _node()    {}
-func (n *Pair) _node()        {}
-func (n *Property) _node()    {}
-func (n *Selector) _node()    {}
+type SelectorStmt struct {
+	Selectable Node
+	Selector   Node
+}
+
+type ISet struct {
+	Index Node
+	Expr  Node
+}
+
+func (ast *Ast) _node()           {}
+func (loc *Loc) _node()           {}
+func (mut *Set) _node()           {}
+func (ref *Reference) _node()     {}
+func (ref *ReferenceStmt) _node() {}
+func (id *Identifier) _node()     {}
+func (b *Boolean) _node()         {}
+func (n *Nil) _node()             {}
+func (n *PrefixExpr) _node()      {}
+func (n *BinaryExpr) _node()      {}
+func (n *Block) _node()           {}
+func (n *Integer) _node()         {}
+func (n *Float) _node()           {}
+func (n *String) _node()          {}
+func (n *List) _node()            {}
+func (n *IGet) _node()            {}
+func (n *IGetStmt) _node()        {}
+func (n *Slice) _node()           {}
+func (n *Document) _node()        {}
+func (n *Pair) _node()            {}
+func (n *Property) _node()        {}
+func (n *Selector) _node()        {}
+func (n *SelectorStmt) _node()    {}
+func (n *ISet) _node()            {}
