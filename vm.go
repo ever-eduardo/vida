@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math"
 
+	"github.com/ever-eduardo/vida/token"
 	"github.com/ever-eduardo/vida/verror"
 )
 
@@ -84,6 +85,24 @@ func (vm *VM) Run() (Result, error) {
 			val, err := vm.valueFrom(scopeLHS, fromLHS).Binop(op, vm.valueFrom(scopeRHS, fromRHS))
 			if err != nil {
 				return Failure, verror.New(vm.Module.Name, "Runtime error", verror.RunTimeErrMsg, math.MaxUint16)
+			}
+			vm.CurrentFrame.stack[to] = val
+		case equals:
+			op := vm.CurrentFrame.code[ip]
+			ip++
+			scopeLHS := vm.CurrentFrame.code[ip]
+			ip++
+			scopeRHS := vm.CurrentFrame.code[ip]
+			ip++
+			fromLHS := binary.NativeEndian.Uint16(vm.CurrentFrame.code[ip:])
+			ip += 2
+			fromRHS := binary.NativeEndian.Uint16(vm.CurrentFrame.code[ip:])
+			ip += 2
+			to := vm.CurrentFrame.code[ip]
+			ip++
+			val := vm.valueFrom(scopeLHS, fromLHS).Equals(vm.valueFrom(scopeRHS, fromRHS))
+			if op == byte(token.NEQ) {
+				val = !val
 			}
 			vm.CurrentFrame.stack[to] = val
 		case prefix:
