@@ -167,7 +167,6 @@ func printAST(node Node, sb *strings.Builder, level int) {
 		sb.WriteRune(nl)
 		buildIndent(sb, level+oneLevel)
 		sb.WriteString("IGet")
-		printAST(n.Indexable, sb, level+oneLevel)
 		sb.WriteRune(nl)
 		printAST(n.Index, sb, level+oneLevel)
 	case *ISet:
@@ -187,18 +186,17 @@ func printAST(node Node, sb *strings.Builder, level int) {
 		printAST(n.First, sb, level+oneLevel)
 		sb.WriteRune(nl)
 		printAST(n.Last, sb, level+oneLevel)
-	case *Selector:
+	case *Select:
 		buildIndent(sb, level+oneLevel)
 		sb.WriteString("Select")
 		sb.WriteRune(nl)
 		printAST(n.Selectable, sb, level+oneLevel)
 		sb.WriteRune(nl)
 		printAST(n.Selector, sb, level+oneLevel)
-	case *SelectorStmt:
+	case *SelectStmt:
 		sb.WriteRune(nl)
 		buildIndent(sb, level+oneLevel)
 		sb.WriteString("Select")
-		printAST(n.Selectable, sb, level+oneLevel)
 		sb.WriteRune(nl)
 		printAST(n.Selector, sb, level+oneLevel)
 	case *Block:

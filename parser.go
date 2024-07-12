@@ -98,7 +98,7 @@ func (p *Parser) block() ast.Node {
 }
 
 func (p *Parser) mutateDataStructure() ast.Node {
-	var n ast.Node = &ast.ReferenceStmt{Value: p.current.Lit}
+	p.ast.Statement = append(p.ast.Statement, &ast.ReferenceStmt{Value: p.current.Lit})
 	var i ast.Node
 Loop:
 	for p.next.Token == token.LBRACKET || p.next.Token == token.DOT {
@@ -112,10 +112,7 @@ Loop:
 			if p.next.Token == token.ASSIGN {
 				break Loop
 			}
-			n = &ast.IGetStmt{
-				Indexable: n,
-				Index:     i,
-			}
+			p.ast.Statement = append(p.ast.Statement, &ast.IGetStmt{Index: i})
 		case token.DOT:
 			p.advance()
 			p.expect(token.IDENTIFIER)
@@ -123,12 +120,11 @@ Loop:
 			if p.next.Token == token.ASSIGN {
 				break Loop
 			}
-			n = &ast.SelectorStmt{Selectable: n, Selector: i}
+			p.ast.Statement = append(p.ast.Statement, &ast.SelectStmt{Selector: i})
 		default:
 			break Loop
 		}
 	}
-	p.ast.Statement = append(p.ast.Statement, n)
 	p.advance()
 	p.expect(token.ASSIGN)
 	p.advance()
@@ -322,7 +318,7 @@ func (p *Parser) indexOrSlice(e ast.Node) ast.Node {
 }
 
 func (p *Parser) selector(e ast.Node) ast.Node {
-	return &ast.Selector{Selectable: e, Selector: &ast.Property{Value: p.current.Lit}}
+	return &ast.Select{Selectable: e, Selector: &ast.Property{Value: p.current.Lit}}
 }
 
 func (p *Parser) expect(tok token.Token) {

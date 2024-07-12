@@ -10,6 +10,7 @@ const (
 	list
 	document
 	iGet
+	iSet
 	slice
 )
 
@@ -23,5 +24,6 @@ var opcodes = [...]string{
 	list:     "List",
 	document: "Doc",
 	iGet:     "IGet",
+	iSet:     "ISet",
 	slice:    "Slice",
 }

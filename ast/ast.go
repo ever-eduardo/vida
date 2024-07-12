@@ -90,8 +90,7 @@ type IGet struct {
 }
 
 type IGetStmt struct {
-	Indexable Node
-	Index     Node
+	Index Node
 }
 
 type Slice struct {
@@ -101,14 +100,13 @@ type Slice struct {
 	Mode  int
 }
 
-type Selector struct {
+type Select struct {
 	Selectable Node
 	Selector   Node
 }
 
-type SelectorStmt struct {
-	Selectable Node
-	Selector   Node
+type SelectStmt struct {
+	Selector Node
 }
 
 type ISet struct {
@@ -137,6 +135,6 @@ func (n *Slice) _node()           {}
 func (n *Document) _node()        {}
 func (n *Pair) _node()            {}
 func (n *Property) _node()        {}
-func (n *Selector) _node()        {}
-func (n *SelectorStmt) _node()    {}
+func (n *Select) _node()          {}
+func (n *SelectStmt) _node()      {}
 func (n *ISet) _node()            {}

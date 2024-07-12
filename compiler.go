@@ -72,6 +72,29 @@ func (c *Compiler) compileStmt(node ast.Node) {
 		from, scope := c.compileExpr(n.Expr)
 		c.sb.addLocal(n.Identifier, c.level, c.scope, to)
 		c.emitLoc(from, to, scope)
+	case *ast.ReferenceStmt:
+		idx, scope := c.refScope(n.Value)
+		c.emitLoc(idx, c.rAlloc, scope)
+	case *ast.IGetStmt:
+		resultReg := c.rAlloc
+		c.rAlloc++
+		j, t := c.compileExpr(n.Index)
+		c.rAlloc = resultReg
+		c.emitIGet(int(resultReg), j, rLocal, t, resultReg)
+	case *ast.SelectStmt:
+		resultReg := c.rAlloc
+		c.rAlloc++
+		j, t := c.compileExpr(n.Selector)
+		c.rAlloc = resultReg
+		c.emitIGet(int(resultReg), j, rLocal, t, resultReg)
+	case *ast.ISet:
+		mutableReg := c.rAlloc
+		c.rAlloc++
+		ii, scopeI := c.compileExpr(n.Index)
+		c.rAlloc++
+		ie, scopeE := c.compileExpr(n.Expr)
+		c.rAlloc = mutableReg
+		c.emitISet(ii, ie, scopeI, scopeE, mutableReg, mutableReg)
 	case *ast.Block:
 		c.scope++
 		for i := range len(n.Statement) {
@@ -166,16 +189,16 @@ func (c *Compiler) compileExpr(node ast.Node) (int, byte) {
 		c.rAlloc++
 		j, t := c.compileExpr(n.Index)
 		c.rAlloc = resultReg
-		c.emitIndexGet(i, j, s, t, resultReg)
+		c.emitIGet(i, j, s, t, resultReg)
 		return int(resultReg), rLocal
-	case *ast.Selector:
+	case *ast.Select:
 		resultReg := c.rAlloc
 		c.rAlloc++
 		i, s := c.compileExpr(n.Selectable)
 		c.rAlloc++
 		j, t := c.compileExpr(n.Selector)
 		c.rAlloc = resultReg
-		c.emitIndexGet(i, j, s, t, resultReg)
+		c.emitIGet(i, j, s, t, resultReg)
 		return int(resultReg), rLocal
 	case *ast.Slice:
 		resultReg := c.rAlloc

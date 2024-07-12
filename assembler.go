@@ -16,10 +16,6 @@ const (
 )
 
 const (
-	opNot byte = iota
-)
-
-const (
 	vcv = 2
 	vce = 3
 	ecv = 6
@@ -93,12 +89,22 @@ func (c *Compiler) emitDocument(length byte, from byte, to byte) {
 	c.module.Code = append(c.module.Code, to)
 }
 
-func (c *Compiler) emitIndexGet(fromIndexable int, fromIndex int, scopeIndexable byte, scopeIndex byte, to byte) {
+func (c *Compiler) emitIGet(fromIndexable int, fromIndex int, scopeIndexable byte, scopeIndex byte, to byte) {
 	c.module.Code = append(c.module.Code, iGet)
 	c.module.Code = append(c.module.Code, scopeIndexable)
 	c.module.Code = append(c.module.Code, scopeIndex)
 	c.module.Code = binary.NativeEndian.AppendUint16(c.module.Code, uint16(fromIndexable))
 	c.module.Code = binary.NativeEndian.AppendUint16(c.module.Code, uint16(fromIndex))
+	c.module.Code = append(c.module.Code, to)
+}
+
+func (c *Compiler) emitISet(fromIndex int, fromExpr int, scopeIndex byte, scopeExpr byte, fromData byte, to byte) {
+	c.module.Code = append(c.module.Code, iSet)
+	c.module.Code = append(c.module.Code, scopeIndex)
+	c.module.Code = append(c.module.Code, scopeExpr)
+	c.module.Code = binary.NativeEndian.AppendUint16(c.module.Code, uint16(fromIndex))
+	c.module.Code = binary.NativeEndian.AppendUint16(c.module.Code, uint16(fromExpr))
+	c.module.Code = append(c.module.Code, fromData)
 	c.module.Code = append(c.module.Code, to)
 }
 
