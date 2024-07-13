@@ -12,7 +12,7 @@ for			:=	'for' ident '=' expr ',' expr (',' expr)? block
 ident		:=	['_' | letter]+ ['_' | letter | number]*
 expr		:=	prefix
 			|	binary
-prefix		:=	'!' | '+' | '-' prefix
+prefix		:=	'not' | '+' | '-' prefix
 			|	primary select*
 binary		:=	expr binop expr
 primary		:=	'true'

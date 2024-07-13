@@ -253,7 +253,7 @@ func (l *Lexer) Next() (line uint, tok token.Token, lit string) {
 				l.next()
 				tok = token.NEQ
 			} else {
-				tok = token.NOT
+				tok = token.UNEXPECTED
 			}
 		case '<':
 			if l.c == '=' {

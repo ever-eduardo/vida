@@ -7,7 +7,6 @@ type Token byte
 const (
 	UNEXPECTED Token = iota
 	EOF
-	NOT
 	COMMENT
 
 	literal_init
@@ -48,6 +47,7 @@ const (
 	keyword_init
 	TRUE
 	FALSE
+	NOT
 	NIL
 	LOC
 	AND

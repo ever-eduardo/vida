@@ -12,7 +12,7 @@ import (
 func main() {
 	clear()
 	println(vida.Name(), vida.Version())
-	debug := false
+	debug := true
 	module := "sketchpad.vida"
 	if debug {
 		debugPath(module)
