@@ -126,6 +126,11 @@ type ForState struct {
 	Value string
 }
 
+type If struct {
+	Condition Node
+	Block     Node
+}
+
 func (ast *Ast) _node()           {}
 func (loc *Loc) _node()           {}
 func (mut *Set) _node()           {}
@@ -152,3 +157,4 @@ func (n *SelectStmt) _node()      {}
 func (n *ISet) _node()            {}
 func (n *For) _node()             {}
 func (n *ForState) _node()        {}
+func (n *If) _node()              {}

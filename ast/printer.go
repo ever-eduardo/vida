@@ -211,7 +211,6 @@ func printAST(node Node, sb *strings.Builder, level int) {
 		printAST(n.Step, sb, level+oneLevel)
 		sb.WriteRune(nl)
 		printAST(n.State, sb, level+oneLevel)
-		sb.WriteRune(nl)
 		printAST(n.Block, sb, level+oneLevel)
 	case *ForState:
 		buildIndent(sb, level+oneLevel)
@@ -219,6 +218,13 @@ func printAST(node Node, sb *strings.Builder, level int) {
 		sb.WriteRune(nl)
 		buildIndent(sb, level+twoLevels)
 		sb.WriteString(n.Value)
+	case *If:
+		sb.WriteRune(nl)
+		buildIndent(sb, level+oneLevel)
+		sb.WriteString("If")
+		sb.WriteRune(nl)
+		printAST(n.Condition, sb, level+oneLevel)
+		printAST(n.Block, sb, level+oneLevel)
 	case *Block:
 		sb.WriteRune(nl)
 		buildIndent(sb, level+oneLevel)

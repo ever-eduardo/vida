@@ -53,6 +53,7 @@ const (
 	AND
 	OR
 	FOR
+	IF
 	keyword_end
 )
 
@@ -94,6 +95,7 @@ var Tokens = [...]string{
 	FALSE:      "false",
 	NIL:        "nil",
 	LOC:        "loc",
+	IF:         "if",
 }
 
 type TokenInfo struct {

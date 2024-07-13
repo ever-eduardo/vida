@@ -4,11 +4,13 @@ statement	:= 	global
 			|	datamut
 			|	block
 			|	for
+			|	if
 global		:=	ident '=' expr
 local		:=	'loc' ident '=' expr
 datamut		:=	ident select select* '=' expr
 block		:=	'{' statement* '}'
 for			:=	'for' ident '=' expr ',' expr (',' expr)? block
+if			:=	'if' expr block
 ident		:=	['_' | letter]+ ['_' | letter | number]*
 expr		:=	prefix
 			|	binary

@@ -37,6 +37,8 @@ func (p *Parser) Parse() (*ast.Ast, error) {
 			p.ast.Statement = append(p.ast.Statement, p.identPath(&p.ast.Statement))
 		case token.LOC:
 			p.ast.Statement = append(p.ast.Statement, p.localStmt(&p.ast.Statement))
+		case token.IF:
+			p.ast.Statement = append(p.ast.Statement, p.ifStmt())
 		case token.FOR:
 			p.ast.Statement = append(p.ast.Statement, p.forLoop())
 		case token.LCURLY:
@@ -88,6 +90,8 @@ func (p *Parser) block() ast.Node {
 			block.Statement = append(block.Statement, p.identPath(&block.Statement))
 		case token.LOC:
 			block.Statement = append(block.Statement, p.localStmt(&block.Statement))
+		case token.IF:
+			block.Statement = append(block.Statement, p.ifStmt())
 		case token.FOR:
 			block.Statement = append(block.Statement, p.forLoop())
 		case token.LCURLY:
@@ -160,6 +164,15 @@ func (p *Parser) forLoop() ast.Node {
 	p.expect(token.LCURLY)
 	block := p.block()
 	return &ast.For{Init: init, End: end, State: state, Step: step, Block: block}
+}
+
+func (p *Parser) ifStmt() ast.Node {
+	p.advance()
+	c := p.expression(token.LowestPrec)
+	p.advance()
+	p.expect(token.LCURLY)
+	b := p.block()
+	return &ast.If{Condition: c, Block: b}
 }
 
 func (p *Parser) expression(precedence int) ast.Node {
