@@ -13,6 +13,8 @@ const (
 	iGet
 	iSet
 	slice
+	forInit
+	forLoop
 )
 
 var opcodes = [...]string{
@@ -28,4 +30,6 @@ var opcodes = [...]string{
 	iGet:     "IGet",
 	iSet:     "ISet",
 	slice:    "Slice",
+	forInit:  "ForInit",
+	forLoop:  "ForLoop",
 }

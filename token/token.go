@@ -52,10 +52,11 @@ const (
 	LOC
 	AND
 	OR
+	FOR
 	keyword_end
 )
 
-var tokens = [...]string{
+var Tokens = [...]string{
 	UNEXPECTED: "Unexpected",
 	EOF:        "EOF",
 	COMMENT:    "Comment",
@@ -87,6 +88,7 @@ var tokens = [...]string{
 	NEQ:        "!=",
 	AND:        "and",
 	OR:         "or",
+	FOR:        "for",
 	NOT:        "not",
 	TRUE:       "true",
 	FALSE:      "false",
@@ -105,12 +107,12 @@ var keywords map[string]Token
 func init() {
 	keywords = make(map[string]Token, keyword_end-(keyword_init+1))
 	for i := keyword_init + 1; i < keyword_end; i++ {
-		keywords[tokens[i]] = i
+		keywords[Tokens[i]] = i
 	}
 }
 
 func (token Token) String() string {
-	return tokens[token]
+	return Tokens[token]
 }
 
 func (token Token) IsLiteral() bool {

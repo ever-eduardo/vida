@@ -114,6 +114,18 @@ type ISet struct {
 	Expr  Node
 }
 
+type For struct {
+	Init  Node
+	End   Node
+	Step  Node
+	State Node
+	Block Node
+}
+
+type ForState struct {
+	Value string
+}
+
 func (ast *Ast) _node()           {}
 func (loc *Loc) _node()           {}
 func (mut *Set) _node()           {}
@@ -138,3 +150,5 @@ func (n *Property) _node()        {}
 func (n *Select) _node()          {}
 func (n *SelectStmt) _node()      {}
 func (n *ISet) _node()            {}
+func (n *For) _node()             {}
+func (n *ForState) _node()        {}

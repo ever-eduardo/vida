@@ -1,6 +1,8 @@
 package vida
 
 import (
+	"encoding/binary"
+
 	"github.com/ever-eduardo/vida/ast"
 	"github.com/ever-eduardo/vida/token"
 )
@@ -75,6 +77,41 @@ func (c *Compiler) compileStmt(node ast.Node) {
 		from, scope := c.compileExpr(n.Expr)
 		c.sb.addLocal(n.Identifier, c.level, c.scope, to)
 		c.emitLoc(from, to, scope)
+	case *ast.For:
+		c.scope++
+		var reg [4]byte
+
+		initIdx, initScope := c.compileExpr(n.Init)
+		c.emitLoc(initIdx, c.rAlloc, initScope)
+		reg[0] = c.rAlloc
+		c.rAlloc++
+
+		endIdx, endScope := c.compileExpr(n.End)
+		c.emitLoc(endIdx, c.rAlloc, endScope)
+		reg[1] = c.rAlloc
+		c.rAlloc++
+
+		stepIdx, stepScope := c.compileExpr(n.Step)
+		c.emitLoc(stepIdx, c.rAlloc, stepScope)
+		reg[2] = c.rAlloc
+		c.rAlloc++
+
+		stateIdx, stateScope := c.compileExpr(n.State)
+		c.sb.addLocal(n.State.(*ast.ForState).Value, c.level, c.scope, c.rAlloc)
+		c.emitLoc(stateIdx, c.rAlloc, stateScope)
+		reg[3] = c.rAlloc
+		c.rAlloc++
+
+		forIndex := c.kb.ForLoopIndex(int(reg[0]), int(reg[1]), int(reg[2]), int(reg[3]))
+		c.emitForInit(forIndex, 0)
+		jumpAddr := len(c.module.Code)
+		postLoopAddr := jumpAddr - 2
+		c.compileStmt(n.Block)
+		binary.NativeEndian.PutUint16(c.module.Code[postLoopAddr:], uint16(len(c.module.Code)))
+		c.emitForLoop(forIndex, jumpAddr)
+		c.rAlloc -= byte(c.sb.clearLocals(c.level, c.scope))
+		c.rAlloc -= 3
+		c.scope--
 	case *ast.ReferenceStmt:
 		idx, scope := c.refScope(n.Value)
 		c.emitLoc(idx, c.rAlloc, scope)
@@ -189,6 +226,9 @@ func (c *Compiler) compileExpr(node ast.Node) (int, byte) {
 		return int(c.rAlloc), rLocal
 	case *ast.Property:
 		idx := c.kb.StringIndex(n.Value)
+		return idx, rKonst
+	case *ast.ForState:
+		idx := c.kb.IntegerIndex(0)
 		return idx, rKonst
 	case *ast.IGet:
 		resultReg := c.rAlloc

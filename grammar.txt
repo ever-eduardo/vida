@@ -3,10 +3,12 @@ statement	:= 	global
 			| 	local
 			|	datamut
 			|	block
+			|	for
 global		:=	ident '=' expr
 local		:=	'loc' ident '=' expr
 datamut		:=	ident select select* '=' expr
-block		:=	statement*
+block		:=	'{' statement* '}'
+for			:=	'for' ident '=' expr ',' expr (',' expr)? block
 ident		:=	['_' | letter]+ ['_' | letter | number]*
 expr		:=	prefix
 			|	binary

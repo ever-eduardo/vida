@@ -130,6 +130,18 @@ func (c *Compiler) emitSlice(mode byte, fromV int, fromL int, fromR int, scopeV 
 	c.module.Code = append(c.module.Code, to)
 }
 
+func (c *Compiler) emitForInit(forLoopStateIndex int, postLoopAddr int) {
+	c.module.Code = append(c.module.Code, forInit)
+	c.module.Code = binary.NativeEndian.AppendUint16(c.module.Code, uint16(forLoopStateIndex))
+	c.module.Code = binary.NativeEndian.AppendUint16(c.module.Code, uint16(postLoopAddr))
+}
+
+func (c *Compiler) emitForLoop(forIndex, jump int) {
+	c.module.Code = append(c.module.Code, forLoop)
+	c.module.Code = binary.NativeEndian.AppendUint16(c.module.Code, uint16(forIndex))
+	c.module.Code = binary.NativeEndian.AppendUint16(c.module.Code, uint16(jump))
+}
+
 func (c *Compiler) refScope(id string) (int, byte) {
 	if to, isLocal := c.sb.isLocal(id); isLocal {
 		return int(to), rLocal

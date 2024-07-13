@@ -34,9 +34,11 @@ func (p *Parser) Parse() (*ast.Ast, error) {
 	for p.ok {
 		switch p.current.Token {
 		case token.IDENTIFIER:
-			p.ast.Statement = append(p.ast.Statement, p.identPath())
+			p.ast.Statement = append(p.ast.Statement, p.identPath(&p.ast.Statement))
 		case token.LOC:
-			p.ast.Statement = append(p.ast.Statement, p.localStmt())
+			p.ast.Statement = append(p.ast.Statement, p.localStmt(&p.ast.Statement))
+		case token.FOR:
+			p.ast.Statement = append(p.ast.Statement, p.forLoop())
 		case token.LCURLY:
 			p.ast.Statement = append(p.ast.Statement, p.block())
 		case token.EOF:
@@ -49,9 +51,9 @@ func (p *Parser) Parse() (*ast.Ast, error) {
 	return nil, p.err
 }
 
-func (p *Parser) identPath() ast.Node {
+func (p *Parser) identPath(statements *[]ast.Node) ast.Node {
 	if p.next.Token == token.DOT || p.next.Token == token.LBRACKET {
-		return p.mutateDataStructure()
+		return p.mutateDataStructure(statements)
 	}
 	i := p.current.Lit
 	p.advance()
@@ -62,11 +64,11 @@ func (p *Parser) identPath() ast.Node {
 	return &ast.Set{LHS: &ast.Identifier{Value: i}, Expr: e}
 }
 
-func (p *Parser) localStmt() ast.Node {
+func (p *Parser) localStmt(statements *[]ast.Node) ast.Node {
 	p.advance()
 	p.expect(token.IDENTIFIER)
 	if p.next.Token == token.DOT || p.next.Token == token.LBRACKET {
-		return p.mutateDataStructure()
+		return p.mutateDataStructure(statements)
 	}
 	i := p.current.Lit
 	p.advance()
@@ -83,9 +85,11 @@ func (p *Parser) block() ast.Node {
 	for p.current.Token != token.RCURLY {
 		switch p.current.Token {
 		case token.IDENTIFIER:
-			block.Statement = append(block.Statement, p.identPath())
+			block.Statement = append(block.Statement, p.identPath(&block.Statement))
 		case token.LOC:
-			block.Statement = append(block.Statement, p.localStmt())
+			block.Statement = append(block.Statement, p.localStmt(&block.Statement))
+		case token.FOR:
+			block.Statement = append(block.Statement, p.forLoop())
 		case token.LCURLY:
 			block.Statement = append(block.Statement, p.block())
 		default:
@@ -97,8 +101,8 @@ func (p *Parser) block() ast.Node {
 	return block
 }
 
-func (p *Parser) mutateDataStructure() ast.Node {
-	p.ast.Statement = append(p.ast.Statement, &ast.ReferenceStmt{Value: p.current.Lit})
+func (p *Parser) mutateDataStructure(statements *[]ast.Node) ast.Node {
+	*statements = append(*statements, &ast.ReferenceStmt{Value: p.current.Lit})
 	var i ast.Node
 Loop:
 	for p.next.Token == token.LBRACKET || p.next.Token == token.DOT {
@@ -112,7 +116,7 @@ Loop:
 			if p.next.Token == token.ASSIGN {
 				break Loop
 			}
-			p.ast.Statement = append(p.ast.Statement, &ast.IGetStmt{Index: i})
+			*statements = append(*statements, &ast.IGetStmt{Index: i})
 		case token.DOT:
 			p.advance()
 			p.expect(token.IDENTIFIER)
@@ -120,7 +124,7 @@ Loop:
 			if p.next.Token == token.ASSIGN {
 				break Loop
 			}
-			p.ast.Statement = append(p.ast.Statement, &ast.SelectStmt{Selector: i})
+			*statements = append(*statements, &ast.SelectStmt{Selector: i})
 		default:
 			break Loop
 		}
@@ -131,6 +135,31 @@ Loop:
 	e := p.expression(token.LowestPrec)
 	p.advance()
 	return &ast.ISet{Index: i, Expr: e}
+}
+
+func (p *Parser) forLoop() ast.Node {
+	p.advance()
+	p.expect(token.IDENTIFIER)
+	state := &ast.ForState{Value: p.current.Lit}
+	p.advance()
+	p.expect(token.ASSIGN)
+	p.advance()
+	init := p.expression(token.LowestPrec)
+	p.advance()
+	p.expect(token.COMMA)
+	p.advance()
+	end := p.expression(token.LowestPrec)
+	p.advance()
+	var step ast.Node = &ast.Integer{Value: 1}
+	if p.current.Token == token.COMMA {
+		p.expect(token.COMMA)
+		p.advance()
+		step = p.expression(token.LowestPrec)
+		p.advance()
+	}
+	p.expect(token.LCURLY)
+	block := p.block()
+	return &ast.For{Init: init, End: end, State: state, Step: step, Block: block}
 }
 
 func (p *Parser) expression(precedence int) ast.Node {

@@ -8,7 +8,7 @@ import (
 const FileErrMsg = "File"
 const LexicalErrMsg = "Lexical"
 const SyntaxErrMsg = "Syntax"
-const RunTimeErrMsg = "Runtime"
+const RunTimeErrMsg = "Runtime error"
 
 type VidaError struct {
 	ModuleName   string

@@ -12,35 +12,20 @@ import (
 func (vm *VM) Inspect(ip int) {
 	clear()
 	fmt.Println("Running", vm.Module.Name)
-	fmt.Println("Store")
-	for k, v := range vm.Module.Store {
-		fmt.Println(k, " : ", v)
-	}
-	fmt.Println("Konst")
+	fmt.Printf("Store => %v\n", vm.Module.Store)
+	fmt.Print("Konst => ")
 	for i, v := range vm.Module.Konstants {
-		fmt.Println(i, " : ", v)
-	}
-	fmt.Println("Code")
-	for i, v := range vm.Module.Code {
-		if i == ip {
-			fmt.Printf("[%v : %v], ", i, v)
-		} else {
-			fmt.Printf("%v, ", v)
-		}
+		fmt.Printf("[%v: %v], ", i, v)
 	}
 	fmt.Println()
-	fmt.Println("Stack")
-	fmt.Print("[")
-	for _, v := range vm.Stack {
-		if v == nil {
-			fmt.Printf(" %5v ", "_")
-		} else {
-			fmt.Printf(" %5v ", v)
+	fmt.Printf("Instr => %v\n", printInstr(ip, vm.Module.Code))
+	fmt.Println("Stack =>")
+	for i, v := range vm.Stack {
+		if v != nil {
+			fmt.Printf("  [%v] %v\n", i, v)
 		}
 	}
-	fmt.Print("]")
-	fmt.Println()
-	fmt.Printf("Press 'Enter' to continue => ")
+	fmt.Printf("\nPress 'Enter' to continue => ")
 	fmt.Scanf(" ")
 }
 
@@ -208,6 +193,50 @@ func (vm *VM) Debug() (Result, error) {
 				rec[k] = v
 			}
 			vm.CurrentFrame.stack[to] = &Document{Value: rec}
+		case forInit:
+			forIdx := binary.NativeEndian.Uint16(vm.CurrentFrame.code[ip:])
+			ip += 2
+			jump := binary.NativeEndian.Uint16(vm.CurrentFrame.code[ip:])
+			ip += 2
+			forLoop := vm.valueFrom(rKonst, forIdx).(*ForLoopState)
+			if _, isInteger := vm.CurrentFrame.stack[forLoop.Init].(Integer); !isInteger {
+				return Failure, verror.RuntimeError
+			}
+			if _, isInteger := vm.CurrentFrame.stack[forLoop.End].(Integer); !isInteger {
+				return Failure, verror.RuntimeError
+			}
+			if v, isInteger := vm.CurrentFrame.stack[forLoop.Step].(Integer); !isInteger {
+				return Failure, verror.RuntimeError
+			} else {
+				if v == 0 {
+					return Failure, verror.RuntimeError
+				}
+			}
+			ip = int(jump)
+		case forLoop:
+			forIdx := binary.NativeEndian.Uint16(vm.CurrentFrame.code[ip:])
+			ip += 2
+			jump := binary.NativeEndian.Uint16(vm.CurrentFrame.code[ip:])
+			ip += 2
+			forLoop := vm.valueFrom(rKonst, forIdx).(*ForLoopState)
+			i := vm.CurrentFrame.stack[forLoop.Init].(Integer)
+			e := vm.CurrentFrame.stack[forLoop.End].(Integer)
+			s := vm.CurrentFrame.stack[forLoop.Step].(Integer)
+			if s > 0 {
+				if i < e {
+					vm.CurrentFrame.stack[forLoop.State] = i
+					i += s
+					vm.CurrentFrame.stack[forLoop.Init] = i
+					ip = int(jump)
+				}
+			} else {
+				if i > e {
+					vm.CurrentFrame.stack[forLoop.State] = i
+					i += s
+					vm.CurrentFrame.stack[forLoop.Init] = i
+					ip = int(jump)
+				}
+			}
 		case end:
 			return Success, nil
 		default:

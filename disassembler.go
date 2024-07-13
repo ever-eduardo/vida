@@ -4,6 +4,8 @@ import (
 	"encoding/binary"
 	"fmt"
 	"strings"
+
+	"github.com/ever-eduardo/vida/token"
 )
 
 func PrintBytecode(m *Module, moduleName string) string {
@@ -188,6 +190,20 @@ func processBytecode(code []byte, konst []Value) string {
 			sb.WriteRune(32)
 			sb.WriteString(fmt.Sprintf("%3v", int(code[ip])))
 			ip++
+		case forInit:
+			sb.WriteRune(32)
+			sb.WriteString(fmt.Sprintf("%3v", binary.NativeEndian.Uint16(code[ip:])))
+			ip += 2
+			sb.WriteRune(32)
+			sb.WriteString(fmt.Sprintf("%3v", binary.NativeEndian.Uint16(code[ip:])))
+			ip += 2
+		case forLoop:
+			sb.WriteRune(32)
+			sb.WriteString(fmt.Sprintf("%3v", binary.NativeEndian.Uint16(code[ip:])))
+			ip += 2
+			sb.WriteRune(32)
+			sb.WriteString(fmt.Sprintf("%3v", binary.NativeEndian.Uint16(code[ip:])))
+			ip += 2
 		case end:
 			sb.WriteRune(10)
 			sb.WriteRune(10)
@@ -203,4 +219,175 @@ func printKonstants(konst []Value, sb *strings.Builder) {
 	for i, v := range konst {
 		sb.WriteString(fmt.Sprintf("  %3v  [%3v]  %v\n", i+1, i, v))
 	}
+}
+
+func printInstr(ip int, code []byte) string {
+	var sb strings.Builder
+	op := code[ip]
+	sb.WriteString(opcodes[op])
+	ip++
+	switch op {
+	case end:
+		return sb.String()
+	case setG:
+		sb.WriteRune(32)
+		sb.WriteString(fmt.Sprintf("%3v", int(code[ip])))
+		ip++
+		sb.WriteRune(32)
+		sb.WriteString(fmt.Sprintf("%3v", binary.NativeEndian.Uint16(code[ip:])))
+		ip += 2
+		sb.WriteRune(32)
+		sb.WriteString(fmt.Sprintf("%3v", binary.NativeEndian.Uint16(code[ip:])))
+	case setL:
+		sb.WriteRune(32)
+		sb.WriteString(fmt.Sprintf("%3v", int(code[ip])))
+		ip++
+		sb.WriteRune(32)
+		sb.WriteString(fmt.Sprintf("%3v", binary.NativeEndian.Uint16(code[ip:])))
+		ip += 2
+		sb.WriteRune(32)
+		sb.WriteString(fmt.Sprintf("%3v", int(code[ip])))
+	case move:
+		sb.WriteRune(32)
+		sb.WriteString(fmt.Sprintf("%3v", int(code[ip])))
+		ip++
+		sb.WriteRune(32)
+		sb.WriteString(fmt.Sprintf("%3v", int(code[ip])))
+	case prefix:
+		sb.WriteRune(32)
+		sb.WriteString(fmt.Sprintf("%3v", int(code[ip])))
+		ip++
+		sb.WriteRune(32)
+		sb.WriteString(fmt.Sprintf("%3v", int(code[ip])))
+		ip++
+		sb.WriteRune(32)
+		sb.WriteString(fmt.Sprintf("%3v", binary.NativeEndian.Uint16(code[ip:])))
+		ip += 2
+		sb.WriteRune(32)
+		sb.WriteString(fmt.Sprintf("%3v", int(code[ip])))
+	case equals:
+		sb.WriteRune(32)
+		sb.WriteString(fmt.Sprintf("%3v", int(code[ip])))
+		ip++
+		sb.WriteRune(32)
+		sb.WriteString(fmt.Sprintf("%3v", int(code[ip])))
+		ip++
+		sb.WriteRune(32)
+		sb.WriteString(fmt.Sprintf("%3v", int(code[ip])))
+		ip++
+		sb.WriteRune(32)
+		sb.WriteString(fmt.Sprintf("%3v", binary.NativeEndian.Uint16(code[ip:])))
+		ip += 2
+		sb.WriteRune(32)
+		sb.WriteString(fmt.Sprintf("%3v", binary.NativeEndian.Uint16(code[ip:])))
+		ip += 2
+		sb.WriteRune(32)
+		sb.WriteString(fmt.Sprintf("%3v", int(code[ip])))
+	case binop:
+		sb.WriteRune(32)
+		sb.WriteString(fmt.Sprintf("%3v", token.Tokens[int(code[ip])]))
+		ip++
+		sb.WriteRune(32)
+		sb.WriteString(fmt.Sprintf("%3v", int(code[ip])))
+		ip++
+		sb.WriteRune(32)
+		sb.WriteString(fmt.Sprintf("%3v", int(code[ip])))
+		ip++
+		sb.WriteRune(32)
+		sb.WriteString(fmt.Sprintf("%3v", binary.NativeEndian.Uint16(code[ip:])))
+		ip += 2
+		sb.WriteRune(32)
+		sb.WriteString(fmt.Sprintf("%3v", binary.NativeEndian.Uint16(code[ip:])))
+		ip += 2
+		sb.WriteRune(32)
+		sb.WriteString(fmt.Sprintf("%3v", int(code[ip])))
+	case list:
+		sb.WriteRune(32)
+		sb.WriteString(fmt.Sprintf("%3v", int(code[ip])))
+		ip++
+		sb.WriteRune(32)
+		sb.WriteString(fmt.Sprintf("%3v", int(code[ip])))
+		ip++
+		sb.WriteRune(32)
+		sb.WriteString(fmt.Sprintf("%3v", int(code[ip])))
+	case document:
+		sb.WriteRune(32)
+		sb.WriteString(fmt.Sprintf("%3v", int(code[ip])))
+		ip++
+		sb.WriteRune(32)
+		sb.WriteString(fmt.Sprintf("%3v", int(code[ip])))
+		ip++
+		sb.WriteRune(32)
+		sb.WriteString(fmt.Sprintf("%3v", int(code[ip])))
+	case iGet:
+		sb.WriteRune(32)
+		sb.WriteString(fmt.Sprintf("%3v", int(code[ip])))
+		ip++
+		sb.WriteRune(32)
+		sb.WriteString(fmt.Sprintf("%3v", int(code[ip])))
+		ip++
+		sb.WriteRune(32)
+		sb.WriteString(fmt.Sprintf("%3v", binary.NativeEndian.Uint16(code[ip:])))
+		ip += 2
+		sb.WriteRune(32)
+		sb.WriteString(fmt.Sprintf("%3v", binary.NativeEndian.Uint16(code[ip:])))
+		ip += 2
+		sb.WriteRune(32)
+		sb.WriteString(fmt.Sprintf("%3v", int(code[ip])))
+	case iSet:
+		sb.WriteRune(32)
+		sb.WriteString(fmt.Sprintf("%3v", int(code[ip])))
+		ip++
+		sb.WriteRune(32)
+		sb.WriteString(fmt.Sprintf("%3v", int(code[ip])))
+		ip++
+		sb.WriteRune(32)
+		sb.WriteString(fmt.Sprintf("%3v", binary.NativeEndian.Uint16(code[ip:])))
+		ip += 2
+		sb.WriteRune(32)
+		sb.WriteString(fmt.Sprintf("%3v", binary.NativeEndian.Uint16(code[ip:])))
+		ip += 2
+		sb.WriteRune(32)
+		sb.WriteString(fmt.Sprintf("%3v", int(code[ip])))
+		ip++
+		sb.WriteRune(32)
+		sb.WriteString(fmt.Sprintf("%3v", int(code[ip])))
+	case slice:
+		sb.WriteRune(32)
+		sb.WriteString(fmt.Sprintf("%3v", int(code[ip])))
+		ip++
+		sb.WriteRune(32)
+		sb.WriteString(fmt.Sprintf("%3v", int(code[ip])))
+		ip++
+		sb.WriteRune(32)
+		sb.WriteString(fmt.Sprintf("%3v", int(code[ip])))
+		ip++
+		sb.WriteRune(32)
+		sb.WriteString(fmt.Sprintf("%3v", int(code[ip])))
+		ip++
+		sb.WriteRune(32)
+		sb.WriteString(fmt.Sprintf("%3v", binary.NativeEndian.Uint16(code[ip:])))
+		ip += 2
+		sb.WriteRune(32)
+		sb.WriteString(fmt.Sprintf("%3v", binary.NativeEndian.Uint16(code[ip:])))
+		ip += 2
+		sb.WriteRune(32)
+		sb.WriteString(fmt.Sprintf("%3v", binary.NativeEndian.Uint16(code[ip:])))
+		ip += 2
+		sb.WriteRune(32)
+		sb.WriteString(fmt.Sprintf("%3v", int(code[ip])))
+	case forInit:
+		sb.WriteRune(32)
+		sb.WriteString(fmt.Sprintf("%3v", binary.NativeEndian.Uint16(code[ip:])))
+		ip += 2
+		sb.WriteRune(32)
+		sb.WriteString(fmt.Sprintf("%3v", binary.NativeEndian.Uint16(code[ip:])))
+	case forLoop:
+		sb.WriteRune(32)
+		sb.WriteString(fmt.Sprintf("%3v", binary.NativeEndian.Uint16(code[ip:])))
+		ip += 2
+		sb.WriteRune(32)
+		sb.WriteString(fmt.Sprintf("%3v", binary.NativeEndian.Uint16(code[ip:])))
+	}
+	return sb.String()
 }
