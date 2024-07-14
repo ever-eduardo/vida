@@ -148,14 +148,11 @@ func (c *Compiler) compileStmt(node ast.Node) {
 func (c *Compiler) compileExpr(node ast.Node) (int, byte) {
 	switch n := node.(type) {
 	case *ast.Integer:
-		idx := c.kb.IntegerIndex(n.Value)
-		return idx, rKonst
+		return c.kb.IntegerIndex(n.Value), rKonst
 	case *ast.Float:
-		idx := c.kb.FloatIndex(n.Value)
-		return idx, rKonst
+		return c.kb.FloatIndex(n.Value), rKonst
 	case *ast.String:
-		idx := c.kb.StringIndex(n.Value)
-		return idx, rKonst
+		return c.kb.StringIndex(n.Value), rKonst
 	case *ast.BinaryExpr:
 		opReg := c.rAlloc
 		c.rAlloc++
@@ -163,26 +160,33 @@ func (c *Compiler) compileExpr(node ast.Node) (int, byte) {
 		c.rAlloc++
 		ridx, rscope := c.compileExpr(n.Rhs)
 		c.rAlloc = opReg
+		if lscope == rKonst && rscope == rKonst {
+			if val, err := c.kb.Konstants[lidx].Binop(byte(n.Op), c.kb.Konstants[ridx]); err == nil {
+				return c.integrateKonst(val)
+			}
+		}
 		switch n.Op {
 		case token.EQ, token.NEQ:
-			c.emitEquatable(lidx, ridx, lscope, rscope, opReg, byte(n.Op))
+			c.emitEq(lidx, ridx, lscope, rscope, opReg, byte(n.Op))
 		default:
 			c.emitBinary(lidx, ridx, lscope, rscope, opReg, byte(n.Op))
 		}
 		return int(opReg), rLocal
 	case *ast.PrefixExpr:
 		idx, scope := c.compileExpr(n.Expr)
+		if scope == rKonst {
+			if val, err := c.kb.Konstants[idx].Prefix(byte(n.Op)); err == nil {
+				return c.integrateKonst(val)
+			}
+		}
 		c.emitPrefix(idx, c.rAlloc, scope, byte(n.Op))
 		return int(c.rAlloc), rLocal
 	case *ast.Boolean:
-		idx := c.kb.BooleanIndex(n.Value)
-		return idx, rKonst
+		return c.kb.BooleanIndex(n.Value), rKonst
 	case *ast.Nil:
-		idx := c.kb.NilIndex()
-		return idx, rKonst
+		return c.kb.NilIndex(), rKonst
 	case *ast.Reference:
-		idx, scope := c.refScope(n.Value)
-		return idx, scope
+		return c.refScope(n.Value)
 	case *ast.List:
 		if len(n.ExprList) == 0 {
 			c.emitList(0, c.rAlloc, c.rAlloc)
@@ -225,11 +229,9 @@ func (c *Compiler) compileExpr(node ast.Node) (int, byte) {
 		c.emitDocument(byte(count), c.rAlloc, c.rAlloc)
 		return int(c.rAlloc), rLocal
 	case *ast.Property:
-		idx := c.kb.StringIndex(n.Value)
-		return idx, rKonst
+		return c.kb.StringIndex(n.Value), rKonst
 	case *ast.ForState:
-		idx := c.kb.IntegerIndex(0)
-		return idx, rKonst
+		return c.kb.IntegerIndex(0), rKonst
 	case *ast.IGet:
 		resultReg := c.rAlloc
 		c.rAlloc++
@@ -274,5 +276,20 @@ func (c *Compiler) compileExpr(node ast.Node) (int, byte) {
 		return int(resultReg), rLocal
 	default:
 		return 0, rKonst
+	}
+}
+
+func (c *Compiler) integrateKonst(val Value) (int, byte) {
+	switch e := val.(type) {
+	case Integer:
+		return c.kb.IntegerIndex(int64(e)), rKonst
+	case Float:
+		return c.kb.FloatIndex(float64(e)), rKonst
+	case Bool:
+		return c.kb.BooleanIndex(bool(e)), rKonst
+	case String:
+		return c.kb.StringIndex(e.Value), rKonst
+	default:
+		return c.kb.NilIndex(), rKonst
 	}
 }

@@ -75,7 +75,7 @@ func (c *Compiler) emitBinary(fromLHS int, fromRHS int, scopeLHS byte, scopeRHS 
 	c.module.Code = append(c.module.Code, to)
 }
 
-func (c *Compiler) emitEquatable(fromLHS int, fromRHS int, scopeLHS byte, scopeRHS byte, to byte, operator byte) {
+func (c *Compiler) emitEq(fromLHS int, fromRHS int, scopeLHS byte, scopeRHS byte, to byte, operator byte) {
 	c.module.Code = append(c.module.Code, equals)
 	c.module.Code = append(c.module.Code, operator)
 	c.module.Code = append(c.module.Code, scopeLHS)
