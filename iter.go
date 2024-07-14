@@ -12,41 +12,41 @@ type Iterator interface {
 	Value() Value
 }
 
-type ForLoopState struct {
+type ForLoopRegisters struct {
 	Init  int
 	End   int
 	Step  int
 	State int
 }
 
-func (it *ForLoopState) Boolean() Bool {
+func (it *ForLoopRegisters) Boolean() Bool {
 	return true
 }
 
-func (it *ForLoopState) Prefix(byte) (Value, error) {
+func (it *ForLoopRegisters) Prefix(byte) (Value, error) {
 	return NilValue, verror.RuntimeError
 }
 
-func (it *ForLoopState) Binop(byte, Value) (Value, error) {
+func (it *ForLoopRegisters) Binop(byte, Value) (Value, error) {
 	return NilValue, verror.RuntimeError
 }
 
-func (it *ForLoopState) IGet(Value) (Value, error) {
+func (it *ForLoopRegisters) IGet(Value) (Value, error) {
 	return NilValue, verror.RuntimeError
 }
 
-func (it *ForLoopState) ISet(Value, Value) error {
+func (it *ForLoopRegisters) ISet(Value, Value) error {
 	return verror.RuntimeError
 }
 
-func (it *ForLoopState) Equals(Value) Bool {
+func (it *ForLoopRegisters) Equals(Value) Bool {
 	return false
 }
 
-func (it ForLoopState) String() string {
-	return fmt.Sprintf("ForLoopState [i = %v, e = %v, d = %v, s = %v]", it.Init, it.End, it.Step, it.State)
+func (it ForLoopRegisters) String() string {
+	return fmt.Sprintf("ForLoopRegisters [i = %v, e = %v, d = %v, s = %v]", it.Init, it.End, it.Step, it.State)
 }
 
-func (it *ForLoopState) Type() string {
-	return "ForLoopState"
+func (it *ForLoopRegisters) Type() string {
+	return "ForLoopRegisters"
 }
