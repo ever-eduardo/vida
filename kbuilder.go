@@ -80,7 +80,7 @@ func (kb *KonstBuilder) FloatIndex(value float64) int {
 
 func (kb *KonstBuilder) ForLoopIndex(init, end, step, state int) int {
 	i := kb.index
-	kb.Konstants = append(kb.Konstants, &ForLoopState{Init: init, End: end, Step: step, State: state})
+	kb.Konstants = append(kb.Konstants, &ForLoopRegisters{Init: init, End: end, Step: step, State: state})
 	kb.index++
 	return i
 }
