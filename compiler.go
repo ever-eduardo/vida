@@ -135,6 +135,37 @@ func (c *Compiler) compileStmt(node ast.Node) {
 		c.rAlloc -= byte(c.sb.clearLocals(c.level, c.scope))
 		c.rAlloc -= 3
 		c.scope--
+	case *ast.While:
+		init := len(c.module.Code)
+		idx, scope := c.compileExpr(n.Condition)
+		if scope == rKonst {
+			switch v := c.kb.Konstants[idx].(type) {
+			case Nil:
+				addr := len(c.module.Code) + 1
+				c.emitJump(0)
+				c.compileStmt(n.Block)
+				binary.NativeEndian.PutUint16(c.module.Code[addr:], uint16(len(c.module.Code)))
+			case Bool:
+				if v {
+					c.compileStmt(n.Block)
+					c.emitJump(init)
+				} else {
+					addr := len(c.module.Code) + 1
+					c.emitJump(0)
+					c.compileStmt(n.Block)
+					binary.NativeEndian.PutUint16(c.module.Code[addr:], uint16(len(c.module.Code)))
+				}
+			default:
+				c.compileStmt(n.Block)
+				c.emitJump(init)
+			}
+		} else {
+			addr := len(c.module.Code) + 4
+			c.emitTestF(idx, scope, 0)
+			c.compileStmt(n.Block)
+			c.emitJump(init)
+			binary.NativeEndian.PutUint16(c.module.Code[addr:], uint16(len(c.module.Code)))
+		}
 	case *ast.ReferenceStmt:
 		idx, scope := c.refScope(n.Value)
 		c.emitLoc(idx, c.rAlloc, scope)
