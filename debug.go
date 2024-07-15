@@ -15,7 +15,7 @@ func (vm *VM) Inspect(ip int) {
 	fmt.Printf("Store => %v\n", vm.Module.Store)
 	fmt.Print("Konst => ")
 	for i, v := range vm.Module.Konstants {
-		fmt.Printf("[%v: %v], ", i, v)
+		fmt.Printf("[%v -> %v], ", i, v)
 	}
 	fmt.Println()
 	fmt.Printf("Instr => %v\n", printInstr(ip, vm.Module.Code))
@@ -61,6 +61,18 @@ func (vm *VM) Debug() (Result, error) {
 			to := vm.CurrentFrame.code[ip]
 			ip++
 			vm.CurrentFrame.stack[to] = vm.CurrentFrame.stack[from]
+		case testF:
+			scope := vm.CurrentFrame.code[ip]
+			ip++
+			from := binary.NativeEndian.Uint16(vm.CurrentFrame.code[ip:])
+			ip += 2
+			jump := binary.NativeEndian.Uint16(vm.CurrentFrame.code[ip:])
+			ip += 2
+			if !vm.valueFrom(scope, from).Boolean() {
+				ip = int(jump)
+			}
+		case jump:
+			ip = int(binary.NativeEndian.Uint16(vm.CurrentFrame.code[ip:]))
 		case binop:
 			op := vm.CurrentFrame.code[ip]
 			ip++
@@ -198,7 +210,7 @@ func (vm *VM) Debug() (Result, error) {
 			ip += 2
 			jump := binary.NativeEndian.Uint16(vm.CurrentFrame.code[ip:])
 			ip += 2
-			forLoop := vm.valueFrom(rKonst, forIdx).(*ForLoopState)
+			forLoop := vm.valueFrom(rKonst, forIdx).(*ForLoopRegisters)
 			if _, isInteger := vm.CurrentFrame.stack[forLoop.Init].(Integer); !isInteger {
 				return Failure, verror.RuntimeError
 			}
@@ -218,7 +230,7 @@ func (vm *VM) Debug() (Result, error) {
 			ip += 2
 			jump := binary.NativeEndian.Uint16(vm.CurrentFrame.code[ip:])
 			ip += 2
-			forLoop := vm.valueFrom(rKonst, forIdx).(*ForLoopState)
+			forLoop := vm.valueFrom(rKonst, forIdx).(*ForLoopRegisters)
 			i := vm.CurrentFrame.stack[forLoop.Init].(Integer)
 			e := vm.CurrentFrame.stack[forLoop.End].(Integer)
 			s := vm.CurrentFrame.stack[forLoop.Step].(Integer)

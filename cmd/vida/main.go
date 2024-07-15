@@ -63,7 +63,7 @@ func normalPath(module string) {
 	fmt.Printf("VM time = %v\n", time.Since(init))
 	handleError(err)
 	fmt.Println(res)
-	fmt.Printf("Result %v\n", vm.Module.Store["result"])
+	fmt.Printf("Result %v\n", vm.Module.Store["r"])
 }
 
 func handleError(err error) {

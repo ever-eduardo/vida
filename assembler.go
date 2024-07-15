@@ -16,10 +16,13 @@ const (
 )
 
 const (
-	vcv = 2
-	vce = 3
-	ecv = 6
-	ece = 7
+	vcv          = 2
+	vce          = 3
+	ecv          = 6
+	ece          = 7
+	jmpInstrSize = 3
+	againstFalse = 0
+	againstTrue  = 1
 )
 
 func (c *Compiler) appendHeader() {
@@ -139,6 +142,18 @@ func (c *Compiler) emitForInit(forLoopStateIndex int, postLoopAddr int) {
 func (c *Compiler) emitForLoop(forIndex, jump int) {
 	c.module.Code = append(c.module.Code, forLoop)
 	c.module.Code = binary.NativeEndian.AppendUint16(c.module.Code, uint16(forIndex))
+	c.module.Code = binary.NativeEndian.AppendUint16(c.module.Code, uint16(jump))
+}
+
+func (c *Compiler) emitJump(to int) {
+	c.module.Code = append(c.module.Code, jump)
+	c.module.Code = binary.NativeEndian.AppendUint16(c.module.Code, uint16(to))
+}
+
+func (c *Compiler) emitTestF(from int, scope byte, jump int) {
+	c.module.Code = append(c.module.Code, testF)
+	c.module.Code = append(c.module.Code, scope)
+	c.module.Code = binary.NativeEndian.AppendUint16(c.module.Code, uint16(from))
 	c.module.Code = binary.NativeEndian.AppendUint16(c.module.Code, uint16(jump))
 }
 

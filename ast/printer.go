@@ -218,12 +218,34 @@ func printAST(node Node, sb *strings.Builder, level int) {
 		sb.WriteRune(nl)
 		buildIndent(sb, level+twoLevels)
 		sb.WriteString(n.Value)
+	case *Branch:
+		sb.WriteRune(nl)
+		buildIndent(sb, level+oneLevel)
+		sb.WriteString("Branch")
+		printAST(n.If, sb, level+oneLevel)
+		sb.WriteRune(nl)
+		buildIndent(sb, level+twoLevels)
+		if len(n.Elifs) == 0 {
+			sb.WriteString("No Elifs")
+		} else {
+			sb.WriteString("Elifs")
+		}
+		for _, v := range n.Elifs {
+			printAST(v, sb, level+oneLevel)
+		}
+		printAST(n.Else, sb, level+oneLevel)
 	case *If:
 		sb.WriteRune(nl)
 		buildIndent(sb, level+oneLevel)
 		sb.WriteString("If")
 		sb.WriteRune(nl)
-		printAST(n.Condition, sb, level+oneLevel)
+		printAST(n.Condition, sb, level+twoLevels)
+		sb.WriteRune(nl)
+		printAST(n.Block, sb, level+twoLevels)
+	case *Else:
+		sb.WriteRune(nl)
+		buildIndent(sb, level+oneLevel)
+		sb.WriteString("Else")
 		printAST(n.Block, sb, level+oneLevel)
 	case *Block:
 		sb.WriteRune(nl)
@@ -233,8 +255,9 @@ func printAST(node Node, sb *strings.Builder, level int) {
 			printAST(n.Statement[i], sb, level+twoLevels)
 		}
 	default:
+		sb.WriteRune(nl)
 		buildIndent(sb, level+oneLevel)
-		sb.WriteString("Node")
+		sb.WriteString("Empty Node")
 	}
 }
 

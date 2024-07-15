@@ -15,6 +15,9 @@ const (
 	slice
 	forInit
 	forLoop
+	testF
+	test
+	jump
 )
 
 var opcodes = [...]string{
@@ -32,4 +35,7 @@ var opcodes = [...]string{
 	slice:    "Slice",
 	forInit:  "ForInit",
 	forLoop:  "ForLoop",
+	testF:    "TestF",
+	test:     "Test",
+	jump:     "Jump",
 }

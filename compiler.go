@@ -8,6 +8,7 @@ import (
 )
 
 type Compiler struct {
+	jumps    []int
 	ast      *ast.Ast
 	module   *Module
 	function *Function
@@ -77,6 +78,28 @@ func (c *Compiler) compileStmt(node ast.Node) {
 		from, scope := c.compileExpr(n.Expr)
 		c.sb.addLocal(n.Identifier, c.level, c.scope, to)
 		c.emitLoc(from, to, scope)
+	case *ast.Branch:
+		elifCount := len(n.Elifs)
+		hasElif := elifCount != 0
+		e, hasElse := n.Else.(*ast.Else)
+		shouldJumpOutside := hasElif || hasElse
+		c.compileConditional(n.If.(*ast.If), shouldJumpOutside)
+		if hasElif {
+			for i := 0; i < elifCount-1; i++ {
+				c.compileConditional(n.Elifs[i].(*ast.If), hasElif)
+			}
+			c.compileConditional(n.Elifs[elifCount-1].(*ast.If), hasElse)
+		}
+		if hasElse {
+			c.compileStmt(e.Block)
+		}
+		if shouldJumpOutside {
+			addr := len(c.module.Code)
+			for _, v := range c.jumps {
+				binary.NativeEndian.PutUint16(c.module.Code[v:], uint16(addr))
+			}
+			c.jumps = c.jumps[:0]
+		}
 	case *ast.For:
 		c.scope++
 		var reg [4]byte
@@ -161,8 +184,13 @@ func (c *Compiler) compileExpr(node ast.Node) (int, byte) {
 		ridx, rscope := c.compileExpr(n.Rhs)
 		c.rAlloc = opReg
 		if lscope == rKonst && rscope == rKonst {
-			if val, err := c.kb.Konstants[lidx].Binop(byte(n.Op), c.kb.Konstants[ridx]); err == nil {
-				return c.integrateKonst(val)
+			switch n.Op {
+			case token.EQ, token.NEQ:
+				return c.integrateKonst(c.kb.Konstants[lidx].Equals(c.kb.Konstants[ridx]))
+			default:
+				if val, err := c.kb.Konstants[lidx].Binop(byte(n.Op), c.kb.Konstants[ridx]); err == nil {
+					return c.integrateKonst(val)
+				}
 			}
 		}
 		switch n.Op {
@@ -276,6 +304,47 @@ func (c *Compiler) compileExpr(node ast.Node) (int, byte) {
 		return int(resultReg), rLocal
 	default:
 		return 0, rKonst
+	}
+}
+
+func (c *Compiler) compileConditional(n *ast.If, shouldJumpOutside bool) {
+	idx, scope := c.compileExpr(n.Condition)
+	if scope == rKonst {
+		switch v := c.kb.Konstants[idx].(type) {
+		case Nil:
+			addr := len(c.module.Code) + 1
+			c.emitJump(0)
+			c.compileStmt(n.Block)
+			binary.NativeEndian.PutUint16(c.module.Code[addr:], uint16(len(c.module.Code)))
+		case Bool:
+			if v {
+				c.compileStmt(n.Block)
+				if shouldJumpOutside {
+					c.jumps = append(c.jumps, len(c.module.Code)+1)
+					c.emitJump(0)
+				}
+			} else {
+				addr := len(c.module.Code) + 1
+				c.emitJump(0)
+				c.compileStmt(n.Block)
+				binary.NativeEndian.PutUint16(c.module.Code[addr:], uint16(len(c.module.Code)))
+			}
+		default:
+			c.compileStmt(n.Block)
+			if shouldJumpOutside {
+				c.jumps = append(c.jumps, len(c.module.Code)+1)
+				c.emitJump(0)
+			}
+		}
+	} else {
+		addr := len(c.module.Code) + 4
+		c.emitTestF(idx, scope, 0)
+		c.compileStmt(n.Block)
+		if shouldJumpOutside {
+			c.jumps = append(c.jumps, len(c.module.Code)+1)
+			c.emitJump(0)
+		}
+		binary.NativeEndian.PutUint16(c.module.Code[addr:], uint16(len(c.module.Code)))
 	}
 }
 

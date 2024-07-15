@@ -126,9 +126,19 @@ type ForState struct {
 	Value string
 }
 
+type Branch struct {
+	Elifs []Node
+	If    Node
+	Else  Node
+}
+
 type If struct {
 	Condition Node
 	Block     Node
+}
+
+type Else struct {
+	Block Node
 }
 
 func (ast *Ast) _node()           {}
@@ -157,4 +167,6 @@ func (n *SelectStmt) _node()      {}
 func (n *ISet) _node()            {}
 func (n *For) _node()             {}
 func (n *ForState) _node()        {}
+func (n *Branch) _node()          {}
 func (n *If) _node()              {}
+func (n *Else) _node()            {}

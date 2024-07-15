@@ -172,7 +172,22 @@ func (p *Parser) ifStmt() ast.Node {
 	p.advance()
 	p.expect(token.LCURLY)
 	b := p.block()
-	return &ast.If{Condition: c, Block: b}
+	branch := &ast.Branch{If: &ast.If{Condition: c, Block: b}}
+	for p.current.Token == token.ELSE && p.next.Token == token.IF {
+		p.advance()
+		p.advance()
+		c := p.expression(token.LowestPrec)
+		p.advance()
+		p.expect(token.LCURLY)
+		b := p.block()
+		branch.Elifs = append(branch.Elifs, &ast.If{Condition: c, Block: b})
+	}
+	if p.current.Token == token.ELSE {
+		p.advance()
+		b := p.block()
+		branch.Else = &ast.Else{Block: b}
+	}
+	return branch
 }
 
 func (p *Parser) expression(precedence int) ast.Node {

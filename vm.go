@@ -69,6 +69,18 @@ func (vm *VM) Run() (Result, error) {
 			to := vm.CurrentFrame.code[ip]
 			ip++
 			vm.CurrentFrame.stack[to] = vm.CurrentFrame.stack[from]
+		case testF:
+			scope := vm.CurrentFrame.code[ip]
+			ip++
+			from := binary.NativeEndian.Uint16(vm.CurrentFrame.code[ip:])
+			ip += 2
+			jump := binary.NativeEndian.Uint16(vm.CurrentFrame.code[ip:])
+			ip += 2
+			if !vm.valueFrom(scope, from).Boolean() {
+				ip = int(jump)
+			}
+		case jump:
+			ip = int(binary.NativeEndian.Uint16(vm.CurrentFrame.code[ip:]))
 		case binop:
 			op := vm.CurrentFrame.code[ip]
 			ip++
@@ -206,7 +218,7 @@ func (vm *VM) Run() (Result, error) {
 			ip += 2
 			jump := binary.NativeEndian.Uint16(vm.CurrentFrame.code[ip:])
 			ip += 2
-			forLoop := vm.valueFrom(rKonst, forIdx).(*ForLoopState)
+			forLoop := vm.valueFrom(rKonst, forIdx).(*ForLoopRegisters)
 			if _, isInteger := vm.CurrentFrame.stack[forLoop.Init].(Integer); !isInteger {
 				return Failure, verror.RuntimeError
 			}
@@ -226,7 +238,7 @@ func (vm *VM) Run() (Result, error) {
 			ip += 2
 			jump := binary.NativeEndian.Uint16(vm.CurrentFrame.code[ip:])
 			ip += 2
-			forLoop := vm.valueFrom(rKonst, forIdx).(*ForLoopState)
+			forLoop := vm.valueFrom(rKonst, forIdx).(*ForLoopRegisters)
 			i := vm.CurrentFrame.stack[forLoop.Init].(Integer)
 			e := vm.CurrentFrame.stack[forLoop.End].(Integer)
 			s := vm.CurrentFrame.stack[forLoop.Step].(Integer)
