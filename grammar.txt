@@ -11,11 +11,11 @@ local		:=	'loc' ident '=' expr
 datamut		:=	ident select select* '=' expr
 block		:=	'{' statement* '}'
 loopBlock	:=	'{' statement* break* continue* '}'
-for			:=	'for' ident '=' expr ',' expr (',' expr)? loopBlock
+for			:=	label? 'for' ident '=' expr ',' expr (',' expr)? loopBlock
 if			:=	'if' expr block | loopBlock elif* else?
 elif		:=	'else' 'if' expr block | loopBlock
 else		:=	'else' block | loopBlock
-while		:=	'while' expr loopBlock
+while		:=	label? 'while' expr loopBlock
 ident		:=	['_' | letter]+ ['_' | letter | number]*
 expr		:=	prefix
 			|	binary
@@ -54,3 +54,4 @@ select		:=	'[' expr | ':' | ':' expr | expr ':' | expr ':' expr ']' select*
 			|	':' ident '(' (expr (',' expr)*)? ')' select*
 break		:=	'break' ident?
 continue	:=	'continue' ident?
+label		:=	'<' ident '>'
