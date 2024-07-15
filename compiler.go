@@ -8,16 +8,17 @@ import (
 )
 
 type Compiler struct {
-	jumps    []int
-	ast      *ast.Ast
-	module   *Module
-	function *Function
-	parent   *Compiler
-	kb       *KonstBuilder
-	sb       *symbolBuilder
-	scope    int
-	level    int
-	rAlloc   byte
+	jumps     []int
+	loopJumps []int
+	ast       *ast.Ast
+	module    *Module
+	function  *Function
+	parent    *Compiler
+	kb        *KonstBuilder
+	sb        *symbolBuilder
+	scope     int
+	level     int
+	rAlloc    byte
 }
 
 func NewCompiler(ast *ast.Ast, moduleName string) *Compiler {
@@ -149,6 +150,11 @@ func (c *Compiler) compileStmt(node ast.Node) {
 				if v {
 					c.compileStmt(n.Block)
 					c.emitJump(init)
+					hasJumps := len(c.loopJumps)
+					if hasJumps > 0 {
+						binary.NativeEndian.PutUint16(c.module.Code[c.loopJumps[hasJumps-1]:], uint16(len(c.module.Code)))
+						c.loopJumps = c.loopJumps[:hasJumps-1]
+					}
 				} else {
 					addr := len(c.module.Code) + 1
 					c.emitJump(0)
@@ -158,6 +164,11 @@ func (c *Compiler) compileStmt(node ast.Node) {
 			default:
 				c.compileStmt(n.Block)
 				c.emitJump(init)
+				hasJumps := len(c.loopJumps)
+				if hasJumps > 0 {
+					binary.NativeEndian.PutUint16(c.module.Code[c.loopJumps[hasJumps-1]:], uint16(len(c.module.Code)))
+					c.loopJumps = c.loopJumps[:hasJumps-1]
+				}
 			}
 		} else {
 			addr := len(c.module.Code) + 4
@@ -165,7 +176,15 @@ func (c *Compiler) compileStmt(node ast.Node) {
 			c.compileStmt(n.Block)
 			c.emitJump(init)
 			binary.NativeEndian.PutUint16(c.module.Code[addr:], uint16(len(c.module.Code)))
+			hasJumps := len(c.loopJumps)
+			if hasJumps > 0 {
+				binary.NativeEndian.PutUint16(c.module.Code[c.loopJumps[hasJumps-1]:], uint16(len(c.module.Code)))
+				c.loopJumps = c.loopJumps[:hasJumps-1]
+			}
 		}
+	case *ast.Break:
+		c.loopJumps = append(c.loopJumps, len(c.module.Code)+1)
+		c.emitJump(0)
 	case *ast.ReferenceStmt:
 		idx, scope := c.refScope(n.Value)
 		c.emitLoc(idx, c.rAlloc, scope)
