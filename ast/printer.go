@@ -255,6 +255,14 @@ func printAST(node Node, sb *strings.Builder, level int) {
 		printAST(n.Condition, sb, level+twoLevels)
 		sb.WriteRune(nl)
 		printAST(n.Block, sb, level+twoLevels)
+	case *Break:
+		sb.WriteRune(nl)
+		buildIndent(sb, level+oneLevel)
+		sb.WriteString("Break")
+		sb.WriteRune(nl)
+		buildIndent(sb, level+twoLevels)
+		sb.WriteString("Label: ")
+		sb.WriteString(n.Label)
 	case *Block:
 		sb.WriteRune(nl)
 		buildIndent(sb, level+oneLevel)

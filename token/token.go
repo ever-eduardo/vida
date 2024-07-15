@@ -56,6 +56,7 @@ const (
 	IF
 	ELSE
 	WHILE
+	BREAK
 	keyword_end
 )
 
@@ -100,6 +101,7 @@ var Tokens = [...]string{
 	IF:         "if",
 	ELSE:       "else",
 	WHILE:      "while",
+	BREAK:      "break",
 }
 
 type TokenInfo struct {

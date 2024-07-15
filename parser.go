@@ -38,13 +38,13 @@ func (p *Parser) Parse() (*ast.Ast, error) {
 		case token.LOC:
 			p.ast.Statement = append(p.ast.Statement, p.localStmt(&p.ast.Statement))
 		case token.IF:
-			p.ast.Statement = append(p.ast.Statement, p.ifStmt())
+			p.ast.Statement = append(p.ast.Statement, p.ifStmt(false))
 		case token.FOR:
 			p.ast.Statement = append(p.ast.Statement, p.forLoop())
 		case token.WHILE:
 			p.ast.Statement = append(p.ast.Statement, p.loop())
 		case token.LCURLY:
-			p.ast.Statement = append(p.ast.Statement, p.block())
+			p.ast.Statement = append(p.ast.Statement, p.block(false))
 		case token.EOF:
 			return p.ast, nil
 		default:
@@ -83,7 +83,7 @@ func (p *Parser) localStmt(statements *[]ast.Node) ast.Node {
 	return &ast.Loc{Identifier: i, Expr: e}
 }
 
-func (p *Parser) block() ast.Node {
+func (p *Parser) block(isInsideLoop bool) ast.Node {
 	block := &ast.Block{}
 	p.advance()
 	for p.current.Token != token.RCURLY {
@@ -93,13 +93,20 @@ func (p *Parser) block() ast.Node {
 		case token.LOC:
 			block.Statement = append(block.Statement, p.localStmt(&block.Statement))
 		case token.IF:
-			block.Statement = append(block.Statement, p.ifStmt())
+			block.Statement = append(block.Statement, p.ifStmt(isInsideLoop))
 		case token.FOR:
 			block.Statement = append(block.Statement, p.forLoop())
 		case token.WHILE:
 			block.Statement = append(block.Statement, p.loop())
+		case token.BREAK:
+			if isInsideLoop {
+				block.Statement = append(block.Statement, p.breakStmt())
+			} else {
+				p.err = verror.New(p.lexer.ModuleName, "Break outside loop", verror.SyntaxErrMsg, p.current.Line)
+				return block
+			}
 		case token.LCURLY:
-			block.Statement = append(block.Statement, p.block())
+			block.Statement = append(block.Statement, p.block(isInsideLoop))
 		default:
 			p.err = verror.New(p.lexer.ModuleName, "Expected statement", verror.SyntaxErrMsg, p.current.Line)
 			return block
@@ -166,16 +173,16 @@ func (p *Parser) forLoop() ast.Node {
 		p.advance()
 	}
 	p.expect(token.LCURLY)
-	block := p.block()
+	block := p.block(true)
 	return &ast.For{Init: init, End: end, State: state, Step: step, Block: block}
 }
 
-func (p *Parser) ifStmt() ast.Node {
+func (p *Parser) ifStmt(isInsideLoop bool) ast.Node {
 	p.advance()
 	c := p.expression(token.LowestPrec)
 	p.advance()
 	p.expect(token.LCURLY)
-	b := p.block()
+	b := p.block(isInsideLoop)
 	branch := &ast.Branch{If: &ast.If{Condition: c, Block: b}}
 	for p.current.Token == token.ELSE && p.next.Token == token.IF {
 		p.advance()
@@ -183,12 +190,12 @@ func (p *Parser) ifStmt() ast.Node {
 		c := p.expression(token.LowestPrec)
 		p.advance()
 		p.expect(token.LCURLY)
-		b := p.block()
+		b := p.block(isInsideLoop)
 		branch.Elifs = append(branch.Elifs, &ast.If{Condition: c, Block: b})
 	}
 	if p.current.Token == token.ELSE {
 		p.advance()
-		b := p.block()
+		b := p.block(isInsideLoop)
 		branch.Else = &ast.Else{Block: b}
 	}
 	return branch
@@ -199,8 +206,17 @@ func (p *Parser) loop() ast.Node {
 	c := p.expression(token.LowestPrec)
 	p.advance()
 	p.expect(token.LCURLY)
-	b := p.block()
+	b := p.block(true)
 	return &ast.While{Condition: c, Block: b}
+}
+
+func (p *Parser) breakStmt() ast.Node {
+	stmt := &ast.Break{}
+	p.advance()
+	if p.current.Token == token.IDENTIFIER {
+		stmt.Label = p.current.Lit
+	}
+	return stmt
 }
 
 func (p *Parser) expression(precedence int) ast.Node {

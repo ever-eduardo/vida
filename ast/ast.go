@@ -146,6 +146,10 @@ type While struct {
 	Block     Node
 }
 
+type Break struct {
+	Label string
+}
+
 func (ast *Ast) _node()           {}
 func (loc *Loc) _node()           {}
 func (mut *Set) _node()           {}
@@ -176,3 +180,4 @@ func (n *Branch) _node()          {}
 func (n *If) _node()              {}
 func (n *Else) _node()            {}
 func (n *While) _node()           {}
+func (n *Break) _node()           {}
