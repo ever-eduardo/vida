@@ -54,4 +54,4 @@ select		:=	'[' expr | ':' | ':' expr | expr ':' | expr ':' expr ']' select*
 			|	':' ident '(' (expr (',' expr)*)? ')' select*
 break		:=	'break' ident?
 continue	:=	'continue' ident?
-label		:=	'<' ident '>'
+label		:=	'#' ident
