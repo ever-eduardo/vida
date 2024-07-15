@@ -105,6 +105,13 @@ func (p *Parser) block(isInsideLoop bool) ast.Node {
 				p.err = verror.New(p.lexer.ModuleName, "Break outside loop", verror.SyntaxErrMsg, p.current.Line)
 				return block
 			}
+		case token.CONTINUE:
+			if isInsideLoop {
+				block.Statement = append(block.Statement, p.continueStmt())
+			} else {
+				p.err = verror.New(p.lexer.ModuleName, "Continue outside loop", verror.SyntaxErrMsg, p.current.Line)
+				return block
+			}
 		case token.LCURLY:
 			block.Statement = append(block.Statement, p.block(isInsideLoop))
 		default:
@@ -212,6 +219,15 @@ func (p *Parser) loop() ast.Node {
 
 func (p *Parser) breakStmt() ast.Node {
 	stmt := &ast.Break{}
+	p.advance()
+	if p.current.Token == token.IDENTIFIER {
+		stmt.Label = p.current.Lit
+	}
+	return stmt
+}
+
+func (p *Parser) continueStmt() ast.Node {
+	stmt := &ast.Continue{}
 	p.advance()
 	if p.current.Token == token.IDENTIFIER {
 		stmt.Label = p.current.Lit

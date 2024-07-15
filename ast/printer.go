@@ -263,6 +263,14 @@ func printAST(node Node, sb *strings.Builder, level int) {
 		buildIndent(sb, level+twoLevels)
 		sb.WriteString("Label: ")
 		sb.WriteString(n.Label)
+	case *Continue:
+		sb.WriteRune(nl)
+		buildIndent(sb, level+oneLevel)
+		sb.WriteString("Continue")
+		sb.WriteRune(nl)
+		buildIndent(sb, level+twoLevels)
+		sb.WriteString("Label: ")
+		sb.WriteString(n.Label)
 	case *Block:
 		sb.WriteRune(nl)
 		buildIndent(sb, level+oneLevel)

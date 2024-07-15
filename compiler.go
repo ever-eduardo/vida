@@ -2,23 +2,27 @@ package vida
 
 import (
 	"encoding/binary"
+	"fmt"
 
 	"github.com/ever-eduardo/vida/ast"
 	"github.com/ever-eduardo/vida/token"
 )
 
 type Compiler struct {
-	jumps     []int
-	loopJumps []int
-	ast       *ast.Ast
-	module    *Module
-	function  *Function
-	parent    *Compiler
-	kb        *KonstBuilder
-	sb        *symbolBuilder
-	scope     int
-	level     int
-	rAlloc    byte
+	jumps         []int
+	breakJumps    []int
+	breakCount    []int
+	continueJumps []int
+	continueCount []int
+	ast           *ast.Ast
+	module        *Module
+	function      *Function
+	parent        *Compiler
+	kb            *KonstBuilder
+	sb            *symbolBuilder
+	scope         int
+	level         int
+	rAlloc        byte
 }
 
 func NewCompiler(ast *ast.Ast, moduleName string) *Compiler {
@@ -102,6 +106,8 @@ func (c *Compiler) compileStmt(node ast.Node) {
 			c.jumps = c.jumps[:0]
 		}
 	case *ast.For:
+		c.breakCount = append(c.breakCount, 0)
+		c.continueCount = append(c.continueCount, 0)
 		c.scope++
 		var reg [4]byte
 
@@ -131,59 +137,49 @@ func (c *Compiler) compileStmt(node ast.Node) {
 		jumpAddr := len(c.module.Code)
 		postLoopAddr := jumpAddr - 2
 		c.compileStmt(n.Block)
-		binary.NativeEndian.PutUint16(c.module.Code[postLoopAddr:], uint16(len(c.module.Code)))
+		afterLoopAddr := len(c.module.Code)
+		binary.NativeEndian.PutUint16(c.module.Code[postLoopAddr:], uint16(afterLoopAddr))
 		c.emitForLoop(forIndex, jumpAddr)
+		c.cleanUpJumps(afterLoopAddr)
 		c.rAlloc -= byte(c.sb.clearLocals(c.level, c.scope))
 		c.rAlloc -= 3
 		c.scope--
 	case *ast.While:
+		c.breakCount = append(c.breakCount, 0)
+		c.continueCount = append(c.continueCount, 0)
 		init := len(c.module.Code)
 		idx, scope := c.compileExpr(n.Condition)
 		if scope == rKonst {
 			switch v := c.kb.Konstants[idx].(type) {
 			case Nil:
-				addr := len(c.module.Code) + 1
-				c.emitJump(0)
-				c.compileStmt(n.Block)
-				binary.NativeEndian.PutUint16(c.module.Code[addr:], uint16(len(c.module.Code)))
+				c.skipBlock(n.Block)
+				c.cleanUpJumps(init)
+				return
 			case Bool:
-				if v {
-					c.compileStmt(n.Block)
-					c.emitJump(init)
-					hasJumps := len(c.loopJumps)
-					if hasJumps > 0 {
-						binary.NativeEndian.PutUint16(c.module.Code[c.loopJumps[hasJumps-1]:], uint16(len(c.module.Code)))
-						c.loopJumps = c.loopJumps[:hasJumps-1]
-					}
-				} else {
-					addr := len(c.module.Code) + 1
-					c.emitJump(0)
-					c.compileStmt(n.Block)
-					binary.NativeEndian.PutUint16(c.module.Code[addr:], uint16(len(c.module.Code)))
-				}
-			default:
-				c.compileStmt(n.Block)
-				c.emitJump(init)
-				hasJumps := len(c.loopJumps)
-				if hasJumps > 0 {
-					binary.NativeEndian.PutUint16(c.module.Code[c.loopJumps[hasJumps-1]:], uint16(len(c.module.Code)))
-					c.loopJumps = c.loopJumps[:hasJumps-1]
+				if !v {
+					c.skipBlock(n.Block)
+					c.cleanUpJumps(init)
+					return
 				}
 			}
+			c.compileStmt(n.Block)
+			c.emitJump(init)
+			c.cleanUpJumps(init)
 		} else {
 			addr := len(c.module.Code) + 4
 			c.emitTestF(idx, scope, 0)
 			c.compileStmt(n.Block)
 			c.emitJump(init)
 			binary.NativeEndian.PutUint16(c.module.Code[addr:], uint16(len(c.module.Code)))
-			hasJumps := len(c.loopJumps)
-			if hasJumps > 0 {
-				binary.NativeEndian.PutUint16(c.module.Code[c.loopJumps[hasJumps-1]:], uint16(len(c.module.Code)))
-				c.loopJumps = c.loopJumps[:hasJumps-1]
-			}
+			c.cleanUpJumps(init)
 		}
 	case *ast.Break:
-		c.loopJumps = append(c.loopJumps, len(c.module.Code)+1)
+		c.breakJumps = append(c.breakJumps, len(c.module.Code)+1)
+		c.breakCount[len(c.breakCount)-1]++
+		c.emitJump(0)
+	case *ast.Continue:
+		c.continueJumps = append(c.continueJumps, len(c.module.Code)+1)
+		c.continueCount[len(c.continueCount)-1]++
 		c.emitJump(0)
 	case *ast.ReferenceStmt:
 		idx, scope := c.refScope(n.Value)
@@ -362,40 +358,69 @@ func (c *Compiler) compileConditional(n *ast.If, shouldJumpOutside bool) {
 	if scope == rKonst {
 		switch v := c.kb.Konstants[idx].(type) {
 		case Nil:
-			addr := len(c.module.Code) + 1
-			c.emitJump(0)
-			c.compileStmt(n.Block)
-			binary.NativeEndian.PutUint16(c.module.Code[addr:], uint16(len(c.module.Code)))
+			c.skipBlock(n.Block)
+			return
 		case Bool:
-			if v {
-				c.compileStmt(n.Block)
-				if shouldJumpOutside {
-					c.jumps = append(c.jumps, len(c.module.Code)+1)
-					c.emitJump(0)
-				}
-			} else {
-				addr := len(c.module.Code) + 1
-				c.emitJump(0)
-				c.compileStmt(n.Block)
-				binary.NativeEndian.PutUint16(c.module.Code[addr:], uint16(len(c.module.Code)))
-			}
-		default:
-			c.compileStmt(n.Block)
-			if shouldJumpOutside {
-				c.jumps = append(c.jumps, len(c.module.Code)+1)
-				c.emitJump(0)
+			if !v {
+				c.skipBlock(n.Block)
+				return
 			}
 		}
+		c.compileBlockAndCheckJump(n.Block, shouldJumpOutside)
 	} else {
 		addr := len(c.module.Code) + 4
 		c.emitTestF(idx, scope, 0)
-		c.compileStmt(n.Block)
-		if shouldJumpOutside {
-			c.jumps = append(c.jumps, len(c.module.Code)+1)
-			c.emitJump(0)
-		}
+		c.compileBlockAndCheckJump(n.Block, shouldJumpOutside)
 		binary.NativeEndian.PutUint16(c.module.Code[addr:], uint16(len(c.module.Code)))
 	}
+}
+
+func (c *Compiler) skipBlock(block ast.Node) {
+	addr := len(c.module.Code) + 1
+	c.emitJump(0)
+	c.compileStmt(block)
+	binary.NativeEndian.PutUint16(c.module.Code[addr:], uint16(len(c.module.Code)))
+}
+
+func (c *Compiler) compileBlockAndCheckJump(block ast.Node, shouldJumpOutside bool) {
+	c.compileStmt(block)
+	if shouldJumpOutside {
+		c.jumps = append(c.jumps, len(c.module.Code)+1)
+		c.emitJump(0)
+	}
+}
+
+func (c *Compiler) cleanUpJumps(init int) {
+	println("DEBUG BEFORE CLEANUP")
+	fmt.Printf("bcount %v\n", c.breakCount)
+	fmt.Printf("b %v\n", c.breakJumps)
+	fmt.Printf("ccount %v\n", c.continueCount)
+	fmt.Printf("c %v\n", c.continueJumps)
+	hasBreaks := len(c.breakJumps)
+	lastElem := len(c.breakCount) - 1
+	count := c.breakCount[lastElem]
+	if hasBreaks > 0 {
+		for i := 1; i <= count; i++ {
+			binary.NativeEndian.PutUint16(c.module.Code[c.breakJumps[hasBreaks-i]:], uint16(len(c.module.Code)))
+		}
+		c.breakJumps = c.breakJumps[:hasBreaks-count]
+	}
+	c.breakCount = c.breakCount[:lastElem]
+	hasContinues := len(c.continueJumps)
+	lastElem = len(c.continueCount) - 1
+	count = c.continueCount[lastElem]
+	if hasContinues > 0 {
+		for i := 1; i <= count; i++ {
+			binary.NativeEndian.PutUint16(c.module.Code[c.continueJumps[hasContinues-i]:], uint16(init))
+		}
+		c.continueJumps = c.continueJumps[:hasContinues-count]
+	}
+	c.continueCount = c.continueCount[:lastElem]
+	println("DEBUG AFTER CLEANUP")
+	fmt.Printf("bcount %v\n", c.breakCount)
+	fmt.Printf("b %v\n", c.breakJumps)
+	fmt.Printf("ccount %v\n", c.continueCount)
+	fmt.Printf("c %v\n", c.continueJumps)
 }
 
 func (c *Compiler) integrateKonst(val Value) (int, byte) {

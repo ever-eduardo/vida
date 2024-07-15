@@ -150,6 +150,10 @@ type Break struct {
 	Label string
 }
 
+type Continue struct {
+	Label string
+}
+
 func (ast *Ast) _node()           {}
 func (loc *Loc) _node()           {}
 func (mut *Set) _node()           {}
@@ -181,3 +185,4 @@ func (n *If) _node()              {}
 func (n *Else) _node()            {}
 func (n *While) _node()           {}
 func (n *Break) _node()           {}
+func (n *Continue) _node()        {}
