@@ -141,6 +141,11 @@ type Else struct {
 	Block Node
 }
 
+type While struct {
+	Condition Node
+	Block     Node
+}
+
 func (ast *Ast) _node()           {}
 func (loc *Loc) _node()           {}
 func (mut *Set) _node()           {}
@@ -170,3 +175,4 @@ func (n *ForState) _node()        {}
 func (n *Branch) _node()          {}
 func (n *If) _node()              {}
 func (n *Else) _node()            {}
+func (n *While) _node()           {}

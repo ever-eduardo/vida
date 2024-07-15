@@ -41,6 +41,8 @@ func (p *Parser) Parse() (*ast.Ast, error) {
 			p.ast.Statement = append(p.ast.Statement, p.ifStmt())
 		case token.FOR:
 			p.ast.Statement = append(p.ast.Statement, p.forLoop())
+		case token.WHILE:
+			p.ast.Statement = append(p.ast.Statement, p.loop())
 		case token.LCURLY:
 			p.ast.Statement = append(p.ast.Statement, p.block())
 		case token.EOF:
@@ -94,6 +96,8 @@ func (p *Parser) block() ast.Node {
 			block.Statement = append(block.Statement, p.ifStmt())
 		case token.FOR:
 			block.Statement = append(block.Statement, p.forLoop())
+		case token.WHILE:
+			block.Statement = append(block.Statement, p.loop())
 		case token.LCURLY:
 			block.Statement = append(block.Statement, p.block())
 		default:
@@ -188,6 +192,15 @@ func (p *Parser) ifStmt() ast.Node {
 		branch.Else = &ast.Else{Block: b}
 	}
 	return branch
+}
+
+func (p *Parser) loop() ast.Node {
+	p.advance()
+	c := p.expression(token.LowestPrec)
+	p.advance()
+	p.expect(token.LCURLY)
+	b := p.block()
+	return &ast.While{Condition: c, Block: b}
 }
 
 func (p *Parser) expression(precedence int) ast.Node {

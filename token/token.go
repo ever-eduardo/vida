@@ -55,6 +55,7 @@ const (
 	FOR
 	IF
 	ELSE
+	WHILE
 	keyword_end
 )
 
@@ -98,6 +99,7 @@ var Tokens = [...]string{
 	LOC:        "loc",
 	IF:         "if",
 	ELSE:       "else",
+	WHILE:      "while",
 }
 
 type TokenInfo struct {
