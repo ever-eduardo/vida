@@ -34,6 +34,7 @@ primary		:=	'true'
 			|	String
 			|	List
 			|	Document
+			|	Function
 binop		:=	'and'
 			|	'or'
 			|	'+'
@@ -50,9 +51,12 @@ binop		:=	'and'
 List		:=	'[' (expr (',' expr)*)? ']'
 Document	:=	'{' (pair (',' pair))* '}'
 pair		:=	ident ':' expr
+Function	:=	'fun' '(' (iden (',' iden)*)? ')' (fBody | '->' expr) 
+fBody		:=	'{' statement* ret?* '}'
 select		:=	'[' expr | ':' | ':' expr | expr ':' | expr ':' expr ']' select*
 			|	'.' ident select*
 			|	'(' (expr (',' expr)*)? ')' select*
 			|	':' ident '(' (expr (',' expr)*)? ')' select*
 break		:=	'break'
 continue	:=	'continue'
+ret			:=	'ret' expr
