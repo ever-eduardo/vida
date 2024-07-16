@@ -146,13 +146,9 @@ type While struct {
 	Block     Node
 }
 
-type Break struct {
-	Label string
-}
+type Break struct{}
 
-type Continue struct {
-	Label string
-}
+type Continue struct{}
 
 func (ast *Ast) _node()           {}
 func (loc *Loc) _node()           {}

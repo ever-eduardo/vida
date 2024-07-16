@@ -103,6 +103,7 @@ func (p *Parser) block(isInsideLoop bool) ast.Node {
 				block.Statement = append(block.Statement, p.breakStmt())
 			} else {
 				p.err = verror.New(p.lexer.ModuleName, "Break outside loop", verror.SyntaxErrMsg, p.current.Line)
+				p.ok = false
 				return block
 			}
 		case token.CONTINUE:
@@ -110,12 +111,14 @@ func (p *Parser) block(isInsideLoop bool) ast.Node {
 				block.Statement = append(block.Statement, p.continueStmt())
 			} else {
 				p.err = verror.New(p.lexer.ModuleName, "Continue outside loop", verror.SyntaxErrMsg, p.current.Line)
+				p.ok = false
 				return block
 			}
 		case token.LCURLY:
 			block.Statement = append(block.Statement, p.block(isInsideLoop))
 		default:
 			p.err = verror.New(p.lexer.ModuleName, "Expected statement", verror.SyntaxErrMsg, p.current.Line)
+			p.ok = false
 			return block
 		}
 	}
@@ -218,21 +221,13 @@ func (p *Parser) loop() ast.Node {
 }
 
 func (p *Parser) breakStmt() ast.Node {
-	stmt := &ast.Break{}
 	p.advance()
-	if p.current.Token == token.IDENTIFIER {
-		stmt.Label = p.current.Lit
-	}
-	return stmt
+	return &ast.Break{}
 }
 
 func (p *Parser) continueStmt() ast.Node {
-	stmt := &ast.Continue{}
 	p.advance()
-	if p.current.Token == token.IDENTIFIER {
-		stmt.Label = p.current.Lit
-	}
-	return stmt
+	return &ast.Continue{}
 }
 
 func (p *Parser) expression(precedence int) ast.Node {

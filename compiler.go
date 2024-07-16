@@ -2,7 +2,6 @@ package vida
 
 import (
 	"encoding/binary"
-	"fmt"
 
 	"github.com/ever-eduardo/vida/ast"
 	"github.com/ever-eduardo/vida/token"
@@ -391,11 +390,6 @@ func (c *Compiler) compileBlockAndCheckJump(block ast.Node, shouldJumpOutside bo
 }
 
 func (c *Compiler) cleanUpJumps(init int) {
-	println("DEBUG BEFORE CLEANUP")
-	fmt.Printf("bcount %v\n", c.breakCount)
-	fmt.Printf("b %v\n", c.breakJumps)
-	fmt.Printf("ccount %v\n", c.continueCount)
-	fmt.Printf("c %v\n", c.continueJumps)
 	hasBreaks := len(c.breakJumps)
 	lastElem := len(c.breakCount) - 1
 	count := c.breakCount[lastElem]
@@ -416,11 +410,6 @@ func (c *Compiler) cleanUpJumps(init int) {
 		c.continueJumps = c.continueJumps[:hasContinues-count]
 	}
 	c.continueCount = c.continueCount[:lastElem]
-	println("DEBUG AFTER CLEANUP")
-	fmt.Printf("bcount %v\n", c.breakCount)
-	fmt.Printf("b %v\n", c.breakJumps)
-	fmt.Printf("ccount %v\n", c.continueCount)
-	fmt.Printf("c %v\n", c.continueJumps)
 }
 
 func (c *Compiler) integrateKonst(val Value) (int, byte) {
