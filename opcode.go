@@ -13,8 +13,10 @@ const (
 	iGet
 	iSet
 	slice
-	forInit
+	forSet
 	forLoop
+	iForSet
+	iForLoop
 	testF
 	test
 	jump
@@ -33,8 +35,10 @@ var opcodes = [...]string{
 	iGet:     "IGet",
 	iSet:     "ISet",
 	slice:    "Slice",
-	forInit:  "ForInit",
-	forLoop:  "ForLoop",
+	forSet:   "For",
+	forLoop:  "Loop",
+	iForSet:  "IFor",
+	iForLoop: "ILoop",
 	testF:    "TestF",
 	test:     "Test",
 	jump:     "Jump",

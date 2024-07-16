@@ -213,7 +213,7 @@ func (vm *VM) Run() (Result, error) {
 				rec[k] = v
 			}
 			vm.CurrentFrame.stack[to] = &Document{Value: rec}
-		case forInit:
+		case forSet:
 			forIdx := binary.NativeEndian.Uint16(vm.CurrentFrame.code[ip:])
 			ip += 2
 			jump := binary.NativeEndian.Uint16(vm.CurrentFrame.code[ip:])
@@ -278,7 +278,7 @@ func (vm *VM) valueFrom(scope byte, from uint16) Value {
 		} else {
 			return NilValue
 		}
-	case rPrelude:
+	case rCore:
 		if v, defined := vm.Prelude[vm.Module.Konstants[from].(String).Value]; defined {
 			return v
 		} else {

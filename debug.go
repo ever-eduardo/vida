@@ -205,7 +205,7 @@ func (vm *VM) Debug() (Result, error) {
 				rec[k] = v
 			}
 			vm.CurrentFrame.stack[to] = &Document{Value: rec}
-		case forInit:
+		case forSet:
 			forIdx := binary.NativeEndian.Uint16(vm.CurrentFrame.code[ip:])
 			ip += 2
 			jump := binary.NativeEndian.Uint16(vm.CurrentFrame.code[ip:])
@@ -224,6 +224,21 @@ func (vm *VM) Debug() (Result, error) {
 					return Failure, verror.RuntimeError
 				}
 			}
+			ip = int(jump)
+		case iForSet:
+			scope := vm.CurrentFrame.code[ip]
+			ip++
+			reg := vm.CurrentFrame.code[ip]
+			ip++
+			idx := binary.NativeEndian.Uint16(vm.CurrentFrame.code[ip:])
+			ip += 2
+			jump := binary.NativeEndian.Uint16(vm.CurrentFrame.code[ip:])
+			ip += 2
+			val := vm.valueFrom(scope, idx)
+			if !val.IsIterable() {
+				return Failure, verror.RuntimeError
+			}
+			vm.CurrentFrame.stack[reg] = val.GetIterator()
 			ip = int(jump)
 		case forLoop:
 			forIdx := binary.NativeEndian.Uint16(vm.CurrentFrame.code[ip:])
@@ -248,6 +263,19 @@ func (vm *VM) Debug() (Result, error) {
 					vm.CurrentFrame.stack[forLoop.Init] = i
 					ip = int(jump)
 				}
+			}
+		case iForLoop:
+			forIdx := binary.NativeEndian.Uint16(vm.CurrentFrame.code[ip:])
+			ip += 2
+			jump := binary.NativeEndian.Uint16(vm.CurrentFrame.code[ip:])
+			ip += 2
+			forLoop, _ := vm.valueFrom(rKonst, forIdx).(*IForLoop)
+			i, _ := vm.CurrentFrame.stack[forLoop.Iter].(Iterator)
+			if i.Next() {
+				vm.CurrentFrame.stack[forLoop.Key] = i.Key()
+				vm.CurrentFrame.stack[forLoop.Value] = i.Value()
+				ip = int(jump)
+				continue
 			}
 		case end:
 			return Success, nil

@@ -551,7 +551,7 @@ func (xs *List) IsIterable() Bool {
 }
 
 func (xs *List) GetIterator() Value {
-	return NilValue
+	return &ListIterator{List: xs, Init: -1, State: 0, End: len(xs.Value)}
 }
 
 func (xs List) String() string {
@@ -651,7 +651,12 @@ func (d *Document) IsIterable() Bool {
 }
 
 func (d *Document) GetIterator() Value {
-	return NilValue
+	size := len(d.Value)
+	keys := make([]string, 0, size)
+	for k := range d.Value {
+		keys = append(keys, k)
+	}
+	return &DocIterator{Doc: d, Init: -1, End: size, Keys: keys}
 }
 
 func (d *Document) String() string {

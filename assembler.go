@@ -11,7 +11,7 @@ const (
 	rKonst byte = iota
 	rLocal
 	rGlobal
-	rPrelude
+	rCore
 	rFreevar
 )
 
@@ -23,6 +23,11 @@ const (
 	jmpInstrSize = 3
 	againstFalse = 0
 	againstTrue  = 1
+)
+
+const (
+	iter  = "&iter"
+	state = "&state"
 )
 
 func (c *Compiler) appendHeader() {
@@ -133,15 +138,29 @@ func (c *Compiler) emitSlice(mode byte, fromV int, fromL int, fromR int, scopeV 
 	c.module.Code = append(c.module.Code, to)
 }
 
-func (c *Compiler) emitForInit(forLoopStateIndex int, postLoopAddr int) {
-	c.module.Code = append(c.module.Code, forInit)
-	c.module.Code = binary.NativeEndian.AppendUint16(c.module.Code, uint16(forLoopStateIndex))
-	c.module.Code = binary.NativeEndian.AppendUint16(c.module.Code, uint16(postLoopAddr))
+func (c *Compiler) emitForSet(forLoopIndex int, evalLoopAddr int) {
+	c.module.Code = append(c.module.Code, forSet)
+	c.module.Code = binary.NativeEndian.AppendUint16(c.module.Code, uint16(forLoopIndex))
+	c.module.Code = binary.NativeEndian.AppendUint16(c.module.Code, uint16(evalLoopAddr))
 }
 
-func (c *Compiler) emitForLoop(forIndex, jump int) {
+func (c *Compiler) emitForLoop(forLoopIndex, jump int) {
 	c.module.Code = append(c.module.Code, forLoop)
-	c.module.Code = binary.NativeEndian.AppendUint16(c.module.Code, uint16(forIndex))
+	c.module.Code = binary.NativeEndian.AppendUint16(c.module.Code, uint16(forLoopIndex))
+	c.module.Code = binary.NativeEndian.AppendUint16(c.module.Code, uint16(jump))
+}
+
+func (c *Compiler) emitIForSet(evalLoopAddr, idx int, scope byte, reg byte) {
+	c.module.Code = append(c.module.Code, iForSet)
+	c.module.Code = append(c.module.Code, scope)
+	c.module.Code = append(c.module.Code, reg)
+	c.module.Code = binary.NativeEndian.AppendUint16(c.module.Code, uint16(idx))
+	c.module.Code = binary.NativeEndian.AppendUint16(c.module.Code, uint16(evalLoopAddr))
+}
+
+func (c *Compiler) emitIForLoop(forLoopIndex int, jump int) {
+	c.module.Code = append(c.module.Code, iForLoop)
+	c.module.Code = binary.NativeEndian.AppendUint16(c.module.Code, uint16(forLoopIndex))
 	c.module.Code = binary.NativeEndian.AppendUint16(c.module.Code, uint16(jump))
 }
 
@@ -166,5 +185,5 @@ func (c *Compiler) refScope(id string) (int, byte) {
 		return idx, rGlobal
 	}
 	idx := c.kb.StringIndex(id)
-	return idx, rPrelude
+	return idx, rCore
 }

@@ -12,6 +12,135 @@ type Iterator interface {
 	Value() Value
 }
 
+type ListIterator struct {
+	List  *List
+	Init  int
+	End   int
+	State int
+}
+
+func (it *ListIterator) Next() bool {
+	ok := it.State < it.End
+	if ok {
+		it.Init = it.State
+		it.State++
+	}
+	return ok
+}
+
+func (it *ListIterator) Key() Value {
+	return Integer(it.Init)
+}
+
+func (it *ListIterator) Value() Value {
+	return it.List.Value[it.Init]
+}
+
+func (it *ListIterator) Boolean() Bool {
+	return true
+}
+
+func (it *ListIterator) Prefix(byte) (Value, error) {
+	return NilValue, verror.RuntimeError
+}
+
+func (it *ListIterator) Binop(byte, Value) (Value, error) {
+	return NilValue, verror.RuntimeError
+}
+
+func (it *ListIterator) IGet(Value) (Value, error) {
+	return NilValue, verror.RuntimeError
+}
+
+func (it *ListIterator) ISet(Value, Value) error {
+	return verror.RuntimeError
+}
+
+func (it *ListIterator) Equals(Value) Bool {
+	return false
+}
+
+func (it *ListIterator) IsIterable() Bool {
+	return false
+}
+
+func (it *ListIterator) GetIterator() Value {
+	return NilValue
+}
+
+func (it ListIterator) String() string {
+	return fmt.Sprintf("ListIter [i = %v, e = %v, s = %v]", it.Init, it.End, it.State)
+}
+
+func (it *ListIterator) Type() string {
+	return "ListIter"
+}
+
+type DocIterator struct {
+	Doc   *Document
+	Keys  []string
+	Init  int
+	End   int
+	State int
+}
+
+func (it *DocIterator) Next() bool {
+	ok := it.State < it.End
+	if ok {
+		it.Init = it.State
+		it.State++
+	}
+	return ok
+}
+
+func (it *DocIterator) Key() Value {
+	return String{Value: it.Keys[it.Init]}
+}
+
+func (it *DocIterator) Value() Value {
+	return it.Doc.Value[it.Keys[it.Init]]
+}
+
+func (it *DocIterator) Boolean() Bool {
+	return true
+}
+
+func (it *DocIterator) Prefix(byte) (Value, error) {
+	return NilValue, verror.RuntimeError
+}
+
+func (it *DocIterator) Binop(byte, Value) (Value, error) {
+	return NilValue, verror.RuntimeError
+}
+
+func (it *DocIterator) IGet(Value) (Value, error) {
+	return NilValue, verror.RuntimeError
+}
+
+func (it *DocIterator) ISet(Value, Value) error {
+	return verror.RuntimeError
+}
+
+func (it *DocIterator) Equals(Value) Bool {
+	return false
+}
+
+func (it *DocIterator) IsIterable() Bool {
+	return false
+}
+
+func (it *DocIterator) GetIterator() Value {
+	return NilValue
+}
+
+func (it DocIterator) String() string {
+	return fmt.Sprintf("DocIter [i = %v, e = %v, s = %v]", it.Init, it.End, it.State)
+}
+
+func (it *DocIterator) Type() string {
+	return "DocIter"
+}
+
 type ForLoop struct {
 	Init  int
 	End   int
