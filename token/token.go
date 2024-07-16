@@ -58,6 +58,7 @@ const (
 	WHILE
 	BREAK
 	CONTINUE
+	IN
 	keyword_end
 )
 
@@ -104,6 +105,7 @@ var Tokens = [...]string{
 	WHILE:      "while",
 	BREAK:      "break",
 	CONTINUE:   "continue",
+	IN:         "in",
 }
 
 type TokenInfo struct {
