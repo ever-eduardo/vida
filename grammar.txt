@@ -4,6 +4,7 @@ statement	:= 	global
 			|	datamut
 			|	block
 			|	for
+			|	ifor
 			|	if
 			|	while
 global		:=	ident '=' expr
@@ -12,6 +13,7 @@ datamut		:=	ident select select* '=' expr
 block		:=	'{' statement* '}'
 loopBlock	:=	'{' statement* break* continue* '}'
 for			:=	'for' ident '=' expr ',' expr (',' expr)? loopBlock
+ifor		:=	'for' ident ',' ident 'in' expr loopBlock
 if			:=	'if' expr block | loopBlock elif* else?
 elif		:=	'else' 'if' expr block | loopBlock
 else		:=	'else' block | loopBlock
