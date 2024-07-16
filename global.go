@@ -26,3 +26,5 @@ func gfnPrint(args ...Value) (Value, error) {
 	fmt.Println(s...)
 	return NilValue, nil
 }
+
+var strToRunesMap = make(map[string][]rune)

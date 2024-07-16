@@ -130,3 +130,62 @@ func (it DocIterator) String() string {
 func (it *DocIterator) Type() string {
 	return "DocIter"
 }
+
+type StringIterator struct {
+	Runes []rune
+	Init  int
+	End   int
+}
+
+func (it *StringIterator) Next() bool {
+	it.Init++
+	return it.Init < it.End
+}
+
+func (it *StringIterator) Key() Value {
+	return Integer(it.Init)
+}
+
+func (it *StringIterator) Value() Value {
+	return String{Value: string(it.Runes[it.Init])}
+}
+
+func (it *StringIterator) Boolean() Bool {
+	return true
+}
+
+func (it *StringIterator) Prefix(byte) (Value, error) {
+	return NilValue, verror.RuntimeError
+}
+
+func (it *StringIterator) Binop(byte, Value) (Value, error) {
+	return NilValue, verror.RuntimeError
+}
+
+func (it *StringIterator) IGet(Value) (Value, error) {
+	return NilValue, verror.RuntimeError
+}
+
+func (it *StringIterator) ISet(Value, Value) error {
+	return verror.RuntimeError
+}
+
+func (it *StringIterator) Equals(Value) Bool {
+	return false
+}
+
+func (it *StringIterator) IsIterable() Bool {
+	return false
+}
+
+func (it *StringIterator) Iterator() Value {
+	return NilValue
+}
+
+func (it StringIterator) String() string {
+	return fmt.Sprintf("StrIter [i = %v, e = %v]", it.Init, it.End)
+}
+
+func (it *StringIterator) Type() string {
+	return "StrIter"
+}

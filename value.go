@@ -222,7 +222,12 @@ func (s String) IsIterable() Bool {
 }
 
 func (s String) Iterator() Value {
-	return NilValue
+	if r, ok := strToRunesMap[s.Value]; ok {
+		return &StringIterator{Runes: r, Init: -1, End: len(r)}
+	}
+	r := []rune(s.Value)
+	strToRunesMap[s.Value] = r
+	return &StringIterator{Runes: r, Init: -1, End: len(r)}
 }
 
 func (s String) String() string {
