@@ -72,20 +72,15 @@ func (it *ListIterator) Type() string {
 }
 
 type DocIterator struct {
-	Doc   *Document
-	Keys  []string
-	Init  int
-	End   int
-	State int
+	Keys []string
+	Doc  map[string]Value
+	Init int
+	End  int
 }
 
 func (it *DocIterator) Next() bool {
-	if it.State < it.End {
-		it.Init = it.State
-		it.State++
-		return true
-	}
-	return false
+	it.Init++
+	return it.Init < it.End
 }
 
 func (it *DocIterator) Key() Value {
@@ -93,7 +88,7 @@ func (it *DocIterator) Key() Value {
 }
 
 func (it *DocIterator) Value() Value {
-	return it.Doc.Value[it.Keys[it.Init]]
+	return it.Doc[it.Keys[it.Init]]
 }
 
 func (it *DocIterator) Boolean() Bool {
@@ -129,7 +124,7 @@ func (it *DocIterator) Iterator() Value {
 }
 
 func (it DocIterator) String() string {
-	return fmt.Sprintf("DocIter [i = %v, e = %v, s = %v]", it.Init, it.End, it.State)
+	return fmt.Sprintf("DocIter [i = %v, e = %v]", it.Init, it.End)
 }
 
 func (it *DocIterator) Type() string {

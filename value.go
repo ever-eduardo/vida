@@ -656,7 +656,7 @@ func (d *Document) Iterator() Value {
 	for k := range d.Value {
 		keys = append(keys, k)
 	}
-	return &DocIterator{Doc: d, Init: -1, End: size, Keys: keys}
+	return &DocIterator{Doc: d.Value, Init: -1, End: size, Keys: keys}
 }
 
 func (d *Document) String() string {
