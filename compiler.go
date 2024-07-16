@@ -164,7 +164,7 @@ func (c *Compiler) compileStmt(node ast.Node) {
 		c.cleanUpJumps(evalLoopAddr)
 
 		c.rAlloc -= byte(c.sb.clearLocals(c.level, c.scope))
-		c.rAlloc -= 2
+		c.rAlloc--
 		c.scope--
 	case *ast.While:
 		c.breakCount = append(c.breakCount, 0)
