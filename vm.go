@@ -218,7 +218,7 @@ func (vm *VM) Run() (Result, error) {
 			ip += 2
 			jump := binary.NativeEndian.Uint16(vm.CurrentFrame.code[ip:])
 			ip += 2
-			forLoop := vm.valueFrom(rKonst, forIdx).(*ForLoopRegisters)
+			forLoop := vm.valueFrom(rKonst, forIdx).(*ForLoop)
 			if _, isInteger := vm.CurrentFrame.stack[forLoop.Init].(Integer); !isInteger {
 				return Failure, verror.RuntimeError
 			}
@@ -238,7 +238,7 @@ func (vm *VM) Run() (Result, error) {
 			ip += 2
 			jump := binary.NativeEndian.Uint16(vm.CurrentFrame.code[ip:])
 			ip += 2
-			forLoop := vm.valueFrom(rKonst, forIdx).(*ForLoopRegisters)
+			forLoop := vm.valueFrom(rKonst, forIdx).(*ForLoop)
 			i := vm.CurrentFrame.stack[forLoop.Init].(Integer)
 			e := vm.CurrentFrame.stack[forLoop.End].(Integer)
 			s := vm.CurrentFrame.stack[forLoop.Step].(Integer)

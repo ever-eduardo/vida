@@ -17,6 +17,8 @@ type Value interface {
 	IGet(Value) (Value, error)
 	ISet(Value, Value) error
 	Equals(Value) Bool
+	IsIterable() Bool
+	GetIterator() Value
 	String() string
 	Type() string
 }
@@ -58,6 +60,14 @@ func (n Nil) ISet(index, val Value) error {
 func (n Nil) Equals(other Value) Bool {
 	_, ok := other.(Nil)
 	return Bool(ok)
+}
+
+func (n Nil) IsIterable() Bool {
+	return false
+}
+
+func (n Nil) GetIterator() Value {
+	return NilValue
 }
 
 func (n Nil) String() string {
@@ -113,6 +123,14 @@ func (b Bool) Equals(other Value) Bool {
 		return b == val
 	}
 	return false
+}
+
+func (b Bool) IsIterable() Bool {
+	return false
+}
+
+func (b Bool) GetIterator() Value {
+	return NilValue
 }
 
 func (b Bool) String() string {
@@ -197,6 +215,14 @@ func (s String) Equals(other Value) Bool {
 		return s.Value == val.Value
 	}
 	return false
+}
+
+func (s String) IsIterable() Bool {
+	return true
+}
+
+func (s String) GetIterator() Value {
+	return NilValue
 }
 
 func (s String) String() string {
@@ -309,6 +335,14 @@ func (i Integer) Equals(other Value) Bool {
 	return false
 }
 
+func (i Integer) IsIterable() Bool {
+	return false
+}
+
+func (i Integer) GetIterator() Value {
+	return NilValue
+}
+
 func (i Integer) String() string {
 	return strconv.FormatInt(int64(i), 10)
 }
@@ -413,6 +447,14 @@ func (f Float) Equals(other Value) Bool {
 	return false
 }
 
+func (f Float) IsIterable() Bool {
+	return false
+}
+
+func (f Float) GetIterator() Value {
+	return NilValue
+}
+
 func (f Float) String() string {
 	return strconv.FormatFloat(float64(f), 'g', -1, 64)
 }
@@ -502,6 +544,14 @@ func (xs *List) Equals(other Value) Bool {
 		return xs == val
 	}
 	return false
+}
+
+func (xs *List) IsIterable() Bool {
+	return true
+}
+
+func (xs *List) GetIterator() Value {
+	return NilValue
 }
 
 func (xs List) String() string {
@@ -596,6 +646,14 @@ func (d *Document) Equals(other Value) Bool {
 	return false
 }
 
+func (d *Document) IsIterable() Bool {
+	return true
+}
+
+func (d *Document) GetIterator() Value {
+	return NilValue
+}
+
 func (d *Document) String() string {
 	if len(d.Value) == 0 {
 		return "{}"
@@ -676,6 +734,14 @@ func (gfn GoFn) ISet(index, val Value) error {
 
 func (gfn GoFn) Equals(other Value) Bool {
 	return false
+}
+
+func (gfn GoFn) IsIterable() Bool {
+	return false
+}
+
+func (gfn GoFn) GetIterator() Value {
+	return NilValue
 }
 
 func (gfn GoFn) String() string {
