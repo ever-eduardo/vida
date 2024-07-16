@@ -108,36 +108,31 @@ func (c *Compiler) compileStmt(node ast.Node) {
 		c.breakCount = append(c.breakCount, 0)
 		c.continueCount = append(c.continueCount, 0)
 		c.scope++
-		var reg [4]byte
+
+		ireg := c.rAlloc
 
 		initIdx, initScope := c.compileExpr(n.Init)
 		c.emitLoc(initIdx, c.rAlloc, initScope)
-		reg[0] = c.rAlloc
-		c.rAlloc++
 
+		c.rAlloc++
 		endIdx, endScope := c.compileExpr(n.End)
 		c.emitLoc(endIdx, c.rAlloc, endScope)
-		reg[1] = c.rAlloc
-		c.rAlloc++
 
+		c.rAlloc++
 		stepIdx, stepScope := c.compileExpr(n.Step)
 		c.emitLoc(stepIdx, c.rAlloc, stepScope)
-		reg[2] = c.rAlloc
-		c.rAlloc++
 
-		stateIdx, stateScope := c.compileExpr(n.State)
-		c.sb.addLocal(n.State.(*ast.ForState).Value, c.level, c.scope, c.rAlloc)
-		c.emitLoc(stateIdx, c.rAlloc, stateScope)
-		reg[3] = c.rAlloc
 		c.rAlloc++
+		c.sb.addLocal(n.Id, c.level, c.scope, c.rAlloc)
+		c.emitLoc(c.kb.IntegerIndex(0), c.rAlloc, rKonst)
 
-		forIndex := c.kb.ForLoopIndex(int(reg[0]), int(reg[1]), int(reg[2]), int(reg[3]))
-		c.emitForSet(forIndex, 0)
+		c.rAlloc++
+		c.emitForSet(ireg, 0)
 		jump := len(c.module.Code)
 		c.compileStmt(n.Block)
 		evalLoopAddr := len(c.module.Code)
 		binary.NativeEndian.PutUint16(c.module.Code[jump-2:], uint16(evalLoopAddr))
-		c.emitForLoop(forIndex, jump)
+		c.emitForLoop(ireg, jump)
 		c.cleanUpJumps(evalLoopAddr)
 
 		c.rAlloc -= byte(c.sb.clearLocals(c.level, c.scope))
@@ -147,38 +142,25 @@ func (c *Compiler) compileStmt(node ast.Node) {
 		c.breakCount = append(c.breakCount, 0)
 		c.continueCount = append(c.continueCount, 0)
 		c.scope++
-		var reg [4]byte
+		ireg := c.rAlloc
+		c.emitLoc(c.kb.IntegerIndex(0), c.rAlloc, rKonst)
 
-		initIdx, initScope := c.compileExpr(&ast.ForState{Value: iter})
-		c.emitLoc(initIdx, c.rAlloc, initScope)
-		reg[0] = c.rAlloc
+		c.rAlloc++
+		c.sb.addLocal(n.Key, c.level, c.scope, c.rAlloc)
+		c.emitLoc(c.kb.IntegerIndex(0), c.rAlloc, rKonst)
+
+		c.rAlloc++
+		c.sb.addLocal(n.Value, c.level, c.scope, c.rAlloc)
+		c.emitLoc(c.kb.IntegerIndex(0), c.rAlloc, rKonst)
 		c.rAlloc++
 
-		endIdx, endScope := c.compileExpr(&ast.ForState{Value: state})
-		c.emitLoc(endIdx, c.rAlloc, endScope)
-		reg[1] = c.rAlloc
-		c.rAlloc++
-
-		stepIdx, stepScope := c.compileExpr(n.Key)
-		c.sb.addLocal(n.Key.(*ast.ForState).Value, c.level, c.scope, c.rAlloc)
-		c.emitLoc(stepIdx, c.rAlloc, stepScope)
-		reg[2] = c.rAlloc
-		c.rAlloc++
-
-		stateIdx, stateScope := c.compileExpr(n.Value)
-		c.sb.addLocal(n.Value.(*ast.ForState).Value, c.level, c.scope, c.rAlloc)
-		c.emitLoc(stateIdx, c.rAlloc, stateScope)
-		reg[3] = c.rAlloc
-		c.rAlloc++
-
-		forIndex := c.kb.IForLoopIndex(int(reg[0]), int(reg[1]), int(reg[2]), int(reg[3]))
 		idx, scope := c.compileExpr(n.Expr)
-		c.emitIForSet(0, idx, scope, reg[0])
+		c.emitIForSet(0, idx, scope, ireg)
 		jump := len(c.module.Code)
 		c.compileStmt(n.Block)
 		evalLoopAddr := len(c.module.Code)
 		binary.NativeEndian.PutUint16(c.module.Code[jump-2:], uint16(evalLoopAddr))
-		c.emitIForLoop(forIndex, jump)
+		c.emitIForLoop(ireg, jump)
 		c.cleanUpJumps(evalLoopAddr)
 
 		c.rAlloc -= byte(c.sb.clearLocals(c.level, c.scope))

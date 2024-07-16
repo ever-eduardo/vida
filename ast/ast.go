@@ -118,7 +118,7 @@ type For struct {
 	Init  Node
 	End   Node
 	Step  Node
-	State Node
+	Id    string
 	Block Node
 }
 
@@ -127,8 +127,8 @@ type ForState struct {
 }
 
 type IFor struct {
-	Key   Node
-	Value Node
+	Key   string
+	Value string
 	Expr  Node
 	Block Node
 }

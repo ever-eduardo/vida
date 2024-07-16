@@ -206,18 +206,17 @@ func (vm *VM) Debug() (Result, error) {
 			}
 			vm.CurrentFrame.stack[to] = &Document{Value: rec}
 		case forSet:
-			forIdx := binary.NativeEndian.Uint16(vm.CurrentFrame.code[ip:])
-			ip += 2
+			i := vm.CurrentFrame.code[ip]
+			ip++
 			jump := binary.NativeEndian.Uint16(vm.CurrentFrame.code[ip:])
 			ip += 2
-			forLoop := vm.valueFrom(rKonst, forIdx).(*ForLoop)
-			if _, isInteger := vm.CurrentFrame.stack[forLoop.Init].(Integer); !isInteger {
+			if _, isInteger := vm.CurrentFrame.stack[i].(Integer); !isInteger {
 				return Failure, verror.RuntimeError
 			}
-			if _, isInteger := vm.CurrentFrame.stack[forLoop.End].(Integer); !isInteger {
+			if _, isInteger := vm.CurrentFrame.stack[i+1].(Integer); !isInteger {
 				return Failure, verror.RuntimeError
 			}
-			if v, isInteger := vm.CurrentFrame.stack[forLoop.Step].(Integer); !isInteger {
+			if v, isInteger := vm.CurrentFrame.stack[i+2].(Integer); !isInteger {
 				return Failure, verror.RuntimeError
 			} else {
 				if v == 0 {
@@ -238,42 +237,40 @@ func (vm *VM) Debug() (Result, error) {
 			if !val.IsIterable() {
 				return Failure, verror.RuntimeError
 			}
-			vm.CurrentFrame.stack[reg] = val.GetIterator()
+			vm.CurrentFrame.stack[reg] = val.Iterator()
 			ip = int(jump)
 		case forLoop:
-			forIdx := binary.NativeEndian.Uint16(vm.CurrentFrame.code[ip:])
-			ip += 2
+			r := vm.CurrentFrame.code[ip]
+			ip++
 			jump := binary.NativeEndian.Uint16(vm.CurrentFrame.code[ip:])
 			ip += 2
-			forLoop := vm.valueFrom(rKonst, forIdx).(*ForLoop)
-			i := vm.CurrentFrame.stack[forLoop.Init].(Integer)
-			e := vm.CurrentFrame.stack[forLoop.End].(Integer)
-			s := vm.CurrentFrame.stack[forLoop.Step].(Integer)
+			i := vm.CurrentFrame.stack[r].(Integer)
+			e := vm.CurrentFrame.stack[r+1].(Integer)
+			s := vm.CurrentFrame.stack[r+2].(Integer)
 			if s > 0 {
 				if i < e {
-					vm.CurrentFrame.stack[forLoop.State] = i
+					vm.CurrentFrame.stack[r+3] = i
 					i += s
-					vm.CurrentFrame.stack[forLoop.Init] = i
+					vm.CurrentFrame.stack[r] = i
 					ip = int(jump)
 				}
 			} else {
 				if i > e {
-					vm.CurrentFrame.stack[forLoop.State] = i
+					vm.CurrentFrame.stack[r+3] = i
 					i += s
-					vm.CurrentFrame.stack[forLoop.Init] = i
+					vm.CurrentFrame.stack[r] = i
 					ip = int(jump)
 				}
 			}
 		case iForLoop:
-			forIdx := binary.NativeEndian.Uint16(vm.CurrentFrame.code[ip:])
-			ip += 2
+			r := vm.CurrentFrame.code[ip]
+			ip++
 			jump := binary.NativeEndian.Uint16(vm.CurrentFrame.code[ip:])
 			ip += 2
-			forLoop, _ := vm.valueFrom(rKonst, forIdx).(*IForLoop)
-			i, _ := vm.CurrentFrame.stack[forLoop.Iter].(Iterator)
+			i, _ := vm.CurrentFrame.stack[r].(Iterator)
 			if i.Next() {
-				vm.CurrentFrame.stack[forLoop.Key] = i.Key()
-				vm.CurrentFrame.stack[forLoop.Value] = i.Value()
+				vm.CurrentFrame.stack[r+1] = i.Key()
+				vm.CurrentFrame.stack[r+2] = i.Value()
 				ip = int(jump)
 				continue
 			}

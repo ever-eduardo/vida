@@ -18,7 +18,7 @@ type Value interface {
 	ISet(Value, Value) error
 	Equals(Value) Bool
 	IsIterable() Bool
-	GetIterator() Value
+	Iterator() Value
 	String() string
 	Type() string
 }
@@ -66,7 +66,7 @@ func (n Nil) IsIterable() Bool {
 	return false
 }
 
-func (n Nil) GetIterator() Value {
+func (n Nil) Iterator() Value {
 	return NilValue
 }
 
@@ -129,7 +129,7 @@ func (b Bool) IsIterable() Bool {
 	return false
 }
 
-func (b Bool) GetIterator() Value {
+func (b Bool) Iterator() Value {
 	return NilValue
 }
 
@@ -221,7 +221,7 @@ func (s String) IsIterable() Bool {
 	return true
 }
 
-func (s String) GetIterator() Value {
+func (s String) Iterator() Value {
 	return NilValue
 }
 
@@ -339,7 +339,7 @@ func (i Integer) IsIterable() Bool {
 	return false
 }
 
-func (i Integer) GetIterator() Value {
+func (i Integer) Iterator() Value {
 	return NilValue
 }
 
@@ -451,7 +451,7 @@ func (f Float) IsIterable() Bool {
 	return false
 }
 
-func (f Float) GetIterator() Value {
+func (f Float) Iterator() Value {
 	return NilValue
 }
 
@@ -550,8 +550,8 @@ func (xs *List) IsIterable() Bool {
 	return true
 }
 
-func (xs *List) GetIterator() Value {
-	return &ListIterator{List: xs, Init: -1, State: 0, End: len(xs.Value)}
+func (xs *List) Iterator() Value {
+	return &ListIterator{List: xs.Value, Init: -1, End: len(xs.Value)}
 }
 
 func (xs List) String() string {
@@ -650,7 +650,7 @@ func (d *Document) IsIterable() Bool {
 	return true
 }
 
-func (d *Document) GetIterator() Value {
+func (d *Document) Iterator() Value {
 	size := len(d.Value)
 	keys := make([]string, 0, size)
 	for k := range d.Value {
@@ -745,7 +745,7 @@ func (gfn GoFn) IsIterable() Bool {
 	return false
 }
 
-func (gfn GoFn) GetIterator() Value {
+func (gfn GoFn) Iterator() Value {
 	return NilValue
 }
 

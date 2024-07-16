@@ -165,10 +165,10 @@ Loop:
 func (p *Parser) forLoop() ast.Node {
 	p.advance()
 	p.expect(token.IDENTIFIER)
-	state := &ast.ForState{Value: p.current.Lit}
+	id := p.current.Lit
 	p.advance()
 	if p.current.Token == token.COMMA {
-		return p.iterforLoop(state)
+		return p.iterforLoop(id)
 	}
 	p.expect(token.ASSIGN)
 	p.advance()
@@ -187,10 +187,10 @@ func (p *Parser) forLoop() ast.Node {
 	}
 	p.expect(token.LCURLY)
 	block := p.block(true)
-	return &ast.For{Init: init, End: end, State: state, Step: step, Block: block}
+	return &ast.For{Init: init, End: end, Id: id, Step: step, Block: block}
 }
 
-func (p *Parser) iterforLoop(key ast.Node) ast.Node {
+func (p *Parser) iterforLoop(key string) ast.Node {
 	p.advance()
 	p.expect(token.IDENTIFIER)
 	v := p.current.Lit
@@ -201,7 +201,7 @@ func (p *Parser) iterforLoop(key ast.Node) ast.Node {
 	p.advance()
 	p.expect(token.LCURLY)
 	b := p.block(true)
-	return &ast.IFor{Key: key, Value: &ast.ForState{Value: v}, Expr: e, Block: b}
+	return &ast.IFor{Key: key, Value: v, Expr: e, Block: b}
 }
 
 func (p *Parser) ifStmt(isInsideLoop bool) ast.Node {

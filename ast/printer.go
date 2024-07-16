@@ -209,17 +209,20 @@ func printAST(node Node, sb *strings.Builder, level int) {
 		printAST(n.End, sb, level+oneLevel)
 		sb.WriteRune(nl)
 		printAST(n.Step, sb, level+oneLevel)
+		buildIndent(sb, level+twoLevels)
+		sb.WriteString(n.Id)
 		sb.WriteRune(nl)
-		printAST(n.State, sb, level+oneLevel)
 		printAST(n.Block, sb, level+oneLevel)
 	case *IFor:
 		sb.WriteRune(nl)
 		buildIndent(sb, level+oneLevel)
 		sb.WriteString("IFor")
 		sb.WriteRune(nl)
-		printAST(n.Key, sb, level+oneLevel)
+		buildIndent(sb, level+twoLevels)
+		sb.WriteString(n.Key)
 		sb.WriteRune(nl)
-		printAST(n.Value, sb, level+oneLevel)
+		buildIndent(sb, level+twoLevels)
+		sb.WriteString(n.Value)
 		sb.WriteRune(nl)
 		printAST(n.Expr, sb, level+oneLevel)
 		printAST(n.Block, sb, level+oneLevel)
@@ -284,7 +287,7 @@ func printAST(node Node, sb *strings.Builder, level int) {
 	default:
 		sb.WriteRune(nl)
 		buildIndent(sb, level+oneLevel)
-		sb.WriteString("Empty Node")
+		sb.WriteString("Nothing")
 	}
 }
 
