@@ -287,11 +287,7 @@ func printAST(node Node, sb *strings.Builder, level int) {
 			sb.WriteRune(nl)
 			buildIndent(sb, level+twoLevels)
 		}
-		if n.HasArrow {
-			printAST(n.Expr, sb, level+oneLevel)
-		} else {
-			printAST(n.Body, sb, level+oneLevel)
-		}
+		printAST(n.Body, sb, level+oneLevel)
 	case *Ret:
 		sb.WriteRune(nl)
 		buildIndent(sb, level+oneLevel)

@@ -77,3 +77,10 @@ func (kb *KonstBuilder) FloatIndex(value float64) int {
 	kb.index++
 	return i
 }
+
+func (kb *KonstBuilder) FunctionIndex(value *Function) int {
+	i := kb.index
+	kb.Konstants = append(kb.Konstants, value)
+	kb.index++
+	return i
+}

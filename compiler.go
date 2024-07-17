@@ -37,11 +37,12 @@ func newChildCompiler(p *Compiler) *Compiler {
 	return &Compiler{
 		ast:      p.ast,
 		module:   p.module,
-		function: newFunction(),
+		function: &Function{},
 		kb:       p.kb,
 		sb:       p.sb,
 		parent:   p,
 		level:    p.level + 1,
+		scope:    p.scope + 1,
 	}
 }
 
@@ -105,8 +106,7 @@ func (c *Compiler) compileStmt(node ast.Node) {
 			c.jumps = c.jumps[:0]
 		}
 	case *ast.For:
-		c.breakCount = append(c.breakCount, 0)
-		c.continueCount = append(c.continueCount, 0)
+		c.startLoopScope()
 		c.scope++
 
 		ireg := c.rAlloc
@@ -133,14 +133,14 @@ func (c *Compiler) compileStmt(node ast.Node) {
 		evalLoopAddr := len(c.module.Code)
 		binary.NativeEndian.PutUint16(c.module.Code[jump-2:], uint16(evalLoopAddr))
 		c.emitForLoop(ireg, jump)
-		c.cleanUpJumps(evalLoopAddr)
+		c.cleanUpLoopScope(evalLoopAddr)
 
 		c.rAlloc -= byte(c.sb.clearLocals(c.level, c.scope))
 		c.rAlloc -= 3
 		c.scope--
 	case *ast.IFor:
-		c.breakCount = append(c.breakCount, 0)
-		c.continueCount = append(c.continueCount, 0)
+		c.startLoopScope()
+
 		c.scope++
 		ireg := c.rAlloc
 		c.emitLoc(c.kb.IntegerIndex(0), c.rAlloc, rKonst)
@@ -161,39 +161,39 @@ func (c *Compiler) compileStmt(node ast.Node) {
 		evalLoopAddr := len(c.module.Code)
 		binary.NativeEndian.PutUint16(c.module.Code[jump-2:], uint16(evalLoopAddr))
 		c.emitIForLoop(ireg, jump)
-		c.cleanUpJumps(evalLoopAddr)
+		c.cleanUpLoopScope(evalLoopAddr)
 
 		c.rAlloc -= byte(c.sb.clearLocals(c.level, c.scope))
 		c.rAlloc--
 		c.scope--
 	case *ast.While:
-		c.breakCount = append(c.breakCount, 0)
-		c.continueCount = append(c.continueCount, 0)
+		c.startLoopScope()
+
 		init := len(c.module.Code)
 		idx, scope := c.compileExpr(n.Condition)
 		if scope == rKonst {
 			switch v := c.kb.Konstants[idx].(type) {
 			case Nil:
 				c.skipBlock(n.Block)
-				c.cleanUpJumps(init)
+				c.cleanUpLoopScope(init)
 				return
 			case Bool:
 				if !v {
 					c.skipBlock(n.Block)
-					c.cleanUpJumps(init)
+					c.cleanUpLoopScope(init)
 					return
 				}
 			}
 			c.compileStmt(n.Block)
 			c.emitJump(init)
-			c.cleanUpJumps(init)
+			c.cleanUpLoopScope(init)
 		} else {
 			addr := len(c.module.Code) + 4
 			c.emitTestF(idx, scope, 0)
 			c.compileStmt(n.Block)
 			c.emitJump(init)
 			binary.NativeEndian.PutUint16(c.module.Code[addr:], uint16(len(c.module.Code)))
-			c.cleanUpJumps(init)
+			c.cleanUpLoopScope(init)
 		}
 	case *ast.Break:
 		c.breakJumps = append(c.breakJumps, len(c.module.Code)+1)
@@ -233,6 +233,9 @@ func (c *Compiler) compileStmt(node ast.Node) {
 		}
 		c.rAlloc -= byte(c.sb.clearLocals(c.level, c.scope))
 		c.scope--
+	case *ast.Ret:
+		i, s := c.compileExpr(n.Expr)
+		c.emitRet(i, c.rAlloc, s)
 	}
 }
 
@@ -370,6 +373,28 @@ func (c *Compiler) compileExpr(node ast.Node) (int, byte) {
 		c.rAlloc = resultReg
 		c.emitSlice(byte(n.Mode), fromV, fromL, fromR, scopeV, scopeL, scopeR, resultReg)
 		return int(resultReg), rLocal
+	case *ast.Fun:
+		fn := &Function{}
+		i := c.kb.FunctionIndex(fn)
+		jump := len(c.module.Code)
+		c.emitFun(i, c.rAlloc, 0)
+		fn.First = len(c.module.Code)
+		oldReg := c.rAlloc
+		c.rAlloc = 0
+		c.level++
+		c.scope++
+		for _, v := range n.Args {
+			fn.Arity++
+			c.sb.addLocal(v, c.level, c.scope, c.rAlloc)
+			c.rAlloc++
+		}
+		c.compileStmt(n.Body)
+		fn.Last = len(c.module.Code) - retInstrSize
+		binary.NativeEndian.PutUint16(c.module.Code[jump+3:], uint16(len(c.module.Code)))
+		c.level--
+		c.scope--
+		c.rAlloc = oldReg
+		return int(c.rAlloc), rLocal
 	default:
 		return 0, rKonst
 	}
@@ -412,7 +437,7 @@ func (c *Compiler) compileBlockAndCheckJump(block ast.Node, shouldJumpOutside bo
 	}
 }
 
-func (c *Compiler) cleanUpJumps(init int) {
+func (c *Compiler) cleanUpLoopScope(init int) {
 	hasBreaks := len(c.breakJumps)
 	lastElem := len(c.breakCount) - 1
 	count := c.breakCount[lastElem]
@@ -433,6 +458,11 @@ func (c *Compiler) cleanUpJumps(init int) {
 		c.continueJumps = c.continueJumps[:hasContinues-count]
 	}
 	c.continueCount = c.continueCount[:lastElem]
+}
+
+func (c *Compiler) startLoopScope() {
+	c.breakCount = append(c.breakCount, 0)
+	c.continueCount = append(c.continueCount, 0)
 }
 
 func (c *Compiler) integrateKonst(val Value) (int, byte) {

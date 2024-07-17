@@ -707,13 +707,91 @@ type Function struct {
 	Last          int
 }
 
-func newFunction() *Function {
-	return &Function{}
+func (c *Function) Boolean() Bool {
+	return true
+}
+
+func (c *Function) Prefix(byte) (Value, error) {
+	return NilValue, verror.RuntimeError
+}
+
+func (c *Function) Binop(byte, Value) (Value, error) {
+	return NilValue, verror.RuntimeError
+}
+
+func (c *Function) IGet(Value) (Value, error) {
+	return NilValue, verror.RuntimeError
+}
+
+func (c *Function) ISet(Value, Value) error {
+	return verror.RuntimeError
+}
+
+func (c *Function) Equals(other Value) Bool {
+	if f, ok := other.(*Function); ok {
+		return c == f
+	}
+	return false
+}
+
+func (c *Function) IsIterable() Bool {
+	return false
+}
+
+func (c *Function) Iterator() Value {
+	return NilValue
+}
+
+func (c *Function) Type() string {
+	return "function"
+}
+
+func (f Function) String() string {
+	return fmt.Sprintf("fun a = %v, f = %v, l = %v, fr = %v", f.Arity, f.First, f.Last, f.FreeVarsCount)
 }
 
 type Closure struct {
 	Function *Function
 	FreeVars []Value
+}
+
+func (c *Closure) Boolean() Bool {
+	return true
+}
+
+func (c *Closure) Prefix(byte) (Value, error) {
+	return NilValue, verror.RuntimeError
+}
+
+func (c *Closure) Binop(byte, Value) (Value, error) {
+	return NilValue, verror.RuntimeError
+}
+
+func (c *Closure) IGet(Value) (Value, error) {
+	return NilValue, verror.RuntimeError
+}
+
+func (c *Closure) ISet(Value, Value) error {
+	return verror.RuntimeError
+}
+
+func (c *Closure) Equals(other Value) Bool {
+	if f, ok := other.(*Closure); ok {
+		return c == f
+	}
+	return false
+}
+
+func (c *Closure) IsIterable() Bool {
+	return false
+}
+
+func (c *Closure) Iterator() Value {
+	return NilValue
+}
+
+func (c *Closure) Type() string {
+	return "function"
 }
 
 func (c Closure) String() string {

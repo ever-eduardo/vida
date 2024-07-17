@@ -23,7 +23,7 @@ const (
 )
 
 const (
-	iter = "&iter"
+	retInstrSize = 5
 )
 
 func (c *Compiler) appendHeader() {
@@ -97,7 +97,7 @@ func (c *Compiler) emitList(length byte, from byte, to byte) {
 }
 
 func (c *Compiler) emitDocument(length byte, from byte, to byte) {
-	c.module.Code = append(c.module.Code, document)
+	c.module.Code = append(c.module.Code, doc)
 	c.module.Code = append(c.module.Code, length)
 	c.module.Code = append(c.module.Code, from)
 	c.module.Code = append(c.module.Code, to)
@@ -170,6 +170,20 @@ func (c *Compiler) emitTestF(from int, scope byte, jump int) {
 	c.module.Code = append(c.module.Code, scope)
 	c.module.Code = binary.NativeEndian.AppendUint16(c.module.Code, uint16(from))
 	c.module.Code = binary.NativeEndian.AppendUint16(c.module.Code, uint16(jump))
+}
+
+func (c *Compiler) emitFun(from int, to byte, jump int) {
+	c.module.Code = append(c.module.Code, fun)
+	c.module.Code = binary.NativeEndian.AppendUint16(c.module.Code, uint16(from))
+	c.module.Code = binary.NativeEndian.AppendUint16(c.module.Code, uint16(jump))
+	c.module.Code = append(c.module.Code, to)
+}
+
+func (c *Compiler) emitRet(from int, to byte, scope byte) {
+	c.module.Code = append(c.module.Code, ret)
+	c.module.Code = append(c.module.Code, scope)
+	c.module.Code = binary.NativeEndian.AppendUint16(c.module.Code, uint16(from))
+	c.module.Code = append(c.module.Code, to)
 }
 
 func (c *Compiler) refScope(id string) (int, byte) {

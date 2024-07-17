@@ -9,7 +9,7 @@ const (
 	binop
 	equals
 	list
-	document
+	doc
 	iGet
 	iSet
 	slice
@@ -20,6 +20,8 @@ const (
 	testF
 	test
 	jump
+	fun
+	ret
 )
 
 var opcodes = [...]string{
@@ -31,7 +33,7 @@ var opcodes = [...]string{
 	binop:    "Binop",
 	equals:   "Eq",
 	list:     "List",
-	document: "Doc",
+	doc:      "Doc",
 	iGet:     "IGet",
 	iSet:     "ISet",
 	slice:    "Slice",
@@ -42,4 +44,6 @@ var opcodes = [...]string{
 	testF:    "TestF",
 	test:     "Test",
 	jump:     "Jump",
+	fun:      "Fun",
+	ret:      "Ret",
 }

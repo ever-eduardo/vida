@@ -158,10 +158,8 @@ type Break struct{}
 type Continue struct{}
 
 type Fun struct {
-	Args     []string
-	HasArrow bool
-	Body     Node
-	Expr     Node
+	Args []string
+	Body Node
 }
 
 type Ret struct {

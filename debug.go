@@ -189,7 +189,7 @@ func (vm *VM) Debug() (Result, error) {
 				from++
 			}
 			vm.CurrentFrame.stack[to] = &List{Value: xs}
-		case document:
+		case doc:
 			length := vm.CurrentFrame.code[ip]
 			ip++
 			from := vm.CurrentFrame.code[ip]

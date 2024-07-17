@@ -45,6 +45,7 @@ func (p *Parser) Parse() (*ast.Ast, error) {
 			p.ast.Statement = append(p.ast.Statement, p.loop())
 		case token.LCURLY:
 			p.ast.Statement = append(p.ast.Statement, p.block(false))
+			p.advance()
 		case token.EOF:
 			return p.ast, nil
 		default:
@@ -118,13 +119,13 @@ func (p *Parser) block(isInsideLoop bool) ast.Node {
 			}
 		case token.LCURLY:
 			block.Statement = append(block.Statement, p.block(isInsideLoop))
+			p.advance()
 		default:
 			p.err = verror.New(p.lexer.ModuleName, "Expected statement", verror.SyntaxErrMsg, p.current.Line)
 			p.ok = false
 			return block
 		}
 	}
-	p.advance()
 	return block
 }
 
@@ -189,6 +190,7 @@ func (p *Parser) forLoop() ast.Node {
 	}
 	p.expect(token.LCURLY)
 	block := p.block(true)
+	p.advance()
 	return &ast.For{Init: init, End: end, Id: id, Step: step, Block: block}
 }
 
@@ -203,6 +205,7 @@ func (p *Parser) iterforLoop(key string) ast.Node {
 	p.advance()
 	p.expect(token.LCURLY)
 	b := p.block(true)
+	p.advance()
 	return &ast.IFor{Key: key, Value: v, Expr: e, Block: b}
 }
 
@@ -212,6 +215,7 @@ func (p *Parser) ifStmt(isInsideLoop bool) ast.Node {
 	p.advance()
 	p.expect(token.LCURLY)
 	b := p.block(isInsideLoop)
+	p.advance()
 	branch := &ast.Branch{If: &ast.If{Condition: c, Block: b}}
 	for p.current.Token == token.ELSE && p.next.Token == token.IF {
 		p.advance()
@@ -220,11 +224,13 @@ func (p *Parser) ifStmt(isInsideLoop bool) ast.Node {
 		p.advance()
 		p.expect(token.LCURLY)
 		b := p.block(isInsideLoop)
+		p.advance()
 		branch.Elifs = append(branch.Elifs, &ast.If{Condition: c, Block: b})
 	}
 	if p.current.Token == token.ELSE {
 		p.advance()
 		b := p.block(isInsideLoop)
+		p.advance()
 		branch.Else = &ast.Else{Block: b}
 	}
 	return branch
@@ -236,6 +242,7 @@ func (p *Parser) loop() ast.Node {
 	p.advance()
 	p.expect(token.LCURLY)
 	b := p.block(true)
+	p.advance()
 	return &ast.While{Condition: c, Block: b}
 }
 
@@ -417,11 +424,15 @@ func (p *Parser) operand() ast.Node {
 		if p.current.Token == token.ARROW {
 			p.advance()
 			e := p.expression(token.LowestPrec)
-			f.HasArrow = true
-			f.Expr = e
+			b := &ast.Block{}
+			b.Statement = append(b.Statement, &ast.Ret{Expr: e})
+			f.Body = b
 			return f
 		}
-		f.Body = p.block(false)
+		p.expect(token.LCURLY)
+		block := p.block(false)
+		block.(*ast.Block).Statement = append(block.(*ast.Block).Statement, &ast.Ret{Expr: &ast.Nil{}})
+		f.Body = block
 		return f
 	default:
 		p.err = verror.New(p.lexer.ModuleName, "Expected expression", verror.SyntaxErrMsg, p.current.Line)
