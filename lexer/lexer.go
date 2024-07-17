@@ -237,7 +237,12 @@ func (l *Lexer) Next() (line uint, tok token.Token, lit string) {
 		case '+':
 			tok = token.ADD
 		case '-':
-			tok = token.SUB
+			if l.c == '>' {
+				l.next()
+				tok = token.ARROW
+			} else {
+				tok = token.SUB
+			}
 		case '*':
 			tok = token.MUL
 		case '/':

@@ -28,6 +28,7 @@ const (
 	RCURLY
 	LBRACKET
 	RBRACKET
+	ARROW
 	operator_end
 
 	binary_op_init
@@ -59,6 +60,8 @@ const (
 	BREAK
 	CONTINUE
 	IN
+	FUN
+	RET
 	keyword_end
 )
 
@@ -81,6 +84,7 @@ var Tokens = [...]string{
 	RCURLY:     "}",
 	LBRACKET:   "[",
 	RBRACKET:   "]",
+	ARROW:      "->",
 	ADD:        "+",
 	SUB:        "-",
 	MUL:        "*",
@@ -106,6 +110,8 @@ var Tokens = [...]string{
 	BREAK:      "break",
 	CONTINUE:   "continue",
 	IN:         "in",
+	FUN:        "fun",
+	RET:        "ret",
 }
 
 type TokenInfo struct {

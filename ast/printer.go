@@ -277,6 +277,27 @@ func printAST(node Node, sb *strings.Builder, level int) {
 		sb.WriteRune(nl)
 		buildIndent(sb, level+oneLevel)
 		sb.WriteString("Continue")
+	case *Fun:
+		buildIndent(sb, level+oneLevel)
+		sb.WriteString("Fun")
+		sb.WriteRune(nl)
+		buildIndent(sb, level+twoLevels)
+		for _, v := range n.Args {
+			sb.WriteString(v)
+			sb.WriteRune(nl)
+			buildIndent(sb, level+twoLevels)
+		}
+		if n.HasArrow {
+			printAST(n.Expr, sb, level+oneLevel)
+		} else {
+			printAST(n.Body, sb, level+oneLevel)
+		}
+	case *Ret:
+		sb.WriteRune(nl)
+		buildIndent(sb, level+oneLevel)
+		sb.WriteString("Ret")
+		sb.WriteRune(nl)
+		printAST(n.Expr, sb, twoLevels+twoLevels+oneLevel)
 	case *Block:
 		sb.WriteRune(nl)
 		buildIndent(sb, level+oneLevel)

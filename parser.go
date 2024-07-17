@@ -98,6 +98,8 @@ func (p *Parser) block(isInsideLoop bool) ast.Node {
 			block.Statement = append(block.Statement, p.forLoop())
 		case token.WHILE:
 			block.Statement = append(block.Statement, p.loop())
+		case token.RET:
+			block.Statement = append(block.Statement, p.ret())
 		case token.BREAK:
 			if isInsideLoop {
 				block.Statement = append(block.Statement, p.breakStmt())
@@ -390,11 +392,49 @@ func (p *Parser) operand() ast.Node {
 		p.advance()
 		p.expect(token.RPAREN)
 		return e
+	case token.FUN:
+		f := &ast.Fun{}
+		p.advance()
+		p.expect(token.LPAREN)
+		p.advance()
+		for p.current.Token != token.RPAREN {
+			p.expect(token.IDENTIFIER)
+			f.Args = append(f.Args, p.current.Lit)
+			p.advance()
+			if p.current.Token == token.COMMA {
+				for p.current.Token == token.COMMA {
+					p.advance()
+					p.expect(token.IDENTIFIER)
+					f.Args = append(f.Args, p.current.Lit)
+					p.advance()
+				}
+			}
+			goto endParams
+		}
+	endParams:
+		p.expect(token.RPAREN)
+		p.advance()
+		if p.current.Token == token.ARROW {
+			p.advance()
+			e := p.expression(token.LowestPrec)
+			f.HasArrow = true
+			f.Expr = e
+			return f
+		}
+		f.Body = p.block(false)
+		return f
 	default:
 		p.err = verror.New(p.lexer.ModuleName, "Expected expression", verror.SyntaxErrMsg, p.current.Line)
 		p.ok = false
 		return &ast.Nil{}
 	}
+}
+
+func (p *Parser) ret() ast.Node {
+	p.advance()
+	e := p.expression(token.LowestPrec)
+	p.advance()
+	return &ast.Ret{Expr: e}
 }
 
 func (p *Parser) indexOrSlice(e ast.Node) ast.Node {

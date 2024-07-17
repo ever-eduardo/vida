@@ -157,6 +157,17 @@ type Break struct{}
 
 type Continue struct{}
 
+type Fun struct {
+	Args     []string
+	HasArrow bool
+	Body     Node
+	Expr     Node
+}
+
+type Ret struct {
+	Expr Node
+}
+
 func (ast *Ast) _node()           {}
 func (loc *Loc) _node()           {}
 func (mut *Set) _node()           {}
@@ -190,3 +201,5 @@ func (n *Else) _node()            {}
 func (n *While) _node()           {}
 func (n *Break) _node()           {}
 func (n *Continue) _node()        {}
+func (n *Fun) _node()             {}
+func (n *Ret) _node()             {}
