@@ -8,6 +8,7 @@ import (
 const FileErrMsg = "File"
 const LexicalErrMsg = "Lexical"
 const SyntaxErrMsg = "Syntax"
+const CompilerErrorMsg = "Compiler error"
 const RunTimeErrMsg = "Runtime error"
 
 type VidaError struct {
@@ -38,4 +39,5 @@ func New(moduleName string, message string, errorType string, line uint) VidaErr
 var (
 	RuntimeError   = errors.New(RunTimeErrMsg)
 	ErrStringLimit = errors.New("String Limit")
+	CompilerError  = errors.New(CompilerErrorMsg)
 )
