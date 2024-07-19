@@ -2,6 +2,7 @@ module		:=	statement*
 statement	:= 	global
 			| 	local
 			|	datamut
+			|	call
 			|	block
 			|	for
 			|	ifor
@@ -10,6 +11,7 @@ statement	:= 	global
 global		:=	ident '=' expr
 local		:=	'loc' ident '=' expr
 datamut		:=	ident select select* '=' expr
+call		:=	iden select* '(' (expr (',' expr)*)? ')'
 block		:=	'{' statement* '}'
 loopBlock	:=	'{' statement* break* continue* '}'
 for			:=	'for' ident '=' expr ',' expr (',' expr)? loopBlock
@@ -35,6 +37,7 @@ primary		:=	'true'
 			|	List
 			|	Document
 			|	Function
+			|	callExpr
 binop		:=	'and'
 			|	'or'
 			|	'+'
@@ -51,7 +54,8 @@ binop		:=	'and'
 List		:=	'[' (expr (',' expr)*)? ']'
 Document	:=	'{' (pair (',' pair))* '}'
 pair		:=	ident ':' expr
-Function	:=	'fun' '(' (iden (',' iden)*)? ')' (fBody | '->' expr) 
+Function	:=	'fn' (iden (',' iden)*)? fBody | '=>' expr
+callExpr	:=	expr '(' (expr (',' expr)*)? ')'
 fBody		:=	'{' statement* ret?* '}'
 select		:=	'[' expr | ':' | ':' expr | expr ':' | expr ':' expr ']' select*
 			|	'.' ident select*
