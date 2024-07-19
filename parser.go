@@ -34,7 +34,9 @@ func (p *Parser) Parse() (*ast.Ast, error) {
 	for p.ok {
 		switch p.current.Token {
 		case token.IDENTIFIER:
-			p.ast.Statement = append(p.ast.Statement, p.identPath(&p.ast.Statement))
+			p.ast.Statement = append(p.ast.Statement, p.mutOrCall(&p.ast.Statement))
+		case token.LET:
+			p.ast.Statement = append(p.ast.Statement, p.global())
 		case token.LOC:
 			p.ast.Statement = append(p.ast.Statement, p.localStmt())
 		case token.IF:
@@ -49,19 +51,17 @@ func (p *Parser) Parse() (*ast.Ast, error) {
 		case token.EOF:
 			return p.ast, nil
 		default:
-			p.err = verror.New(p.lexer.ModuleName, "Expected statement", verror.SyntaxErrMsg, p.current.Line)
+			fmt.Printf("Debug parser %v\n", p.current.Token.String())
+			p.err = verror.New(p.lexer.ModuleName, "Expected statement A", verror.SyntaxErrMsg, p.current.Line)
 			return nil, p.err
 		}
 	}
 	return nil, p.err
 }
 
-func (p *Parser) identPath(statements *[]ast.Node) ast.Node {
-	if p.next.Token == token.DOT || p.next.Token == token.LBRACKET {
+func (p *Parser) mutOrCall(statements *[]ast.Node) ast.Node {
+	if p.next.Token == token.DOT || p.next.Token == token.LBRACKET || p.next.Token == token.LPAREN {
 		return p.mutateDataStructureOrCall(statements)
-	}
-	if p.next.Token == token.LPAREN {
-		return p.callStmt(statements)
 	}
 	i := p.current.Lit
 	p.advance()
@@ -84,13 +84,27 @@ func (p *Parser) localStmt() ast.Node {
 	return &ast.Loc{Identifier: i, Expr: e}
 }
 
+func (p *Parser) global() ast.Node {
+	p.advance()
+	p.expect(token.IDENTIFIER)
+	i := p.current.Lit
+	p.advance()
+	p.expect(token.ASSIGN)
+	p.advance()
+	e := p.expression(token.LowestPrec)
+	p.advance()
+	return &ast.Let{Indentifier: i, Expr: e}
+}
+
 func (p *Parser) block(isInsideLoop bool) ast.Node {
 	block := &ast.Block{}
 	p.advance()
 	for p.current.Token != token.RCURLY {
 		switch p.current.Token {
 		case token.IDENTIFIER:
-			block.Statement = append(block.Statement, p.identPath(&block.Statement))
+			block.Statement = append(block.Statement, p.mutOrCall(&block.Statement))
+		case token.LET:
+			block.Statement = append(block.Statement, p.global())
 		case token.LOC:
 			block.Statement = append(block.Statement, p.localStmt())
 		case token.IF:
@@ -121,7 +135,7 @@ func (p *Parser) block(isInsideLoop bool) ast.Node {
 			block.Statement = append(block.Statement, p.block(isInsideLoop))
 			p.advance()
 		default:
-			p.err = verror.New(p.lexer.ModuleName, "Expected statement", verror.SyntaxErrMsg, p.current.Line)
+			p.err = verror.New(p.lexer.ModuleName, "Expected statement Block", verror.SyntaxErrMsg, p.current.Line)
 			p.ok = false
 			return block
 		}
@@ -133,7 +147,7 @@ func (p *Parser) mutateDataStructureOrCall(statements *[]ast.Node) ast.Node {
 	*statements = append(*statements, &ast.ReferenceStmt{Value: p.current.Lit})
 	var i ast.Node
 Loop:
-	for p.next.Token == token.LBRACKET || p.next.Token == token.DOT {
+	for p.next.Token == token.LBRACKET || p.next.Token == token.DOT || p.next.Token == token.LPAREN {
 		p.advance()
 		switch p.current.Token {
 		case token.LBRACKET:
@@ -142,7 +156,7 @@ Loop:
 			p.advance()
 			p.expect(token.RBRACKET)
 			if p.next.Token == token.ASSIGN {
-				break Loop
+				goto assignment
 			}
 			*statements = append(*statements, &ast.IGetStmt{Index: i})
 		case token.DOT:
@@ -150,63 +164,42 @@ Loop:
 			p.expect(token.IDENTIFIER)
 			i = &ast.Property{Value: p.current.Lit}
 			if p.next.Token == token.ASSIGN {
-				break Loop
+				goto assignment
 			}
 			*statements = append(*statements, &ast.SelectStmt{Selector: i})
+		case token.LPAREN:
+			var args []ast.Node
+			p.advance()
+			for p.current.Token != token.RPAREN && p.current.Token != token.EOF {
+				args = append(args, p.expression(token.LowestPrec))
+				p.advance()
+				if p.current.Token == token.COMMA {
+					for p.current.Token == token.COMMA {
+						p.advance()
+						args = append(args, p.expression(token.LowestPrec))
+						p.advance()
+					}
+					goto afterParen
+				}
+			}
+		afterParen:
+			p.expect(token.RPAREN)
+			if p.next.Token != token.LBRACKET && p.next.Token != token.DOT && p.next.Token != token.LPAREN {
+				p.advance()
+				return &ast.CallStmt{Args: args}
+			}
+			*statements = append(*statements, &ast.CallStmt{Args: args})
 		default:
 			break Loop
 		}
 	}
+assignment:
 	p.advance()
-	if p.current.Token == token.LPAREN {
-		p.advance()
-		var args []ast.Node
-		for p.current.Token != token.RPAREN && p.current.Token != token.EOF {
-			args = append(args, p.expression(token.LowestPrec))
-			p.advance()
-			if p.current.Token == token.COMMA {
-				for p.current.Token == token.COMMA {
-					p.advance()
-					args = append(args, p.expression(token.LowestPrec))
-					p.advance()
-				}
-				goto afterParen
-			}
-		}
-	afterParen:
-		p.expect(token.RPAREN)
-		p.advance()
-		return &ast.CallStmt{Args: args}
-	}
 	p.expect(token.ASSIGN)
 	p.advance()
 	e := p.expression(token.LowestPrec)
 	p.advance()
 	return &ast.ISet{Index: i, Expr: e}
-}
-
-func (p *Parser) callStmt(statements *[]ast.Node) ast.Node {
-	*statements = append(*statements, &ast.ReferenceStmt{Value: p.current.Lit})
-	var args []ast.Node
-	p.advance()
-	p.expect(token.LPAREN)
-	p.advance()
-	for p.current.Token != token.RPAREN && p.current.Token != token.EOF {
-		args = append(args, p.expression(token.LowestPrec))
-		p.advance()
-		if p.current.Token == token.COMMA {
-			for p.current.Token == token.COMMA {
-				p.advance()
-				args = append(args, p.expression(token.LowestPrec))
-				p.advance()
-			}
-			goto afterParen
-		}
-	}
-afterParen:
-	p.expect(token.RPAREN)
-	p.advance()
-	return &ast.CallStmt{Args: args}
 }
 
 func (p *Parser) forLoop() ast.Node {

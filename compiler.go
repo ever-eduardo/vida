@@ -53,6 +53,9 @@ func (c *Compiler) compileStmt(node ast.Node) {
 	case *ast.Set:
 		from, scope := c.compileExpr(n.Expr)
 		if to, isLocal, _ := c.sb.isLocal(n.Indentifier); isLocal {
+			if byte(from) == to {
+				return
+			}
 			if scope == rLoc {
 				c.emitMove(byte(from), to)
 			} else {
@@ -62,16 +65,21 @@ func (c *Compiler) compileStmt(node ast.Node) {
 			to := c.kb.StringIndex(n.Indentifier)
 			c.emitSetG(from, to, scope)
 		} else {
-			to := c.kb.StringIndex(n.Indentifier)
-			c.sb.addGlobal(n.Indentifier)
-			c.emitSetG(from, to, scope)
+			c.hadError = true
 		}
+	case *ast.Let:
+		to := c.kb.StringIndex(n.Indentifier)
+		c.sb.addGlobal(n.Indentifier)
+		from, scope := c.compileExpr(n.Expr)
+		c.emitSetG(from, to, scope)
 	case *ast.Loc:
 		to := c.rAlloc
-		c.rAlloc++
 		from, scope := c.compileExpr(n.Expr)
+		c.rAlloc++
 		c.sb.addLocal(n.Identifier, c.level, c.scope, to)
-		c.emitLoc(from, to, scope)
+		if scope != rLoc {
+			c.emitLoc(from, to, scope)
+		}
 	case *ast.Branch:
 		elifCount := len(n.Elifs)
 		hasElif := elifCount != 0
