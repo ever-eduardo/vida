@@ -166,6 +166,15 @@ type Ret struct {
 	Expr Node
 }
 
+type CallExpr struct {
+	Args []Node
+	Fun  Node
+}
+
+type CallStmt struct {
+	Args []Node
+}
+
 func (ast *Ast) _node()           {}
 func (loc *Loc) _node()           {}
 func (mut *Set) _node()           {}
@@ -201,3 +210,5 @@ func (n *Break) _node()           {}
 func (n *Continue) _node()        {}
 func (n *Fun) _node()             {}
 func (n *Ret) _node()             {}
+func (n *CallExpr) _node()        {}
+func (n *CallStmt) _node()        {}

@@ -110,7 +110,7 @@ var Tokens = [...]string{
 	BREAK:      "break",
 	CONTINUE:   "continue",
 	IN:         "in",
-	FUN:        "fun",
+	FUN:        "fn",
 	RET:        "ret",
 }
 

@@ -22,6 +22,7 @@ const (
 	jump
 	fun
 	ret
+	call
 )
 
 var opcodes = [...]string{
@@ -46,4 +47,5 @@ var opcodes = [...]string{
 	jump:     "Jump",
 	fun:      "Fun",
 	ret:      "Ret",
+	call:     "Call",
 }

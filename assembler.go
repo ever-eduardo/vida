@@ -1,6 +1,8 @@
 package vida
 
-import "encoding/binary"
+import (
+	"encoding/binary"
+)
 
 const v rune = 'v'
 const i rune = 'i'
@@ -9,10 +11,10 @@ const a rune = 'a'
 
 const (
 	rKonst byte = iota
-	rLocal
-	rGlobal
+	rLoc
+	rGlob
 	rCore
-	rFreevar
+	rFree
 )
 
 const (
@@ -20,10 +22,6 @@ const (
 	vce = 3
 	ecv = 6
 	ece = 7
-)
-
-const (
-	retInstrSize = 5
 )
 
 func (c *Compiler) appendHeader() {
@@ -187,12 +185,15 @@ func (c *Compiler) emitRet(from int, to byte, scope byte) {
 }
 
 func (c *Compiler) refScope(id string) (int, byte) {
-	if to, isLocal := c.sb.isLocal(id); isLocal {
-		return int(to), rLocal
+	if to, isLocal, key := c.sb.isLocal(id); isLocal {
+		if key.level != c.level {
+			c.free = append(c.free, key)
+		}
+		return int(to), rLoc
 	}
 	if isGlobal := c.sb.isGlobal(id); isGlobal {
 		idx := c.kb.StringIndex(id)
-		return idx, rGlobal
+		return idx, rGlob
 	}
 	idx := c.kb.StringIndex(id)
 	return idx, rCore

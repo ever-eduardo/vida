@@ -294,6 +294,33 @@ func printAST(node Node, sb *strings.Builder, level int) {
 		sb.WriteString("Ret")
 		sb.WriteRune(nl)
 		printAST(n.Expr, sb, twoLevels+twoLevels+oneLevel)
+	case *CallExpr:
+		buildIndent(sb, level+oneLevel)
+		sb.WriteString("CallExpr")
+		sb.WriteRune(nl)
+		printAST(n.Fun, sb, level+twoLevels)
+		buildIndent(sb, level+twoLevels)
+		sb.WriteRune(nl)
+		buildIndent(sb, level+twoLevels)
+		sb.WriteString("Args")
+		sb.WriteRune(nl)
+		for _, v := range n.Args {
+			printAST(v, sb, level+twoLevels)
+			sb.WriteRune(nl)
+		}
+	case *CallStmt:
+		sb.WriteRune(nl)
+		buildIndent(sb, level+oneLevel)
+		sb.WriteString("CallStmt")
+		buildIndent(sb, level+twoLevels)
+		sb.WriteRune(nl)
+		buildIndent(sb, level+twoLevels)
+		sb.WriteString("Args")
+		sb.WriteRune(nl)
+		for _, v := range n.Args {
+			printAST(v, sb, level+twoLevels)
+			sb.WriteRune(nl)
+		}
 	case *Block:
 		sb.WriteRune(nl)
 		buildIndent(sb, level+oneLevel)

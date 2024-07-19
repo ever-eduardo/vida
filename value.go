@@ -684,6 +684,7 @@ type Module struct {
 	Code      []byte
 	Name      string
 	Store     map[string]Value
+	Closure   *Closure
 }
 
 func newModule(name string) *Module {
@@ -704,7 +705,6 @@ type Function struct {
 	FreeVarsCount int
 	Arity         int
 	First         int
-	Last          int
 }
 
 func (c *Function) Boolean() Bool {
@@ -747,12 +747,13 @@ func (c *Function) Type() string {
 }
 
 func (f Function) String() string {
-	return fmt.Sprintf("fun a = %v, f = %v, l = %v, fr = %v", f.Arity, f.First, f.Last, f.FreeVarsCount)
+	return fmt.Sprintf("fun [a = %v, i = %v, fv = %v]", f.Arity, f.First, f.FreeVarsCount)
 }
 
 type Closure struct {
-	Function *Function
 	FreeVars []Value
+	Function *Function
+	Self     *Closure
 }
 
 func (c *Closure) Boolean() Bool {

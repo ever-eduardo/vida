@@ -229,6 +229,9 @@ func (l *Lexer) Next() (line uint, tok token.Token, lit string) {
 			if l.c == '=' {
 				l.next()
 				tok = token.EQ
+			} else if l.c == '>' {
+				l.next()
+				tok = token.ARROW
 			} else {
 				tok = token.ASSIGN
 			}
@@ -237,12 +240,7 @@ func (l *Lexer) Next() (line uint, tok token.Token, lit string) {
 		case '+':
 			tok = token.ADD
 		case '-':
-			if l.c == '>' {
-				l.next()
-				tok = token.ARROW
-			} else {
-				tok = token.SUB
-			}
+			tok = token.SUB
 		case '*':
 			tok = token.MUL
 		case '/':

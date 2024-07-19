@@ -3,10 +3,10 @@ package vida
 var dummy struct{}
 
 type lKey struct {
-	id            string
-	compilerLevel int
-	scopeLevel    int
-	register      byte
+	id    string
+	level int
+	scope int
+	reg   byte
 }
 
 type symbolBuilder struct {
@@ -20,13 +20,15 @@ func newSymbolBuilder() *symbolBuilder {
 	}
 }
 
-func (sb *symbolBuilder) isLocal(id string) (byte, bool) {
+func (sb *symbolBuilder) isLocal(id string) (byte, bool, lKey) {
+	var k lKey
 	for i := len(sb.History) - 1; i >= 0; i-- {
 		if sb.History[i].id == id {
-			return sb.History[i].register, true
+			k = sb.History[i]
+			return sb.History[i].reg, true, k
 		}
 	}
-	return 0, false
+	return 0, false, k
 }
 
 func (sb *symbolBuilder) isGlobal(id string) (isGlobal bool) {
@@ -34,13 +36,13 @@ func (sb *symbolBuilder) isGlobal(id string) (isGlobal bool) {
 	return
 }
 
-func (sb *symbolBuilder) addLocal(id string, compilerLevel int, scopeLevel int, register byte) {
+func (sb *symbolBuilder) addLocal(id string, level int, scope int, reg byte) {
 	sb.History = append(sb.History,
 		lKey{
-			id:            id,
-			compilerLevel: compilerLevel,
-			scopeLevel:    scopeLevel,
-			register:      register,
+			id:    id,
+			level: level,
+			scope: scope,
+			reg:   reg,
 		})
 }
 
@@ -52,7 +54,7 @@ func (sb *symbolBuilder) clearLocals(compilerLevel int, scopeLevel int) int {
 	var count int
 	length := len(sb.History)
 	for i := length - 1; i >= 0; i-- {
-		if sb.History[i].compilerLevel == compilerLevel && sb.History[i].scopeLevel == scopeLevel {
+		if sb.History[i].level == compilerLevel && sb.History[i].scope == scopeLevel {
 			count++
 		} else {
 			break

@@ -2,9 +2,11 @@ package vida
 
 import (
 	"encoding/binary"
+	"fmt"
 
 	"github.com/ever-eduardo/vida/ast"
 	"github.com/ever-eduardo/vida/token"
+	"github.com/ever-eduardo/vida/verror"
 )
 
 type Compiler struct {
@@ -13,15 +15,15 @@ type Compiler struct {
 	breakCount    []int
 	continueJumps []int
 	continueCount []int
+	free          []lKey
 	ast           *ast.Ast
 	module        *Module
-	function      *Function
-	parent        *Compiler
 	kb            *KonstBuilder
 	sb            *symbolBuilder
 	scope         int
 	level         int
 	rAlloc        byte
+	hadError      bool
 }
 
 func NewCompiler(ast *ast.Ast, moduleName string) *Compiler {
@@ -33,27 +35,17 @@ func NewCompiler(ast *ast.Ast, moduleName string) *Compiler {
 	}
 }
 
-func newChildCompiler(p *Compiler) *Compiler {
-	return &Compiler{
-		ast:      p.ast,
-		module:   p.module,
-		function: &Function{},
-		kb:       p.kb,
-		sb:       p.sb,
-		parent:   p,
-		level:    p.level + 1,
-		scope:    p.scope + 1,
-	}
-}
-
-func (c *Compiler) CompileModule() *Module {
+func (c *Compiler) CompileModule() (*Module, error) {
 	c.appendHeader()
 	for i := range len(c.ast.Statement) {
 		c.compileStmt(c.ast.Statement[i])
 	}
 	c.module.Konstants = c.kb.Konstants
 	c.appendEnd()
-	return c.module
+	if !c.hadError {
+		return c.module, nil
+	}
+	return nil, verror.CompilerError
 }
 
 func (c *Compiler) compileStmt(node ast.Node) {
@@ -62,8 +54,8 @@ func (c *Compiler) compileStmt(node ast.Node) {
 		from, scope := c.compileExpr(n.Expr)
 		switch lhs := n.LHS.(type) {
 		case *ast.Identifier:
-			if to, isLocal := c.sb.isLocal(lhs.Value); isLocal {
-				if scope == rLocal {
+			if to, isLocal, _ := c.sb.isLocal(lhs.Value); isLocal {
+				if scope == rLoc {
 					c.emitMove(byte(from), to)
 				} else {
 					c.emitLoc(from, to, scope)
@@ -211,13 +203,13 @@ func (c *Compiler) compileStmt(node ast.Node) {
 		c.rAlloc++
 		j, t := c.compileExpr(n.Index)
 		c.rAlloc = resultReg
-		c.emitIGet(int(resultReg), j, rLocal, t, resultReg)
+		c.emitIGet(int(resultReg), j, rLoc, t, resultReg)
 	case *ast.SelectStmt:
 		resultReg := c.rAlloc
 		c.rAlloc++
 		j, t := c.compileExpr(n.Selector)
 		c.rAlloc = resultReg
-		c.emitIGet(int(resultReg), j, rLocal, t, resultReg)
+		c.emitIGet(int(resultReg), j, rLoc, t, resultReg)
 	case *ast.ISet:
 		mutableReg := c.rAlloc
 		c.rAlloc++
@@ -234,6 +226,9 @@ func (c *Compiler) compileStmt(node ast.Node) {
 		c.rAlloc -= byte(c.sb.clearLocals(c.level, c.scope))
 		c.scope--
 	case *ast.Ret:
+		if c.level == 0 {
+			c.hadError = true
+		}
 		i, s := c.compileExpr(n.Expr)
 		c.emitRet(i, c.rAlloc, s)
 	}
@@ -270,7 +265,7 @@ func (c *Compiler) compileExpr(node ast.Node) (int, byte) {
 		default:
 			c.emitBinary(lidx, ridx, lscope, rscope, opReg, byte(n.Op))
 		}
-		return int(opReg), rLocal
+		return int(opReg), rLoc
 	case *ast.PrefixExpr:
 		idx, scope := c.compileExpr(n.Expr)
 		if scope == rKonst {
@@ -279,22 +274,25 @@ func (c *Compiler) compileExpr(node ast.Node) (int, byte) {
 			}
 		}
 		c.emitPrefix(idx, c.rAlloc, scope, byte(n.Op))
-		return int(c.rAlloc), rLocal
+		return int(c.rAlloc), rLoc
 	case *ast.Boolean:
 		return c.kb.BooleanIndex(n.Value), rKonst
 	case *ast.Nil:
 		return c.kb.NilIndex(), rKonst
 	case *ast.Reference:
-		return c.refScope(n.Value)
+		i, b := c.refScope(n.Value)
+		fmt.Printf("Looking for Ref %v with history %v. Compiler %v, Scope %v\n", n.Value, c.sb.History, c.level, c.scope)
+		fmt.Printf("Free vars list = %v\n", c.free)
+		return i, b
 	case *ast.List:
 		if len(n.ExprList) == 0 {
 			c.emitList(0, c.rAlloc, c.rAlloc)
-			return int(c.rAlloc), rLocal
+			return int(c.rAlloc), rLoc
 		}
 		var count int
 		for _, v := range n.ExprList {
 			idx, scope := c.compileExpr(v)
-			if scope != rLocal {
+			if scope != rLoc {
 				c.emitLoc(idx, c.rAlloc, scope)
 			} else if idx != int(c.rAlloc) {
 				c.emitMove(byte(idx), c.rAlloc)
@@ -304,11 +302,11 @@ func (c *Compiler) compileExpr(node ast.Node) (int, byte) {
 		}
 		c.rAlloc -= byte(count)
 		c.emitList(byte(count), c.rAlloc, c.rAlloc)
-		return int(c.rAlloc), rLocal
+		return int(c.rAlloc), rLoc
 	case *ast.Document:
 		if len(n.Pairs) == 0 {
 			c.emitDocument(0, c.rAlloc, c.rAlloc)
-			return int(c.rAlloc), rLocal
+			return int(c.rAlloc), rLoc
 		}
 		var count int
 		for _, v := range n.Pairs {
@@ -316,7 +314,7 @@ func (c *Compiler) compileExpr(node ast.Node) (int, byte) {
 			c.emitLoc(ik, c.rAlloc, scopeK)
 			c.rAlloc++
 			iv, scopeV := c.compileExpr(v.Value)
-			if scopeV != rLocal {
+			if scopeV != rLoc {
 				c.emitLoc(iv, c.rAlloc, scopeV)
 			} else if iv != int(c.rAlloc) {
 				c.emitMove(byte(iv), c.rAlloc)
@@ -326,7 +324,7 @@ func (c *Compiler) compileExpr(node ast.Node) (int, byte) {
 		}
 		c.rAlloc -= byte(count)
 		c.emitDocument(byte(count), c.rAlloc, c.rAlloc)
-		return int(c.rAlloc), rLocal
+		return int(c.rAlloc), rLoc
 	case *ast.Property:
 		return c.kb.StringIndex(n.Value), rKonst
 	case *ast.ForState:
@@ -339,7 +337,7 @@ func (c *Compiler) compileExpr(node ast.Node) (int, byte) {
 		j, t := c.compileExpr(n.Index)
 		c.rAlloc = resultReg
 		c.emitIGet(i, j, s, t, resultReg)
-		return int(resultReg), rLocal
+		return int(resultReg), rLoc
 	case *ast.Select:
 		resultReg := c.rAlloc
 		c.rAlloc++
@@ -348,7 +346,7 @@ func (c *Compiler) compileExpr(node ast.Node) (int, byte) {
 		j, t := c.compileExpr(n.Selector)
 		c.rAlloc = resultReg
 		c.emitIGet(i, j, s, t, resultReg)
-		return int(resultReg), rLocal
+		return int(resultReg), rLoc
 	case *ast.Slice:
 		resultReg := c.rAlloc
 		var scopeV, scopeL, scopeR byte
@@ -372,29 +370,23 @@ func (c *Compiler) compileExpr(node ast.Node) (int, byte) {
 		}
 		c.rAlloc = resultReg
 		c.emitSlice(byte(n.Mode), fromV, fromL, fromR, scopeV, scopeL, scopeR, resultReg)
-		return int(resultReg), rLocal
+		return int(resultReg), rLoc
 	case *ast.Fun:
 		fn := &Function{}
-		i := c.kb.FunctionIndex(fn)
 		jump := len(c.module.Code)
-		c.emitFun(i, c.rAlloc, 0)
+		c.emitFun(c.kb.FunctionIndex(fn), c.rAlloc, 0)
 		fn.First = len(c.module.Code)
-		oldReg := c.rAlloc
-		c.rAlloc = 0
-		c.level++
-		c.scope++
+		reg := c.startFuncScope()
 		for _, v := range n.Args {
 			fn.Arity++
 			c.sb.addLocal(v, c.level, c.scope, c.rAlloc)
 			c.rAlloc++
 		}
 		c.compileStmt(n.Body)
-		fn.Last = len(c.module.Code) - retInstrSize
 		binary.NativeEndian.PutUint16(c.module.Code[jump+3:], uint16(len(c.module.Code)))
-		c.level--
-		c.scope--
-		c.rAlloc = oldReg
-		return int(c.rAlloc), rLocal
+		c.leaveFuncScope()
+		c.rAlloc = reg
+		return int(c.rAlloc), rLoc
 	default:
 		return 0, rKonst
 	}
@@ -463,6 +455,18 @@ func (c *Compiler) cleanUpLoopScope(init int) {
 func (c *Compiler) startLoopScope() {
 	c.breakCount = append(c.breakCount, 0)
 	c.continueCount = append(c.continueCount, 0)
+}
+
+func (c *Compiler) startFuncScope() byte {
+	r := c.rAlloc
+	c.rAlloc = 0
+	c.level++
+	return r
+}
+
+func (c *Compiler) leaveFuncScope() {
+	c.sb.clearLocals(c.level, c.scope)
+	c.level--
 }
 
 func (c *Compiler) integrateKonst(val Value) (int, byte) {

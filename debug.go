@@ -150,7 +150,7 @@ func (vm *VM) Debug() (Result, error) {
 			ip += 2
 			from := vm.CurrentFrame.code[ip]
 			ip += 2
-			err := vm.valueFrom(rLocal, uint16(from)).ISet(vm.valueFrom(scopeIndex, fromIndex), vm.valueFrom(scopeExpr, fromExpr))
+			err := vm.valueFrom(rLoc, uint16(from)).ISet(vm.valueFrom(scopeIndex, fromIndex), vm.valueFrom(scopeExpr, fromExpr))
 			if err != nil {
 				return Failure, verror.New(vm.Module.Name, "Runtime error", verror.RunTimeErrMsg, math.MaxUint16)
 			}
