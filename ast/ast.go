@@ -16,8 +16,8 @@ type Loc struct {
 }
 
 type Set struct {
-	LHS  Node
-	Expr Node
+	Indentifier string
+	Expr        Node
 }
 
 type Reference struct {

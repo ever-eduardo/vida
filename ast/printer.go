@@ -42,7 +42,7 @@ func printAST(node Node, sb *strings.Builder, level int) {
 		buildIndent(sb, level+oneLevel)
 		sb.WriteString("Set")
 		buildIndent(sb, level+twoLevels)
-		printAST(n.LHS, sb, level+oneLevel)
+		sb.WriteString(n.Indentifier)
 		sb.WriteRune(nl)
 		printAST(n.Expr, sb, level+oneLevel)
 	case *Reference:

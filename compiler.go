@@ -40,34 +40,31 @@ func (c *Compiler) CompileModule() (*Module, error) {
 	for i := range len(c.ast.Statement) {
 		c.compileStmt(c.ast.Statement[i])
 	}
+	if c.hadError {
+		return nil, verror.CompilerError
+	}
 	c.module.Konstants = c.kb.Konstants
 	c.appendEnd()
-	if !c.hadError {
-		return c.module, nil
-	}
-	return nil, verror.CompilerError
+	return c.module, nil
 }
 
 func (c *Compiler) compileStmt(node ast.Node) {
 	switch n := node.(type) {
 	case *ast.Set:
 		from, scope := c.compileExpr(n.Expr)
-		switch lhs := n.LHS.(type) {
-		case *ast.Identifier:
-			if to, isLocal, _ := c.sb.isLocal(lhs.Value); isLocal {
-				if scope == rLoc {
-					c.emitMove(byte(from), to)
-				} else {
-					c.emitLoc(from, to, scope)
-				}
-			} else if isGlobal := c.sb.isGlobal(lhs.Value); isGlobal {
-				to := c.kb.StringIndex(lhs.Value)
-				c.emitSetG(from, to, scope)
+		if to, isLocal, _ := c.sb.isLocal(n.Indentifier); isLocal {
+			if scope == rLoc {
+				c.emitMove(byte(from), to)
 			} else {
-				to := c.kb.StringIndex(lhs.Value)
-				c.sb.addGlobal(lhs.Value)
-				c.emitSetG(from, to, scope)
+				c.emitLoc(from, to, scope)
 			}
+		} else if isGlobal := c.sb.isGlobal(n.Indentifier); isGlobal {
+			to := c.kb.StringIndex(n.Indentifier)
+			c.emitSetG(from, to, scope)
+		} else {
+			to := c.kb.StringIndex(n.Indentifier)
+			c.sb.addGlobal(n.Indentifier)
+			c.emitSetG(from, to, scope)
 		}
 	case *ast.Loc:
 		to := c.rAlloc

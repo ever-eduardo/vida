@@ -69,7 +69,7 @@ func (p *Parser) identPath(statements *[]ast.Node) ast.Node {
 	p.advance()
 	e := p.expression(token.LowestPrec)
 	p.advance()
-	return &ast.Set{LHS: &ast.Identifier{Value: i}, Expr: e}
+	return &ast.Set{Indentifier: i, Expr: e}
 }
 
 func (p *Parser) localStmt() ast.Node {
