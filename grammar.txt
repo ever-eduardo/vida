@@ -1,6 +1,7 @@
 module		:=	statement*
 statement	:= 	global
 			| 	local
+			|	set
 			|	datamut
 			|	call
 			|	block
@@ -8,8 +9,9 @@ statement	:= 	global
 			|	ifor
 			|	if
 			|	while
-global		:=	ident '=' expr
+global		:=	'let' ident '=' expr
 local		:=	'loc' ident '=' expr
+set			:=	iden '=' expr
 datamut		:=	ident select select* '=' expr
 call		:=	iden select* '(' (expr (',' expr)*)? ')'
 block		:=	'{' statement* '}'
