@@ -4,6 +4,7 @@ const (
 	end = iota
 	setG
 	setL
+	setF
 	move
 	prefix
 	binop
@@ -29,6 +30,7 @@ var opcodes = [...]string{
 	end:      "End",
 	setG:     "SetG",
 	setL:     "SetL",
+	setF:     "SetF",
 	move:     "Move",
 	prefix:   "Prefix",
 	binop:    "Binop",

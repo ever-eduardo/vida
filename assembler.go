@@ -53,6 +53,13 @@ func (c *Compiler) emitLoc(from int, to byte, scope byte) {
 	c.module.Code = append(c.module.Code, to)
 }
 
+func (c *Compiler) emitSetF(from int, to byte, scope byte) {
+	c.module.Code = append(c.module.Code, setF)
+	c.module.Code = append(c.module.Code, scope)
+	c.module.Code = binary.NativeEndian.AppendUint16(c.module.Code, uint16(from))
+	c.module.Code = binary.NativeEndian.AppendUint16(c.module.Code, uint16(to))
+}
+
 func (c *Compiler) emitMove(from byte, to byte) {
 	c.module.Code = append(c.module.Code, move)
 	c.module.Code = append(c.module.Code, from)
@@ -187,7 +194,29 @@ func (c *Compiler) emitRet(from int, to byte, scope byte) {
 func (c *Compiler) refScope(id string) (int, byte) {
 	if to, isLocal, key := c.sb.isLocal(id); isLocal {
 		if key.level != c.level {
-			c.free = append(c.free, key)
+			fn := c.fn[c.level-1]
+			for i := 0; i < len(fn.Info); i++ {
+				if fn.Info[i].Id == id {
+					return i, rFree
+				}
+			}
+			fn.Free++
+			if key.level+1 == c.level {
+				fn.Info = append(fn.Info, freeInfo{Index: int(to), IsLocal: true, Id: key.id})
+			} else {
+				for i := key.level; i < c.level-1; i++ {
+					if i == key.level {
+						c.fn[i].Free++
+						c.fn[i].Info = append(c.fn[i].Info, freeInfo{Index: int(to), IsLocal: true, Id: key.id})
+					} else {
+						idx := len(c.fn[i-1].Info) - 1
+						c.fn[i].Info = append(c.fn[i].Info, freeInfo{Index: idx, IsLocal: false, Id: key.id})
+						c.fn[i].Free++
+					}
+				}
+				fn.Info = append(fn.Info, freeInfo{Index: len(c.fn[c.level-2].Info) - 1, IsLocal: false, Id: key.id})
+			}
+			return len(fn.Info) - 1, rFree
 		}
 		return int(to), rLoc
 	}

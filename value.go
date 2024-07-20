@@ -676,7 +676,7 @@ func (d *Document) String() string {
 }
 
 func (d *Document) Type() string {
-	return "document"
+	return "doc"
 }
 
 type Module struct {
@@ -701,10 +701,17 @@ func (m Module) String() string {
 	return fmt.Sprintf("Module <%v/>", m.Name)
 }
 
+type freeInfo struct {
+	Index   int
+	IsLocal Bool
+	Id      string
+}
+
 type Function struct {
-	FreeVarsCount int
-	Arity         int
-	First         int
+	Info  []freeInfo
+	Free  int
+	Arity int
+	First int
 }
 
 func (c *Function) Boolean() Bool {
@@ -747,13 +754,12 @@ func (c *Function) Type() string {
 }
 
 func (f Function) String() string {
-	return fmt.Sprintf("fun [a = %v, i = %v, fv = %v]", f.Arity, f.First, f.FreeVarsCount)
+	return fmt.Sprintf("fun [a = %v, i = %v, fv = %v, info = %v]", f.Arity, f.First, f.Free, f.Info)
 }
 
 type Closure struct {
-	FreeVars []Value
+	Free     []Value
 	Function *Function
-	Self     *Closure
 }
 
 func (c *Closure) Boolean() Bool {

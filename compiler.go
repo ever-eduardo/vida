@@ -2,7 +2,6 @@ package vida
 
 import (
 	"encoding/binary"
-	"fmt"
 
 	"github.com/ever-eduardo/vida/ast"
 	"github.com/ever-eduardo/vida/token"
@@ -15,7 +14,7 @@ type Compiler struct {
 	breakCount    []int
 	continueJumps []int
 	continueCount []int
-	free          []lKey
+	fn            []*Function
 	ast           *ast.Ast
 	module        *Module
 	kb            *KonstBuilder
@@ -51,19 +50,22 @@ func (c *Compiler) CompileModule() (*Module, error) {
 func (c *Compiler) compileStmt(node ast.Node) {
 	switch n := node.(type) {
 	case *ast.Set:
-		from, scope := c.compileExpr(n.Expr)
-		if to, isLocal, _ := c.sb.isLocal(n.Indentifier); isLocal {
-			if byte(from) == to {
+		from, se := c.compileExpr(n.Expr)
+		to, si := c.refScope(n.Indentifier)
+		if si == rFree {
+			c.emitSetF(from, byte(to), se)
+		} else if si == rLoc {
+			if from == to {
 				return
 			}
-			if scope == rLoc {
-				c.emitMove(byte(from), to)
+			if se == rLoc {
+				c.emitMove(byte(from), byte(to))
 			} else {
-				c.emitLoc(from, to, scope)
+				c.emitLoc(from, byte(to), se)
 			}
 		} else if isGlobal := c.sb.isGlobal(n.Indentifier); isGlobal {
 			to := c.kb.StringIndex(n.Indentifier)
-			c.emitSetG(from, to, scope)
+			c.emitSetG(from, to, se)
 		} else {
 			c.hadError = true
 		}
@@ -286,8 +288,6 @@ func (c *Compiler) compileExpr(node ast.Node) (int, byte) {
 		return c.kb.NilIndex(), rKonst
 	case *ast.Reference:
 		i, b := c.refScope(n.Value)
-		fmt.Printf("Looking for Ref %v with history %v. Compiler %v, Scope %v\n", n.Value, c.sb.History, c.level, c.scope)
-		fmt.Printf("Free vars list = %v\n", c.free)
 		return i, b
 	case *ast.List:
 		if len(n.ExprList) == 0 {
@@ -378,6 +378,7 @@ func (c *Compiler) compileExpr(node ast.Node) (int, byte) {
 		return int(resultReg), rLoc
 	case *ast.Fun:
 		fn := &Function{}
+		c.fn = append(c.fn, fn)
 		jump := len(c.module.Code)
 		c.emitFun(c.kb.FunctionIndex(fn), c.rAlloc, 0)
 		fn.First = len(c.module.Code)
@@ -472,6 +473,7 @@ func (c *Compiler) startFuncScope() byte {
 func (c *Compiler) leaveFuncScope() {
 	c.sb.clearLocals(c.level, c.scope)
 	c.level--
+	c.fn = c.fn[:c.level]
 }
 
 func (c *Compiler) integrateKonst(val Value) (int, byte) {

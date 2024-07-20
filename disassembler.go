@@ -52,6 +52,16 @@ func processBytecode(code []byte, konst []Value) string {
 			sb.WriteRune(32)
 			sb.WriteString(fmt.Sprintf("%4v", int(code[ip])))
 			ip++
+		case setF:
+			sb.WriteRune(32)
+			sb.WriteString(fmt.Sprintf("%4v", int(code[ip])))
+			ip++
+			sb.WriteRune(32)
+			sb.WriteString(fmt.Sprintf("%4v", binary.NativeEndian.Uint16(code[ip:])))
+			ip += 2
+			sb.WriteRune(32)
+			sb.WriteString(fmt.Sprintf("%4v", binary.NativeEndian.Uint16(code[ip:])))
+			ip += 2
 		case move:
 			sb.WriteRune(32)
 			sb.WriteString(fmt.Sprintf("%4v", int(code[ip])))
@@ -294,6 +304,15 @@ func printInstr(ip int, code []byte) string {
 		ip += 2
 		sb.WriteRune(32)
 		sb.WriteString(fmt.Sprintf("%4v", int(code[ip])))
+	case setF:
+		sb.WriteRune(32)
+		sb.WriteString(fmt.Sprintf("%4v", int(code[ip])))
+		ip++
+		sb.WriteRune(32)
+		sb.WriteString(fmt.Sprintf("%4v", binary.NativeEndian.Uint16(code[ip:])))
+		ip += 2
+		sb.WriteRune(32)
+		sb.WriteString(fmt.Sprintf("%4v", binary.NativeEndian.Uint16(code[ip:])))
 	case move:
 		sb.WriteRune(32)
 		sb.WriteString(fmt.Sprintf("%4v", int(code[ip])))
