@@ -184,11 +184,17 @@ func (c *Compiler) emitFun(from int, to byte, jump int) {
 	c.module.Code = append(c.module.Code, to)
 }
 
-func (c *Compiler) emitRet(from int, to byte, scope byte) {
+func (c *Compiler) emitCall(fn byte, argCount, to byte) {
+	c.module.Code = append(c.module.Code, call)
+	c.module.Code = append(c.module.Code, fn)
+	c.module.Code = append(c.module.Code, argCount)
+	c.module.Code = append(c.module.Code, to)
+}
+
+func (c *Compiler) emitRet(from int, scope byte) {
 	c.module.Code = append(c.module.Code, ret)
 	c.module.Code = append(c.module.Code, scope)
 	c.module.Code = binary.NativeEndian.AppendUint16(c.module.Code, uint16(from))
-	c.module.Code = append(c.module.Code, to)
 }
 
 func (c *Compiler) refScope(id string) (int, byte) {

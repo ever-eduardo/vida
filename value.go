@@ -19,6 +19,7 @@ type Value interface {
 	Equals(Value) Bool
 	IsIterable() Bool
 	Iterator() Value
+	IsCallable() Bool
 	String() string
 	Type() string
 }
@@ -63,6 +64,10 @@ func (n Nil) Equals(other Value) Bool {
 }
 
 func (n Nil) IsIterable() Bool {
+	return false
+}
+
+func (n Nil) IsCallable() Bool {
 	return false
 }
 
@@ -126,6 +131,10 @@ func (b Bool) Equals(other Value) Bool {
 }
 
 func (b Bool) IsIterable() Bool {
+	return false
+}
+
+func (b Bool) IsCallable() Bool {
 	return false
 }
 
@@ -219,6 +228,10 @@ func (s String) Equals(other Value) Bool {
 
 func (s String) IsIterable() Bool {
 	return true
+}
+
+func (s String) IsCallable() Bool {
+	return false
 }
 
 func (s String) Iterator() Value {
@@ -344,6 +357,10 @@ func (i Integer) IsIterable() Bool {
 	return false
 }
 
+func (i Integer) IsCallable() Bool {
+	return false
+}
+
 func (i Integer) Iterator() Value {
 	return NilValue
 }
@@ -456,6 +473,10 @@ func (f Float) IsIterable() Bool {
 	return false
 }
 
+func (f Float) IsCallable() Bool {
+	return false
+}
+
 func (f Float) Iterator() Value {
 	return NilValue
 }
@@ -553,6 +574,10 @@ func (xs *List) Equals(other Value) Bool {
 
 func (xs *List) IsIterable() Bool {
 	return true
+}
+
+func (xs *List) IsCallable() Bool {
+	return false
 }
 
 func (xs *List) Iterator() Value {
@@ -655,6 +680,10 @@ func (d *Document) IsIterable() Bool {
 	return true
 }
 
+func (d *Document) IsCallable() Bool {
+	return false
+}
+
 func (d *Document) Iterator() Value {
 	size := len(d.Value)
 	keys := make([]string, 0, size)
@@ -745,6 +774,10 @@ func (c *Function) IsIterable() Bool {
 	return false
 }
 
+func (c *Function) IsCallable() Bool {
+	return false
+}
+
 func (c *Function) Iterator() Value {
 	return NilValue
 }
@@ -754,7 +787,7 @@ func (c *Function) Type() string {
 }
 
 func (f Function) String() string {
-	return fmt.Sprintf("fun [a = %v, i = %v, fv = %v, info = %v]", f.Arity, f.First, f.Free, f.Info)
+	return fmt.Sprintf("[a = %v, i = %v, f = %v, info = %v]", f.Arity, f.First, f.Free, f.Info)
 }
 
 type Closure struct {
@@ -793,6 +826,10 @@ func (c *Closure) IsIterable() Bool {
 	return false
 }
 
+func (c *Closure) IsCallable() Bool {
+	return true
+}
+
 func (c *Closure) Iterator() Value {
 	return NilValue
 }
@@ -802,7 +839,7 @@ func (c *Closure) Type() string {
 }
 
 func (c Closure) String() string {
-	return "Function"
+	return fmt.Sprintf("Function %v, Free = %v", c.Function, c.Free)
 }
 
 type GoFn func(args ...Value) (Value, error)
@@ -833,6 +870,10 @@ func (gfn GoFn) Equals(other Value) Bool {
 
 func (gfn GoFn) IsIterable() Bool {
 	return false
+}
+
+func (gfn GoFn) IsCallable() Bool {
+	return true
 }
 
 func (gfn GoFn) Iterator() Value {

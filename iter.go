@@ -59,6 +59,10 @@ func (it *ListIterator) IsIterable() Bool {
 	return false
 }
 
+func (it *ListIterator) IsCallable() Bool {
+	return false
+}
+
 func (it *ListIterator) Iterator() Value {
 	return NilValue
 }
@@ -119,6 +123,10 @@ func (it *DocIterator) IsIterable() Bool {
 	return false
 }
 
+func (it *DocIterator) IsCallable() Bool {
+	return false
+}
+
 func (it *DocIterator) Iterator() Value {
 	return NilValue
 }
@@ -175,6 +183,10 @@ func (it *StringIterator) Equals(Value) Bool {
 }
 
 func (it *StringIterator) IsIterable() Bool {
+	return false
+}
+
+func (it *StringIterator) IsCallable() Bool {
 	return false
 }
 

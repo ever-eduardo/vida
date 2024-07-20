@@ -237,7 +237,7 @@ func (c *Compiler) compileStmt(node ast.Node) {
 			c.hadError = true
 		}
 		i, s := c.compileExpr(n.Expr)
-		c.emitRet(i, c.rAlloc, s)
+		c.emitRet(i, s)
 	}
 }
 
@@ -393,6 +393,17 @@ func (c *Compiler) compileExpr(node ast.Node) (int, byte) {
 		c.leaveFuncScope()
 		c.rAlloc = reg
 		return int(c.rAlloc), rLoc
+	case *ast.CallExpr:
+		reg := c.rAlloc
+		idx, _ := c.compileExpr(n.Fun)
+		for _, v := range n.Args {
+			i, s := c.compileExpr(v)
+			c.rAlloc++
+			c.emitLoc(i, c.rAlloc, s)
+		}
+		c.rAlloc = reg
+		c.emitCall(byte(idx), byte(len(n.Args)), c.rAlloc)
+		return idx, rLoc
 	default:
 		return 0, rKonst
 	}

@@ -18,7 +18,9 @@ func (vm *VM) Inspect(ip int) {
 		fmt.Printf("[%v -> %v], ", i, v)
 	}
 	fmt.Println()
-	fmt.Printf("Instr => %v\n", printInstr(ip, vm.Module.Code))
+	fmt.Printf("Frame => %v\n", vm.fp)
+	fmt.Printf("Ip    => %v\n", ip)
+	fmt.Printf("Instr => %v\n", printInstr(ip, vm.Frame.code))
 	fmt.Println("Stack =>")
 	for i, v := range vm.Stack {
 		if v != nil {
@@ -30,193 +32,201 @@ func (vm *VM) Inspect(ip int) {
 }
 
 func (vm *VM) Debug() (Result, error) {
-	vm.CurrentFrame = &vm.Frames[vm.fp]
-	vm.CurrentFrame.code = vm.Module.Code
-	vm.CurrentFrame.stack = vm.Stack[:]
+	vm.Frame = &vm.Frames[vm.fp]
+	vm.Frame.code = vm.Module.Code
+	vm.Frame.stack = vm.Stack[:]
 	ip := 8
 	for {
 		vm.Inspect(ip)
-		op := vm.CurrentFrame.code[ip]
+		op := vm.Frame.code[ip]
 		ip++
 		switch op {
 		case setG:
-			scope := vm.CurrentFrame.code[ip]
+			scope := vm.Frame.code[ip]
 			ip++
-			from := binary.NativeEndian.Uint16(vm.CurrentFrame.code[ip:])
+			from := binary.NativeEndian.Uint16(vm.Frame.code[ip:])
 			ip += 2
-			to := binary.NativeEndian.Uint16(vm.CurrentFrame.code[ip:])
+			to := binary.NativeEndian.Uint16(vm.Frame.code[ip:])
 			ip += 2
 			vm.Module.Store[vm.Module.Konstants[to].(String).Value] = vm.valueFrom(scope, from)
 		case setL:
-			scope := vm.CurrentFrame.code[ip]
+			scope := vm.Frame.code[ip]
 			ip++
-			from := binary.NativeEndian.Uint16(vm.CurrentFrame.code[ip:])
+			from := binary.NativeEndian.Uint16(vm.Frame.code[ip:])
 			ip += 2
-			to := vm.CurrentFrame.code[ip]
+			to := vm.Frame.code[ip]
 			ip++
-			vm.CurrentFrame.stack[to] = vm.valueFrom(scope, from)
+			vm.Frame.stack[to] = vm.valueFrom(scope, from)
 		case move:
-			from := vm.CurrentFrame.code[ip]
+			from := vm.Frame.code[ip]
 			ip++
-			to := vm.CurrentFrame.code[ip]
+			to := vm.Frame.code[ip]
 			ip++
-			vm.CurrentFrame.stack[to] = vm.CurrentFrame.stack[from]
-		case testF:
-			scope := vm.CurrentFrame.code[ip]
+			vm.Frame.stack[to] = vm.Frame.stack[from]
+		case setF:
+			scope := vm.Frame.code[ip]
 			ip++
-			from := binary.NativeEndian.Uint16(vm.CurrentFrame.code[ip:])
+			from := binary.NativeEndian.Uint16(vm.Frame.code[ip:])
 			ip += 2
-			jump := binary.NativeEndian.Uint16(vm.CurrentFrame.code[ip:])
+			to := binary.NativeEndian.Uint16(vm.Frame.code[ip:])
+			ip += 2
+			vm.Frame.fn.Free[to] = vm.valueFrom(scope, from)
+		case testF:
+			scope := vm.Frame.code[ip]
+			ip++
+			from := binary.NativeEndian.Uint16(vm.Frame.code[ip:])
+			ip += 2
+			jump := binary.NativeEndian.Uint16(vm.Frame.code[ip:])
 			ip += 2
 			if !vm.valueFrom(scope, from).Boolean() {
 				ip = int(jump)
 			}
 		case jump:
-			ip = int(binary.NativeEndian.Uint16(vm.CurrentFrame.code[ip:]))
+			ip = int(binary.NativeEndian.Uint16(vm.Frame.code[ip:]))
 		case binop:
-			op := vm.CurrentFrame.code[ip]
+			op := vm.Frame.code[ip]
 			ip++
-			scopeLHS := vm.CurrentFrame.code[ip]
+			scopeLHS := vm.Frame.code[ip]
 			ip++
-			scopeRHS := vm.CurrentFrame.code[ip]
+			scopeRHS := vm.Frame.code[ip]
 			ip++
-			fromLHS := binary.NativeEndian.Uint16(vm.CurrentFrame.code[ip:])
+			fromLHS := binary.NativeEndian.Uint16(vm.Frame.code[ip:])
 			ip += 2
-			fromRHS := binary.NativeEndian.Uint16(vm.CurrentFrame.code[ip:])
+			fromRHS := binary.NativeEndian.Uint16(vm.Frame.code[ip:])
 			ip += 2
-			to := vm.CurrentFrame.code[ip]
+			to := vm.Frame.code[ip]
 			ip++
 			val, err := vm.valueFrom(scopeLHS, fromLHS).Binop(op, vm.valueFrom(scopeRHS, fromRHS))
 			if err != nil {
 				return Failure, verror.New(vm.Module.Name, "Runtime error", verror.RunTimeErrMsg, math.MaxUint16)
 			}
-			vm.CurrentFrame.stack[to] = val
+			vm.Frame.stack[to] = val
 		case equals:
-			op := vm.CurrentFrame.code[ip]
+			op := vm.Frame.code[ip]
 			ip++
-			scopeLHS := vm.CurrentFrame.code[ip]
+			scopeLHS := vm.Frame.code[ip]
 			ip++
-			scopeRHS := vm.CurrentFrame.code[ip]
+			scopeRHS := vm.Frame.code[ip]
 			ip++
-			fromLHS := binary.NativeEndian.Uint16(vm.CurrentFrame.code[ip:])
+			fromLHS := binary.NativeEndian.Uint16(vm.Frame.code[ip:])
 			ip += 2
-			fromRHS := binary.NativeEndian.Uint16(vm.CurrentFrame.code[ip:])
+			fromRHS := binary.NativeEndian.Uint16(vm.Frame.code[ip:])
 			ip += 2
-			to := vm.CurrentFrame.code[ip]
+			to := vm.Frame.code[ip]
 			ip++
 			val := vm.valueFrom(scopeLHS, fromLHS).Equals(vm.valueFrom(scopeRHS, fromRHS))
 			if op == byte(token.NEQ) {
 				val = !val
 			}
-			vm.CurrentFrame.stack[to] = val
+			vm.Frame.stack[to] = val
 		case prefix:
-			op := vm.CurrentFrame.code[ip]
+			op := vm.Frame.code[ip]
 			ip++
-			scope := vm.CurrentFrame.code[ip]
+			scope := vm.Frame.code[ip]
 			ip++
-			from := binary.NativeEndian.Uint16(vm.CurrentFrame.code[ip:])
+			from := binary.NativeEndian.Uint16(vm.Frame.code[ip:])
 			ip += 2
-			to := vm.CurrentFrame.code[ip]
+			to := vm.Frame.code[ip]
 			ip++
 			val, err := vm.valueFrom(scope, from).Prefix(op)
 			if err != nil {
 				return Failure, verror.New(vm.Module.Name, "Runtime error", verror.RunTimeErrMsg, math.MaxUint16)
 			}
-			vm.CurrentFrame.stack[to] = val
+			vm.Frame.stack[to] = val
 		case iGet:
-			scopeIndexable := vm.CurrentFrame.code[ip]
+			scopeIndexable := vm.Frame.code[ip]
 			ip++
-			scopeIndex := vm.CurrentFrame.code[ip]
+			scopeIndex := vm.Frame.code[ip]
 			ip++
-			fromIndexable := binary.NativeEndian.Uint16(vm.CurrentFrame.code[ip:])
+			fromIndexable := binary.NativeEndian.Uint16(vm.Frame.code[ip:])
 			ip += 2
-			fromIndex := binary.NativeEndian.Uint16(vm.CurrentFrame.code[ip:])
+			fromIndex := binary.NativeEndian.Uint16(vm.Frame.code[ip:])
 			ip += 2
-			to := vm.CurrentFrame.code[ip]
+			to := vm.Frame.code[ip]
 			ip++
 			val, err := vm.valueFrom(scopeIndexable, fromIndexable).IGet(vm.valueFrom(scopeIndex, fromIndex))
 			if err != nil {
 				return Failure, verror.New(vm.Module.Name, "Runtime error", verror.RunTimeErrMsg, math.MaxUint16)
 			}
-			vm.CurrentFrame.stack[to] = val
+			vm.Frame.stack[to] = val
 		case iSet:
-			scopeIndex := vm.CurrentFrame.code[ip]
+			scopeIndex := vm.Frame.code[ip]
 			ip++
-			scopeExpr := vm.CurrentFrame.code[ip]
+			scopeExpr := vm.Frame.code[ip]
 			ip++
-			fromIndex := binary.NativeEndian.Uint16(vm.CurrentFrame.code[ip:])
+			fromIndex := binary.NativeEndian.Uint16(vm.Frame.code[ip:])
 			ip += 2
-			fromExpr := binary.NativeEndian.Uint16(vm.CurrentFrame.code[ip:])
+			fromExpr := binary.NativeEndian.Uint16(vm.Frame.code[ip:])
 			ip += 2
-			from := vm.CurrentFrame.code[ip]
+			from := vm.Frame.code[ip]
 			ip += 2
 			err := vm.valueFrom(rLoc, uint16(from)).ISet(vm.valueFrom(scopeIndex, fromIndex), vm.valueFrom(scopeExpr, fromExpr))
 			if err != nil {
 				return Failure, verror.New(vm.Module.Name, "Runtime error", verror.RunTimeErrMsg, math.MaxUint16)
 			}
 		case slice:
-			mode := vm.CurrentFrame.code[ip]
+			mode := vm.Frame.code[ip]
 			ip++
-			scopeV := vm.CurrentFrame.code[ip]
+			scopeV := vm.Frame.code[ip]
 			ip++
-			scopeL := vm.CurrentFrame.code[ip]
+			scopeL := vm.Frame.code[ip]
 			ip++
-			scopeR := vm.CurrentFrame.code[ip]
+			scopeR := vm.Frame.code[ip]
 			ip++
-			fromV := binary.NativeEndian.Uint16(vm.CurrentFrame.code[ip:])
+			fromV := binary.NativeEndian.Uint16(vm.Frame.code[ip:])
 			ip += 2
-			fromL := binary.NativeEndian.Uint16(vm.CurrentFrame.code[ip:])
+			fromL := binary.NativeEndian.Uint16(vm.Frame.code[ip:])
 			ip += 2
-			fromR := binary.NativeEndian.Uint16(vm.CurrentFrame.code[ip:])
+			fromR := binary.NativeEndian.Uint16(vm.Frame.code[ip:])
 			ip += 2
-			to := vm.CurrentFrame.code[ip]
+			to := vm.Frame.code[ip]
 			ip++
 			val, err := vm.processSlice(mode, fromV, fromL, fromR, scopeV, scopeL, scopeR)
 			if err != nil {
 				return Failure, verror.New(vm.Module.Name, "Runtime error", verror.RunTimeErrMsg, math.MaxUint16)
 			}
-			vm.CurrentFrame.stack[to] = val
+			vm.Frame.stack[to] = val
 		case list:
-			length := vm.CurrentFrame.code[ip]
+			length := vm.Frame.code[ip]
 			ip++
-			from := vm.CurrentFrame.code[ip]
+			from := vm.Frame.code[ip]
 			ip++
-			to := vm.CurrentFrame.code[ip]
+			to := vm.Frame.code[ip]
 			ip++
 			xs := make([]Value, length)
 			for i := 0; i < int(length); i++ {
-				xs[i] = vm.CurrentFrame.stack[from]
+				xs[i] = vm.Frame.stack[from]
 				from++
 			}
-			vm.CurrentFrame.stack[to] = &List{Value: xs}
+			vm.Frame.stack[to] = &List{Value: xs}
 		case doc:
-			length := vm.CurrentFrame.code[ip]
+			length := vm.Frame.code[ip]
 			ip++
-			from := vm.CurrentFrame.code[ip]
+			from := vm.Frame.code[ip]
 			ip++
-			to := vm.CurrentFrame.code[ip]
+			to := vm.Frame.code[ip]
 			ip++
 			rec := make(map[string]Value)
 			for i := 0; i < int(length); i += 2 {
-				k := vm.CurrentFrame.stack[from].(String).Value
+				k := vm.Frame.stack[from].(String).Value
 				from++
-				v := vm.CurrentFrame.stack[from]
+				v := vm.Frame.stack[from]
 				from++
 				rec[k] = v
 			}
-			vm.CurrentFrame.stack[to] = &Document{Value: rec}
+			vm.Frame.stack[to] = &Document{Value: rec}
 		case forSet:
-			i := vm.CurrentFrame.code[ip]
+			i := vm.Frame.code[ip]
 			ip++
-			jump := binary.NativeEndian.Uint16(vm.CurrentFrame.code[ip:])
+			jump := binary.NativeEndian.Uint16(vm.Frame.code[ip:])
 			ip += 2
-			if _, isInteger := vm.CurrentFrame.stack[i].(Integer); !isInteger {
+			if _, isInteger := vm.Frame.stack[i].(Integer); !isInteger {
 				return Failure, verror.RuntimeError
 			}
-			if _, isInteger := vm.CurrentFrame.stack[i+1].(Integer); !isInteger {
+			if _, isInteger := vm.Frame.stack[i+1].(Integer); !isInteger {
 				return Failure, verror.RuntimeError
 			}
-			if v, isInteger := vm.CurrentFrame.stack[i+2].(Integer); !isInteger {
+			if v, isInteger := vm.Frame.stack[i+2].(Integer); !isInteger {
 				return Failure, verror.RuntimeError
 			} else {
 				if v == 0 {
@@ -225,55 +235,124 @@ func (vm *VM) Debug() (Result, error) {
 			}
 			ip = int(jump)
 		case iForSet:
-			scope := vm.CurrentFrame.code[ip]
+			scope := vm.Frame.code[ip]
 			ip++
-			reg := vm.CurrentFrame.code[ip]
+			reg := vm.Frame.code[ip]
 			ip++
-			idx := binary.NativeEndian.Uint16(vm.CurrentFrame.code[ip:])
+			idx := binary.NativeEndian.Uint16(vm.Frame.code[ip:])
 			ip += 2
-			jump := binary.NativeEndian.Uint16(vm.CurrentFrame.code[ip:])
+			jump := binary.NativeEndian.Uint16(vm.Frame.code[ip:])
 			ip += 2
 			val := vm.valueFrom(scope, idx)
 			if !val.IsIterable() {
 				return Failure, verror.RuntimeError
 			}
-			vm.CurrentFrame.stack[reg] = val.Iterator()
+			vm.Frame.stack[reg] = val.Iterator()
 			ip = int(jump)
 		case forLoop:
-			r := vm.CurrentFrame.code[ip]
+			r := vm.Frame.code[ip]
 			ip++
-			jump := binary.NativeEndian.Uint16(vm.CurrentFrame.code[ip:])
+			jump := binary.NativeEndian.Uint16(vm.Frame.code[ip:])
 			ip += 2
-			i := vm.CurrentFrame.stack[r].(Integer)
-			e := vm.CurrentFrame.stack[r+1].(Integer)
-			s := vm.CurrentFrame.stack[r+2].(Integer)
+			i := vm.Frame.stack[r].(Integer)
+			e := vm.Frame.stack[r+1].(Integer)
+			s := vm.Frame.stack[r+2].(Integer)
 			if s > 0 {
 				if i < e {
-					vm.CurrentFrame.stack[r+3] = i
+					vm.Frame.stack[r+3] = i
 					i += s
-					vm.CurrentFrame.stack[r] = i
+					vm.Frame.stack[r] = i
 					ip = int(jump)
 				}
 			} else {
 				if i > e {
-					vm.CurrentFrame.stack[r+3] = i
+					vm.Frame.stack[r+3] = i
 					i += s
-					vm.CurrentFrame.stack[r] = i
+					vm.Frame.stack[r] = i
 					ip = int(jump)
 				}
 			}
 		case iForLoop:
-			r := vm.CurrentFrame.code[ip]
+			r := vm.Frame.code[ip]
 			ip++
-			jump := binary.NativeEndian.Uint16(vm.CurrentFrame.code[ip:])
+			jump := binary.NativeEndian.Uint16(vm.Frame.code[ip:])
 			ip += 2
-			i, _ := vm.CurrentFrame.stack[r].(Iterator)
+			i, _ := vm.Frame.stack[r].(Iterator)
 			if i.Next() {
-				vm.CurrentFrame.stack[r+1] = i.Key()
-				vm.CurrentFrame.stack[r+2] = i.Value()
+				vm.Frame.stack[r+1] = i.Key()
+				vm.Frame.stack[r+2] = i.Value()
 				ip = int(jump)
 				continue
 			}
+		case fun:
+			from := binary.NativeEndian.Uint16(vm.Frame.code[ip:])
+			ip += 2
+			jump := binary.NativeEndian.Uint16(vm.Frame.code[ip:])
+			ip += 2
+			to := vm.Frame.code[ip]
+			ip++
+			c := &Closure{Function: vm.Module.Konstants[from].(*Function)}
+			if c.Function.Free > 0 {
+				var f []Value
+				for i := 0; i < c.Function.Free; i++ {
+					if c.Function.Info[i].IsLocal {
+						f = append(f, vm.Frame.stack[c.Function.Info[i].Index])
+					} else {
+						f = append(f, vm.Frame.fn.Free[c.Function.Info[i].Index])
+					}
+				}
+				c.Free = f
+			}
+			vm.Frame.stack[to] = c
+			ip = int(jump)
+		case call:
+			from := vm.Frame.code[ip]
+			ip++
+			args := vm.Frame.code[ip]
+			ip++
+			to := vm.Frame.code[ip]
+			ip++
+			val := vm.Frame.stack[from]
+			if !val.IsCallable() {
+				return Failure, verror.RuntimeError
+			}
+			if fn, ok := val.(*Closure); ok {
+				if args != byte(fn.Function.Arity) {
+					return Failure, verror.RuntimeError
+				}
+				if vm.fp >= frameSize {
+					return Failure, verror.RuntimeError
+				}
+				if fn == vm.Frame.fn && vm.Frame.code[ip] == ret {
+					for i := 0; i < int(args); i++ {
+						vm.Frame.stack[vm.Frame.bp+i] = vm.Frame.stack[int(from)+1+i]
+					}
+					ip = 0
+					continue
+				}
+				vm.Frame.ip = ip
+				vm.Frame.ret = to
+				vm.fp++
+				vm.Frame = &vm.Frames[vm.fp]
+				vm.Frame.fn = fn
+				vm.Frame.bp = int(from) + 1
+				vm.Frame.init = fn.Function.First
+				vm.Frame.code = vm.Module.Code[vm.Frame.init:]
+				vm.Frame.stack = vm.Stack[vm.Frame.bp:]
+				ip = 0
+			}
+		case ret:
+			scope := vm.Frame.code[ip]
+			ip++
+			from := binary.NativeEndian.Uint16(vm.Frame.code[ip:])
+			ip += 2
+			val := vm.valueFrom(scope, from)
+			vm.fp--
+			vm.Frame = &vm.Frames[vm.fp]
+			ip = vm.Frame.ip
+			vm.Frame.stack = vm.Stack[vm.Frame.bp:]
+			vm.Frame.code = vm.Module.Code[vm.Frame.init:]
+			vm.Frame.stack[vm.Frame.ret] = val
 		case end:
 			return Success, nil
 		default:

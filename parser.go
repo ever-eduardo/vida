@@ -51,7 +51,6 @@ func (p *Parser) Parse() (*ast.Ast, error) {
 		case token.EOF:
 			return p.ast, nil
 		default:
-			fmt.Printf("Debug parser %v\n", p.current.Token.String())
 			p.err = verror.New(p.lexer.ModuleName, "Expected statement A", verror.SyntaxErrMsg, p.current.Line)
 			return nil, p.err
 		}

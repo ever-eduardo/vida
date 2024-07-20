@@ -6,7 +6,7 @@ import (
 
 var NilValue = Nil{}
 
-func loadPrelude() map[string]Value {
+func loadCoreLib() map[string]Value {
 	p := make(map[string]Value)
 	p["print"] = GoFn(gfnPrint)
 	p["len"] = NilValue
