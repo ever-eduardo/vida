@@ -710,17 +710,16 @@ func (d *Document) Type() string {
 
 type Module struct {
 	Konstants []Value
-	Code      []byte
 	Name      string
 	Store     map[string]Value
-	Closure   *Closure
+	Function  *Function
 }
 
 func newModule(name string) *Module {
 	m := Module{
 		Store:     make(map[string]Value),
-		Code:      make([]byte, 0, 128),
 		Konstants: make([]Value, 0, 32),
+		Function:  &Function{},
 		Name:      name,
 	}
 	return &m
@@ -737,10 +736,10 @@ type freeInfo struct {
 }
 
 type Function struct {
+	Code  []byte
 	Info  []freeInfo
 	Free  int
 	Arity int
-	First int
 }
 
 func (c *Function) Boolean() Bool {
@@ -787,7 +786,7 @@ func (c *Function) Type() string {
 }
 
 func (f Function) String() string {
-	return fmt.Sprintf("[a = %v, i = %v, f = %v, info = %v]", f.Arity, f.First, f.Free, f.Info)
+	return fmt.Sprintf("[a = %v, f = %v, info = %v]", f.Arity, f.Free, f.Info)
 }
 
 type Closure struct {

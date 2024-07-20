@@ -20,11 +20,16 @@ func (vm *VM) Inspect(ip int) {
 	fmt.Println()
 	fmt.Printf("Frame => %v\n", vm.fp)
 	fmt.Printf("Ip    => %v\n", ip)
-	fmt.Printf("Instr => %v\n", printInstr(ip, vm.Frame.code))
+	s, _, _ := printInstr(ip, vm.Frame.code, 0, true)
+	fmt.Printf("Instr => %v\n", s)
 	fmt.Println("Stack =>")
 	for i, v := range vm.Stack {
 		if v != nil {
-			fmt.Printf("  [%v] %v\n", i, v)
+			if vm.Frame.bp == i {
+				fmt.Printf(" *[%v] %v\n", i, v)
+			} else {
+				fmt.Printf("  [%v] %v\n", i, v)
+			}
 		}
 	}
 	fmt.Printf("\nPress 'Enter' to continue => ")
@@ -33,7 +38,7 @@ func (vm *VM) Inspect(ip int) {
 
 func (vm *VM) Debug() (Result, error) {
 	vm.Frame = &vm.Frames[vm.fp]
-	vm.Frame.code = vm.Module.Code
+	vm.Frame.code = vm.Module.Function.Code
 	vm.Frame.stack = vm.Stack[:]
 	ip := 8
 	for {
@@ -287,8 +292,6 @@ func (vm *VM) Debug() (Result, error) {
 		case fun:
 			from := binary.NativeEndian.Uint16(vm.Frame.code[ip:])
 			ip += 2
-			jump := binary.NativeEndian.Uint16(vm.Frame.code[ip:])
-			ip += 2
 			to := vm.Frame.code[ip]
 			ip++
 			c := &Closure{Function: vm.Module.Konstants[from].(*Function)}
@@ -304,13 +307,10 @@ func (vm *VM) Debug() (Result, error) {
 				c.Free = f
 			}
 			vm.Frame.stack[to] = c
-			ip = int(jump)
 		case call:
 			from := vm.Frame.code[ip]
 			ip++
 			args := vm.Frame.code[ip]
-			ip++
-			to := vm.Frame.code[ip]
 			ip++
 			val := vm.Frame.stack[from]
 			if !val.IsCallable() {
@@ -325,19 +325,19 @@ func (vm *VM) Debug() (Result, error) {
 				}
 				if fn == vm.Frame.fn && vm.Frame.code[ip] == ret {
 					for i := 0; i < int(args); i++ {
-						vm.Frame.stack[vm.Frame.bp+i] = vm.Frame.stack[int(from)+1+i]
+						vm.Frame.stack[vm.Frame.bp-1+i] = vm.Frame.stack[int(from)+1+i]
 					}
 					ip = 0
 					continue
 				}
 				vm.Frame.ip = ip
-				vm.Frame.ret = to
+				vm.Frame.ret = from
+				bs := vm.Frame.bp
 				vm.fp++
 				vm.Frame = &vm.Frames[vm.fp]
 				vm.Frame.fn = fn
-				vm.Frame.bp = int(from) + 1
-				vm.Frame.init = fn.Function.First
-				vm.Frame.code = vm.Module.Code[vm.Frame.init:]
+				vm.Frame.bp = bs + int(from) + 1
+				vm.Frame.code = fn.Function.Code
 				vm.Frame.stack = vm.Stack[vm.Frame.bp:]
 				ip = 0
 			}
@@ -351,7 +351,6 @@ func (vm *VM) Debug() (Result, error) {
 			vm.Frame = &vm.Frames[vm.fp]
 			ip = vm.Frame.ip
 			vm.Frame.stack = vm.Stack[vm.Frame.bp:]
-			vm.Frame.code = vm.Module.Code[vm.Frame.init:]
 			vm.Frame.stack[vm.Frame.ret] = val
 		case end:
 			return Success, nil
