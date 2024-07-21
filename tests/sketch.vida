@@ -1,0 +1,12 @@
+
+
+let f = fn x {
+	if x == 0 {
+		ret 0
+	} else if x == 1 {
+		ret 1
+	}
+	ret f(x-1) + f(x-2)
+}
+
+let r = f(4)

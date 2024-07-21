@@ -1239,7 +1239,7 @@ formatLoop:
 }
 
 // Format is like fmt.Sprintf but using Values.
-func Format(format string, a ...Value) (string, error) {
+func formatValue(format string, a ...Value) (string, error) {
 	p := newPrinter()
 	err := p.doFormat(format, a)
 	s := string(p.buf)
