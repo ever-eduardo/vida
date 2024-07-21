@@ -25,7 +25,7 @@ func PrintBytecode(m *Module, moduleName string) string {
 		if f, ok := v.(*Function); ok {
 			ip = 0
 			counter = 0
-			sb.WriteString(fmt.Sprintf("\n\nFunction %v", idx))
+			sb.WriteString(fmt.Sprintf("\n\nFunction %v/%v/%v", idx, f.Arity, f.Free))
 			for ip < len(f.Code) {
 				s, ip, counter = printInstr(ip, f.Code, counter, false)
 				sb.WriteString(s)
