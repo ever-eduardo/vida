@@ -327,7 +327,7 @@ func (vm *VM) Run() (Result, error) {
 				}
 				if fn == vm.Frame.fn && vm.Frame.code[ip] == ret {
 					for i := 0; i < int(args); i++ {
-						vm.Frame.stack[vm.Frame.bp-1+i] = vm.Frame.stack[int(from)+1+i]
+						vm.Frame.stack[i] = vm.Frame.stack[int(from)+1+i]
 					}
 					ip = 0
 					continue
@@ -342,6 +342,12 @@ func (vm *VM) Run() (Result, error) {
 				vm.Frame.code = fn.Function.Code
 				vm.Frame.stack = vm.Stack[vm.Frame.bp:]
 				ip = 0
+			} else if fn, ok := val.(GoFn); ok {
+				v, err := fn(vm.Frame.stack[from+1 : from+args+1]...)
+				if err != nil {
+					return Failure, err
+				}
+				vm.Frame.stack[from] = v
 			}
 		case ret:
 			scope := vm.Frame.code[ip]
