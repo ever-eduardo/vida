@@ -83,9 +83,7 @@ func (c *Compiler) compileStmt(node ast.Node) {
 		from, scope := c.compileExpr(n.Expr)
 		c.rAlloc++
 		c.sb.addLocal(n.Identifier, c.level, c.scope, to)
-		if scope != rLoc {
-			c.emitLoc(from, to, scope)
-		}
+		c.emitLoc(from, to, scope)
 	case *ast.Branch:
 		elifCount := len(n.Elifs)
 		hasElif := elifCount != 0
@@ -242,6 +240,15 @@ func (c *Compiler) compileStmt(node ast.Node) {
 		}
 		i, s := c.compileExpr(n.Expr)
 		c.emitRet(i, s)
+	case *ast.CallStmt:
+		reg := c.rAlloc
+		for _, v := range n.Args {
+			c.rAlloc++
+			i, s := c.compileExpr(v)
+			c.emitLoc(i, c.rAlloc, s)
+		}
+		c.rAlloc = reg
+		c.emitCall(reg, byte(len(n.Args)))
 	}
 }
 
@@ -402,18 +409,7 @@ func (c *Compiler) compileExpr(node ast.Node) (int, byte) {
 		for _, v := range n.Args {
 			c.rAlloc++
 			i, s := c.compileExpr(v)
-			if s == rLoc {
-				if c.rAlloc == byte(i) {
-					continue
-				}
-				if s == rLoc {
-					c.emitMove(byte(i), c.rAlloc)
-				} else {
-					c.emitLoc(i, c.rAlloc, s)
-				}
-			} else {
-				c.emitLoc(i, c.rAlloc, s)
-			}
+			c.emitLoc(i, c.rAlloc, s)
 		}
 		c.rAlloc = reg
 		c.emitCall(reg, byte(len(n.Args)))
