@@ -195,6 +195,12 @@ func (c *Compiler) emitRet(from int, scope byte) {
 	c.currentFn.Code = binary.NativeEndian.AppendUint16(c.currentFn.Code, uint16(from))
 }
 
+func (c *Compiler) emitSuspend(from int, scope byte) {
+	c.currentFn.Code = append(c.currentFn.Code, suspend)
+	c.currentFn.Code = append(c.currentFn.Code, scope)
+	c.currentFn.Code = binary.NativeEndian.AppendUint16(c.currentFn.Code, uint16(from))
+}
+
 func (c *Compiler) refScope(id string) (int, byte) {
 	if to, isLocal, key := c.sb.isLocal(id); isLocal {
 		if key.level != c.level {

@@ -16,6 +16,7 @@ const Failure Result = "Failure"
 
 const frameSize = 1024
 const stackSize = 256
+const genStackSize = 16
 
 type frame struct {
 	code  []byte

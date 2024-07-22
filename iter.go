@@ -75,68 +75,68 @@ func (it *ListIterator) Type() string {
 	return "ListIter"
 }
 
-type DocIterator struct {
+type ObjectIterator struct {
 	Keys []string
 	Doc  map[string]Value
 	Init int
 	End  int
 }
 
-func (it *DocIterator) Next() bool {
+func (it *ObjectIterator) Next() bool {
 	it.Init++
 	return it.Init < it.End
 }
 
-func (it *DocIterator) Key() Value {
+func (it *ObjectIterator) Key() Value {
 	return String{Value: it.Keys[it.Init]}
 }
 
-func (it *DocIterator) Value() Value {
+func (it *ObjectIterator) Value() Value {
 	return it.Doc[it.Keys[it.Init]]
 }
 
-func (it *DocIterator) Boolean() Bool {
+func (it *ObjectIterator) Boolean() Bool {
 	return true
 }
 
-func (it *DocIterator) Prefix(byte) (Value, error) {
+func (it *ObjectIterator) Prefix(byte) (Value, error) {
 	return NilValue, verror.RuntimeError
 }
 
-func (it *DocIterator) Binop(byte, Value) (Value, error) {
+func (it *ObjectIterator) Binop(byte, Value) (Value, error) {
 	return NilValue, verror.RuntimeError
 }
 
-func (it *DocIterator) IGet(Value) (Value, error) {
+func (it *ObjectIterator) IGet(Value) (Value, error) {
 	return NilValue, verror.RuntimeError
 }
 
-func (it *DocIterator) ISet(Value, Value) error {
+func (it *ObjectIterator) ISet(Value, Value) error {
 	return verror.RuntimeError
 }
 
-func (it *DocIterator) Equals(Value) Bool {
+func (it *ObjectIterator) Equals(Value) Bool {
 	return false
 }
 
-func (it *DocIterator) IsIterable() Bool {
+func (it *ObjectIterator) IsIterable() Bool {
 	return false
 }
 
-func (it *DocIterator) IsCallable() Bool {
+func (it *ObjectIterator) IsCallable() Bool {
 	return false
 }
 
-func (it *DocIterator) Iterator() Value {
+func (it *ObjectIterator) Iterator() Value {
 	return NilValue
 }
 
-func (it DocIterator) String() string {
+func (it ObjectIterator) String() string {
 	return fmt.Sprintf("DocIter [i = %v, e = %v]", it.Init, it.End)
 }
 
-func (it *DocIterator) Type() string {
-	return "DocIter"
+func (it *ObjectIterator) Type() string {
+	return "ObjIter"
 }
 
 type StringIterator struct {

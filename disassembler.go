@@ -296,6 +296,13 @@ func printInstr(ip int, code []byte, counter int, isRunningDebug bool) (string, 
 		sb.WriteRune(32)
 		sb.WriteString(fmt.Sprintf("%4v", binary.NativeEndian.Uint16(code[ip:])))
 		ip += 2
+	case suspend:
+		sb.WriteRune(32)
+		sb.WriteString(fmt.Sprintf("%4v", int(code[ip])))
+		ip++
+		sb.WriteRune(32)
+		sb.WriteString(fmt.Sprintf("%4v", binary.NativeEndian.Uint16(code[ip:])))
+		ip += 2
 	case fun:
 		sb.WriteRune(32)
 		sb.WriteString(fmt.Sprintf("%4v", binary.NativeEndian.Uint16(code[ip:])))

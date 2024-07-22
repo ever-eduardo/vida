@@ -263,6 +263,12 @@ func (c *Compiler) compileStmt(node ast.Node) {
 		}
 		c.rAlloc = reg
 		c.emitCall(reg, byte(len(n.Args)+1))
+	case *ast.SuspendStmt:
+		if c.level == 0 {
+			c.hadError = true
+		}
+		i, s := c.compileExpr(n.Expr)
+		c.emitSuspend(i, s)
 	}
 }
 
@@ -447,6 +453,12 @@ func (c *Compiler) compileExpr(node ast.Node) (int, byte) {
 		}
 		c.rAlloc = reg
 		c.emitCall(reg, byte(len(n.Args)+1))
+		return int(reg), rLoc
+	case *ast.SuspendExpr:
+		reg := c.rAlloc
+		idx, s := c.compileExpr(n.Expr)
+		c.emitLoc(idx, reg, s)
+		c.emitSuspend(idx, s)
 		return int(reg), rLoc
 	default:
 		return 0, rKonst

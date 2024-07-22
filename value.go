@@ -690,7 +690,7 @@ func (d *Object) Iterator() Value {
 	for k := range d.Value {
 		keys = append(keys, k)
 	}
-	return &DocIterator{Doc: d.Value, Init: -1, End: size, Keys: keys}
+	return &ObjectIterator{Doc: d.Value, Init: -1, End: size, Keys: keys}
 }
 
 func (d *Object) String() string {
@@ -839,6 +839,61 @@ func (c *Function) Type() string {
 
 func (c Function) String() string {
 	return fmt.Sprintf("Function %v, Free = %v", c.Core, c.Free)
+}
+
+type Generator struct {
+	Stack []Value
+	Free  []Value
+	Core  *FunctionCore
+	Ip    int
+	Ret   int
+}
+
+func (g *Generator) Boolean() Bool {
+	return true
+}
+
+func (g *Generator) Prefix(byte) (Value, error) {
+	return NilValue, verror.RuntimeError
+}
+
+func (g *Generator) Binop(byte, Value) (Value, error) {
+	return NilValue, verror.RuntimeError
+}
+
+func (g *Generator) IGet(Value) (Value, error) {
+	return NilValue, verror.RuntimeError
+}
+
+func (g *Generator) ISet(Value, Value) error {
+	return verror.RuntimeError
+}
+
+func (g *Generator) Equals(other Value) Bool {
+	if f, ok := other.(*Generator); ok {
+		return g == f
+	}
+	return false
+}
+
+func (c *Generator) IsIterable() Bool {
+	return false
+}
+
+func (c *Generator) IsCallable() Bool {
+	return true
+}
+
+func (c *Generator) Iterator() Value {
+	return NilValue
+}
+
+func (c *Generator) Type() string {
+	return "generator"
+}
+
+func (c Generator) String() string {
+	return fmt.Sprintf("Generator %v, Free = %v", c.Core, c.Free)
 }
 
 type GoFn func(args ...Value) (Value, error)
