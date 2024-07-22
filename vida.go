@@ -3,10 +3,10 @@ package vida
 import "fmt"
 
 const major = 0
-const minor = 1
+const minor = 2
 const patch = 0
 const inception = 24
-const name = "Vida 🌱 Programming Language"
+const name = "Vida 🌱🌻🐝 Programming Language"
 
 func Name() string {
 	return name
