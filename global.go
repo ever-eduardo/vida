@@ -17,6 +17,7 @@ func loadCoreLib() map[string]Value {
 	p["type"] = GoFn(gfnType)
 	p["assert"] = GoFn(gfnAssert)
 	p["format"] = GoFn(gfnFormat)
+	p["string"] = GoFn(gfnString)
 	return p
 }
 
@@ -79,6 +80,13 @@ func gfnAppend(args ...Value) (Value, error) {
 			v.Value = append(v.Value, args[1:]...)
 			return v, nil
 		}
+	}
+	return NilValue, nil
+}
+
+func gfnString(args ...Value) (Value, error) {
+	if len(args) > 0 {
+		return String{Value: args[0].String()}, nil
 	}
 	return NilValue, nil
 }
