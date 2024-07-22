@@ -75,7 +75,7 @@ func (vm *VM) Debug() (Result, error) {
 			ip += 2
 			to := binary.NativeEndian.Uint16(vm.Frame.code[ip:])
 			ip += 2
-			vm.Frame.fn.Free[to] = vm.valueFrom(scope, from)
+			vm.Frame.lambda.FSet(int(to), vm.valueFrom(scope, from))
 		case testF:
 			scope := vm.Frame.code[ip]
 			ip++
@@ -301,7 +301,7 @@ func (vm *VM) Debug() (Result, error) {
 					if c.Core.Info[i].IsLocal {
 						f = append(f, vm.Frame.stack[c.Core.Info[i].Index])
 					} else {
-						f = append(f, vm.Frame.fn.Free[c.Core.Info[i].Index])
+						f = append(f, vm.Frame.lambda.FGet(c.Core.Info[i].Index))
 					}
 				}
 				c.Free = f
@@ -323,7 +323,7 @@ func (vm *VM) Debug() (Result, error) {
 				if vm.fp >= frameSize {
 					return Failure, verror.RuntimeError
 				}
-				if fn == vm.Frame.fn && vm.Frame.code[ip] == ret {
+				if fn == vm.Frame.lambda && vm.Frame.code[ip] == ret {
 					for i := 0; i < int(args); i++ {
 						vm.Frame.stack[i] = vm.Frame.stack[int(from)+1+i]
 					}
@@ -335,7 +335,7 @@ func (vm *VM) Debug() (Result, error) {
 				bs := vm.Frame.bp
 				vm.fp++
 				vm.Frame = &vm.Frames[vm.fp]
-				vm.Frame.fn = fn
+				vm.Frame.lambda = fn
 				vm.Frame.bp = bs + int(from) + 1
 				vm.Frame.code = fn.Core.Code
 				vm.Frame.stack = vm.Stack[vm.Frame.bp:]

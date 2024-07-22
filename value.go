@@ -789,56 +789,69 @@ func (f FunctionCore) String() string {
 	return fmt.Sprintf("[a = %v, f = %v, i = %v]", f.Arity, f.Free, f.Info)
 }
 
+type Lambda interface {
+	FGet(int) Value
+	FSet(int, Value)
+}
+
 type Function struct {
 	Free []Value
 	Core *FunctionCore
 }
 
-func (c *Function) Boolean() Bool {
+func (f *Function) FGet(index int) Value {
+	return f.Free[index]
+}
+
+func (f *Function) FSet(index int, val Value) {
+	f.Free[index] = val
+}
+
+func (f *Function) Boolean() Bool {
 	return true
 }
 
-func (c *Function) Prefix(byte) (Value, error) {
+func (f *Function) Prefix(byte) (Value, error) {
 	return NilValue, verror.RuntimeError
 }
 
-func (c *Function) Binop(byte, Value) (Value, error) {
+func (f *Function) Binop(byte, Value) (Value, error) {
 	return NilValue, verror.RuntimeError
 }
 
-func (c *Function) IGet(Value) (Value, error) {
+func (f *Function) IGet(Value) (Value, error) {
 	return NilValue, verror.RuntimeError
 }
 
-func (c *Function) ISet(Value, Value) error {
+func (f *Function) ISet(Value, Value) error {
 	return verror.RuntimeError
 }
 
-func (c *Function) Equals(other Value) Bool {
-	if f, ok := other.(*Function); ok {
-		return c == f
+func (f *Function) Equals(other Value) Bool {
+	if o, ok := other.(*Function); ok {
+		return f == o
 	}
 	return false
 }
 
-func (c *Function) IsIterable() Bool {
+func (f *Function) IsIterable() Bool {
 	return false
 }
 
-func (c *Function) IsCallable() Bool {
+func (f *Function) IsCallable() Bool {
 	return true
 }
 
-func (c *Function) Iterator() Value {
+func (f *Function) Iterator() Value {
 	return NilValue
 }
 
-func (c *Function) Type() string {
+func (f *Function) Type() string {
 	return "function"
 }
 
-func (c Function) String() string {
-	return fmt.Sprintf("Function %v, Free = %v", c.Core, c.Free)
+func (f Function) String() string {
+	return fmt.Sprintf("Function %v, Free = %v", f.Core, f.Free)
 }
 
 type Generator struct {
@@ -847,6 +860,14 @@ type Generator struct {
 	Core  *FunctionCore
 	Ip    int
 	Ret   int
+}
+
+func (g *Generator) FGet(index int) Value {
+	return g.Free[index]
+}
+
+func (g *Generator) FSet(index int, val Value) {
+	g.Free[index] = val
 }
 
 func (g *Generator) Boolean() Bool {
