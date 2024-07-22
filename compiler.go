@@ -414,6 +414,26 @@ func (c *Compiler) compileExpr(node ast.Node) (int, byte) {
 		c.rAlloc = reg
 		c.emitCall(reg, byte(len(n.Args)))
 		return int(reg), rLoc
+	case *ast.MethodCallExpr:
+		reg := c.rAlloc
+		c.rAlloc++
+		i, s := c.compileExpr(n.Doc)
+		c.rAlloc++
+		j, t := c.compileExpr(n.Prop)
+		c.rAlloc = reg
+		c.emitIGet(i, j, s, t, reg)
+		c.rAlloc++
+		i, s = c.compileExpr(n.Doc)
+		c.emitLoc(i, c.rAlloc, s)
+		c.rAlloc++
+		for _, v := range n.Args {
+			i, s := c.compileExpr(v)
+			c.emitLoc(i, c.rAlloc, s)
+			c.rAlloc++
+		}
+		c.rAlloc = reg
+		c.emitCall(reg, byte(len(n.Args)+1))
+		return int(reg), rLoc
 	default:
 		return 0, rKonst
 	}

@@ -318,7 +318,10 @@ func (p *Parser) prefix() ast.Node {
 func (p *Parser) primary() ast.Node {
 	e := p.operand()
 Loop:
-	for p.next.Token == token.LBRACKET || p.next.Token == token.DOT || p.next.Token == token.LPAREN {
+	for p.next.Token == token.LBRACKET ||
+		p.next.Token == token.DOT ||
+		p.next.Token == token.LPAREN ||
+		p.next.Token == token.COLON {
 		p.advance()
 		switch p.current.Token {
 		case token.LBRACKET:
@@ -335,6 +338,8 @@ Loop:
 			}
 		case token.LPAREN:
 			e = p.callExpr(e)
+		case token.COLON:
+			e = p.methodCallExpr(e)
 		default:
 			break Loop
 		}
@@ -499,6 +504,31 @@ func (p *Parser) callExpr(e ast.Node) ast.Node {
 afterParen:
 	p.expect(token.RPAREN)
 	return &ast.CallExpr{Fun: e, Args: args}
+}
+
+func (p *Parser) methodCallExpr(e ast.Node) ast.Node {
+	p.advance()
+	var args []ast.Node
+	p.expect(token.IDENTIFIER)
+	prop := &ast.Property{Value: p.current.Lit}
+	p.advance()
+	p.expect(token.LPAREN)
+	p.advance()
+	for p.current.Token != token.RPAREN && p.current.Token != token.EOF {
+		args = append(args, p.expression(token.LowestPrec))
+		p.advance()
+		if p.current.Token == token.COMMA {
+			for p.current.Token == token.COMMA {
+				p.advance()
+				args = append(args, p.expression(token.LowestPrec))
+				p.advance()
+			}
+			goto afterParen
+		}
+	}
+afterParen:
+	p.expect(token.RPAREN)
+	return &ast.MethodCallExpr{Args: args, Doc: e, Prop: prop}
 }
 
 func (p *Parser) indexOrSlice(e ast.Node) ast.Node {

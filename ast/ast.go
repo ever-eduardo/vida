@@ -180,6 +180,16 @@ type CallStmt struct {
 	Args []Node
 }
 
+type MethodCallStmt struct {
+	Args []Node
+}
+
+type MethodCallExpr struct {
+	Args []Node
+	Prop Node
+	Doc  Node
+}
+
 func (ast *Ast) _node()           {}
 func (loc *Loc) _node()           {}
 func (mut *Set) _node()           {}
@@ -218,3 +228,5 @@ func (n *Fun) _node()             {}
 func (n *Ret) _node()             {}
 func (n *CallExpr) _node()        {}
 func (n *CallStmt) _node()        {}
+func (n *MethodCallStmt) _node()  {}
+func (n *MethodCallExpr) _node()  {}
