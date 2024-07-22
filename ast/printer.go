@@ -126,7 +126,7 @@ func printAST(node Node, sb *strings.Builder, level int) {
 		}
 	case *Object:
 		buildIndent(sb, level+oneLevel)
-		sb.WriteString("Document")
+		sb.WriteString("Object")
 		sb.WriteRune(nl)
 		if len(n.Pairs) == 0 {
 			buildIndent(sb, level+twoLevels)
