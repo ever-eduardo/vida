@@ -39,7 +39,6 @@ primary		:=	'true'
 			|	List
 			|	Object
 			|	Function
-			|	Generator
 			|	suspend
 binop		:=	'and'
 			|	'or'
@@ -58,9 +57,7 @@ List		:=	'[' (expr (',' expr)*)? ']'
 Object		:=	'{' (pair (',' pair))* '}'
 pair		:=	ident ':' expr
 Function	:=	'fn' (iden (',' iden)*)? fBody | '=>' expr
-fBody		:=	'{' statement* ret?* '}'
-Generator	:=	'gen' (iden (',' iden)*)? gBody
-gBody		:=	'{' statement* ret?* suspend?* '}'
+fBody		:=	'{' statement* ret?* suspend?* '}'
 select		:=	'[' expr | ':' | ':' expr | expr ':' | expr ':' expr ']' select*
 			|	'.' ident select*
 			|	'(' (expr (',' expr)*)? ')' select*
