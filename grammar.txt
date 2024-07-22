@@ -1,7 +1,7 @@
 module		:=	statement*
 statement	:= 	global
 			| 	local
-			|	set
+			|	mut
 			|	datamut
 			|	call
 			|	block
@@ -11,7 +11,7 @@ statement	:= 	global
 			|	while
 global		:=	'let' ident '=' expr
 local		:=	'loc' ident '=' expr
-set			:=	iden '=' expr
+mut			:=	iden '=' expr
 datamut		:=	ident select select* '=' expr
 call		:=	iden select* '(' (expr (',' expr)*)? ')'
 block		:=	'{' statement* '}'
@@ -39,7 +39,8 @@ primary		:=	'true'
 			|	List
 			|	Object
 			|	Function
-			|	callExpr
+			|	Generator
+			|	suspend
 binop		:=	'and'
 			|	'or'
 			|	'+'
@@ -57,8 +58,9 @@ List		:=	'[' (expr (',' expr)*)? ']'
 Object		:=	'{' (pair (',' pair))* '}'
 pair		:=	ident ':' expr
 Function	:=	'fn' (iden (',' iden)*)? fBody | '=>' expr
-callExpr	:=	expr '(' (expr (',' expr)*)? ')'
 fBody		:=	'{' statement* ret?* '}'
+Generator	:=	'gen' (iden (',' iden)*)? gBody
+gBody		:=	'{' statement* ret?* suspend?* '}'
 select		:=	'[' expr | ':' | ':' expr | expr ':' | expr ':' expr ']' select*
 			|	'.' ident select*
 			|	'(' (expr (',' expr)*)? ')' select*
@@ -66,3 +68,4 @@ select		:=	'[' expr | ':' | ':' expr | expr ':' | expr ':' expr ']' select*
 break		:=	'break'
 continue	:=	'continue'
 ret			:=	'ret' expr
+suspend		:=	'suspend' expr
