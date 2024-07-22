@@ -182,6 +182,7 @@ type CallStmt struct {
 
 type MethodCallStmt struct {
 	Args []Node
+	Prop Node
 }
 
 type MethodCallExpr struct {

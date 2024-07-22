@@ -59,7 +59,10 @@ func (p *Parser) Parse() (*ast.Ast, error) {
 }
 
 func (p *Parser) mutOrCall(statements *[]ast.Node) ast.Node {
-	if p.next.Token == token.DOT || p.next.Token == token.LBRACKET || p.next.Token == token.LPAREN {
+	if p.next.Token == token.DOT ||
+		p.next.Token == token.LBRACKET ||
+		p.next.Token == token.LPAREN ||
+		p.next.Token == token.COLON {
 		return p.mutateDataStructureOrCall(statements)
 	}
 	i := p.current.Lit
@@ -146,7 +149,10 @@ func (p *Parser) mutateDataStructureOrCall(statements *[]ast.Node) ast.Node {
 	*statements = append(*statements, &ast.ReferenceStmt{Value: p.current.Lit})
 	var i ast.Node
 Loop:
-	for p.next.Token == token.LBRACKET || p.next.Token == token.DOT || p.next.Token == token.LPAREN {
+	for p.next.Token == token.LBRACKET ||
+		p.next.Token == token.DOT ||
+		p.next.Token == token.LPAREN ||
+		p.next.Token == token.COLON {
 		p.advance()
 		switch p.current.Token {
 		case token.LBRACKET:
@@ -183,11 +189,44 @@ Loop:
 			}
 		afterParen:
 			p.expect(token.RPAREN)
-			if p.next.Token != token.LBRACKET && p.next.Token != token.DOT && p.next.Token != token.LPAREN {
+			if p.next.Token != token.LBRACKET &&
+				p.next.Token != token.DOT &&
+				p.next.Token != token.LPAREN &&
+				p.next.Token != token.COLON {
 				p.advance()
 				return &ast.CallStmt{Args: args}
 			}
 			*statements = append(*statements, &ast.CallStmt{Args: args})
+		case token.COLON:
+			var args []ast.Node
+			p.advance()
+			p.expect(token.IDENTIFIER)
+			prop := &ast.Property{Value: p.current.Lit}
+			p.advance()
+			p.expect(token.LPAREN)
+			p.advance()
+			for p.current.Token != token.RPAREN && p.current.Token != token.EOF {
+				args = append(args, p.expression(token.LowestPrec))
+				p.advance()
+				if p.current.Token == token.COMMA {
+					for p.current.Token == token.COMMA {
+						p.advance()
+						args = append(args, p.expression(token.LowestPrec))
+						p.advance()
+					}
+					goto endCall
+				}
+			}
+		endCall:
+			p.expect(token.RPAREN)
+			if p.next.Token != token.LBRACKET &&
+				p.next.Token != token.DOT &&
+				p.next.Token != token.LPAREN &&
+				p.next.Token != token.COLON {
+				p.advance()
+				return &ast.MethodCallStmt{Args: args, Prop: prop}
+			}
+			*statements = append(*statements, &ast.MethodCallStmt{Args: args, Prop: prop})
 		default:
 			break Loop
 		}

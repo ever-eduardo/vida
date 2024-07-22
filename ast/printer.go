@@ -351,6 +351,20 @@ func printAST(node Node, sb *strings.Builder, level int) {
 			printAST(v, sb, level+twoLevels)
 			sb.WriteRune(nl)
 		}
+	case *MethodCallStmt:
+		sb.WriteRune(nl)
+		buildIndent(sb, level+oneLevel)
+		sb.WriteString("MethodCallStmt")
+		sb.WriteRune(nl)
+		printAST(n.Prop, sb, level+oneLevel)
+		sb.WriteRune(nl)
+		buildIndent(sb, level+twoLevels)
+		sb.WriteString("Args")
+		sb.WriteRune(nl)
+		for _, v := range n.Args {
+			printAST(v, sb, level+twoLevels)
+			sb.WriteRune(nl)
+		}
 	case *Block:
 		sb.WriteRune(nl)
 		buildIndent(sb, level+oneLevel)

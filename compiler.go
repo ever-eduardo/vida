@@ -249,6 +249,20 @@ func (c *Compiler) compileStmt(node ast.Node) {
 		}
 		c.rAlloc = reg
 		c.emitCall(reg, byte(len(n.Args)))
+	case *ast.MethodCallStmt:
+		reg := c.rAlloc
+		c.rAlloc++
+		c.emitMove(reg, c.rAlloc)
+		c.rAlloc++
+		j, t := c.compileExpr(n.Prop)
+		c.emitIGet(int(reg), j, rLoc, t, reg)
+		for _, v := range n.Args {
+			i, s := c.compileExpr(v)
+			c.emitLoc(i, c.rAlloc, s)
+			c.rAlloc++
+		}
+		c.rAlloc = reg
+		c.emitCall(reg, byte(len(n.Args)+1))
 	}
 }
 
