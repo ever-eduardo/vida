@@ -14,8 +14,8 @@ type Compiler struct {
 	breakCount    []int
 	continueJumps []int
 	continueCount []int
-	fn            []*Function
-	currentFn     *Function
+	fn            []*FunctionCore
+	currentFn     *FunctionCore
 	ast           *ast.Ast
 	module        *Module
 	kb            *KonstBuilder
@@ -402,7 +402,7 @@ func (c *Compiler) compileExpr(node ast.Node) (int, byte) {
 		c.emitSlice(byte(n.Mode), fromV, fromL, fromR, scopeV, scopeL, scopeR, resultReg)
 		return int(resultReg), rLoc
 	case *ast.Fun:
-		fn := &Function{}
+		fn := &FunctionCore{}
 		c.fn = append(c.fn, fn)
 		c.emitFun(c.kb.FunctionIndex(fn), c.rAlloc)
 		c.currentFn = fn

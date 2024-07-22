@@ -22,7 +22,7 @@ func PrintBytecode(m *Module, moduleName string) string {
 	}
 	for idx, v := range m.Konstants {
 
-		if f, ok := v.(*Function); ok {
+		if f, ok := v.(*FunctionCore); ok {
 			ip = 0
 			counter = 0
 			sb.WriteString(fmt.Sprintf("\n\nFunction %v/%v/%v", idx, f.Arity, f.Free))

@@ -63,7 +63,6 @@ const (
 	IN
 	FUN
 	RET
-	GEN
 	SUSPEND
 	keyword_end
 )
@@ -116,7 +115,6 @@ var Tokens = [...]string{
 	IN:         "in",
 	FUN:        "fn",
 	RET:        "ret",
-	GEN:        "gen",
 	SUSPEND:    "suspend",
 }
 

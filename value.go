@@ -712,14 +712,14 @@ type Module struct {
 	Konstants []Value
 	Name      string
 	Store     map[string]Value
-	Function  *Function
+	Function  *FunctionCore
 }
 
 func newModule(name string) *Module {
 	m := Module{
 		Store:     make(map[string]Value),
 		Konstants: make([]Value, 0, 32),
-		Function:  &Function{},
+		Function:  &FunctionCore{},
 		Name:      name,
 	}
 	return &m
@@ -735,11 +735,63 @@ type freeInfo struct {
 	Id      string
 }
 
-type Function struct {
+type FunctionCore struct {
 	Code  []byte
 	Info  []freeInfo
 	Free  int
 	Arity int
+}
+
+func (c *FunctionCore) Boolean() Bool {
+	return true
+}
+
+func (c *FunctionCore) Prefix(byte) (Value, error) {
+	return NilValue, verror.RuntimeError
+}
+
+func (c *FunctionCore) Binop(byte, Value) (Value, error) {
+	return NilValue, verror.RuntimeError
+}
+
+func (c *FunctionCore) IGet(Value) (Value, error) {
+	return NilValue, verror.RuntimeError
+}
+
+func (c *FunctionCore) ISet(Value, Value) error {
+	return verror.RuntimeError
+}
+
+func (c *FunctionCore) Equals(other Value) Bool {
+	if f, ok := other.(*FunctionCore); ok {
+		return c == f
+	}
+	return false
+}
+
+func (c *FunctionCore) IsIterable() Bool {
+	return false
+}
+
+func (c *FunctionCore) IsCallable() Bool {
+	return false
+}
+
+func (c *FunctionCore) Iterator() Value {
+	return NilValue
+}
+
+func (c *FunctionCore) Type() string {
+	return "function-core"
+}
+
+func (f FunctionCore) String() string {
+	return fmt.Sprintf("[a = %v, f = %v, i = %v]", f.Arity, f.Free, f.Info)
+}
+
+type Function struct {
+	Free []Value
+	Core *FunctionCore
 }
 
 func (c *Function) Boolean() Bool {
@@ -774,7 +826,7 @@ func (c *Function) IsIterable() Bool {
 }
 
 func (c *Function) IsCallable() Bool {
-	return false
+	return true
 }
 
 func (c *Function) Iterator() Value {
@@ -785,60 +837,8 @@ func (c *Function) Type() string {
 	return "function"
 }
 
-func (f Function) String() string {
-	return fmt.Sprintf("[a = %v, f = %v, info = %v]", f.Arity, f.Free, f.Info)
-}
-
-type Closure struct {
-	Free     []Value
-	Function *Function
-}
-
-func (c *Closure) Boolean() Bool {
-	return true
-}
-
-func (c *Closure) Prefix(byte) (Value, error) {
-	return NilValue, verror.RuntimeError
-}
-
-func (c *Closure) Binop(byte, Value) (Value, error) {
-	return NilValue, verror.RuntimeError
-}
-
-func (c *Closure) IGet(Value) (Value, error) {
-	return NilValue, verror.RuntimeError
-}
-
-func (c *Closure) ISet(Value, Value) error {
-	return verror.RuntimeError
-}
-
-func (c *Closure) Equals(other Value) Bool {
-	if f, ok := other.(*Closure); ok {
-		return c == f
-	}
-	return false
-}
-
-func (c *Closure) IsIterable() Bool {
-	return false
-}
-
-func (c *Closure) IsCallable() Bool {
-	return true
-}
-
-func (c *Closure) Iterator() Value {
-	return NilValue
-}
-
-func (c *Closure) Type() string {
-	return "function"
-}
-
-func (c Closure) String() string {
-	return fmt.Sprintf("Function %v, Free = %v", c.Function, c.Free)
+func (c Function) String() string {
+	return fmt.Sprintf("Function %v, Free = %v", c.Core, c.Free)
 }
 
 type GoFn func(args ...Value) (Value, error)

@@ -10,9 +10,13 @@ import (
 )
 
 func main() {
+	// f, err := os.Create("vida.prof")
+	// handleError(err)
+	// pprof.StartCPUProfile(f)
+	// defer pprof.StopCPUProfile()
 	clear()
 	println(vida.Name(), vida.Version())
-	debug := true
+	debug := false
 	module := "sketchpad.vida"
 	if debug {
 		debugPath(module)
@@ -32,7 +36,8 @@ func debugPath(module string) {
 	fmt.Println(ast.PrintAST(r))
 	fmt.Scanf(" ")
 	c := vida.NewCompiler(r, module)
-	m := c.CompileModule()
+	m, e := c.CompileModule()
+	handleError(e)
 	fmt.Println(vida.PrintBytecode(m, m.Name))
 	fmt.Scanf(" ")
 	vm, err := vida.NewVM(m)
@@ -52,7 +57,8 @@ func normalPath(module string) {
 	r, err := p.Parse()
 	handleError(err)
 	c := vida.NewCompiler(r, module)
-	m := c.CompileModule()
+	m, e := c.CompileModule()
+	handleError(e)
 	fmt.Printf("Compiler time = %vs\n", time.Since(init).Seconds())
 	fmt.Printf("Compiler time = %v\n", time.Since(init))
 	init = time.Now()
@@ -63,7 +69,6 @@ func normalPath(module string) {
 	fmt.Printf("VM time = %v\n", time.Since(init))
 	handleError(err)
 	fmt.Println(res)
-	fmt.Printf("Test result is %v\n", vm.Module.Store["r"])
 }
 
 func handleError(err error) {

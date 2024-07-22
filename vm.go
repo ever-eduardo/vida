@@ -20,7 +20,7 @@ const stackSize = 256
 type frame struct {
 	code  []byte
 	stack []Value
-	fn    *Closure
+	fn    *Function
 	ip    int
 	bp    int
 	ret   byte
@@ -296,14 +296,14 @@ func (vm *VM) Run() (Result, error) {
 			ip += 2
 			to := vm.Frame.code[ip]
 			ip++
-			c := &Closure{Function: vm.Module.Konstants[from].(*Function)}
-			if c.Function.Free > 0 {
+			c := &Function{Core: vm.Module.Konstants[from].(*FunctionCore)}
+			if c.Core.Free > 0 {
 				var f []Value
-				for i := 0; i < c.Function.Free; i++ {
-					if c.Function.Info[i].IsLocal {
-						f = append(f, vm.Frame.stack[c.Function.Info[i].Index])
+				for i := 0; i < c.Core.Free; i++ {
+					if c.Core.Info[i].IsLocal {
+						f = append(f, vm.Frame.stack[c.Core.Info[i].Index])
 					} else {
-						f = append(f, vm.Frame.fn.Free[c.Function.Info[i].Index])
+						f = append(f, vm.Frame.fn.Free[c.Core.Info[i].Index])
 					}
 				}
 				c.Free = f
@@ -318,8 +318,8 @@ func (vm *VM) Run() (Result, error) {
 			if !val.IsCallable() {
 				return Failure, verror.RuntimeError
 			}
-			if fn, ok := val.(*Closure); ok {
-				if args != byte(fn.Function.Arity) {
+			if fn, ok := val.(*Function); ok {
+				if args != byte(fn.Core.Arity) {
 					return Failure, verror.RuntimeError
 				}
 				if vm.fp >= frameSize {
@@ -339,7 +339,7 @@ func (vm *VM) Run() (Result, error) {
 				vm.Frame = &vm.Frames[vm.fp]
 				vm.Frame.fn = fn
 				vm.Frame.bp = bs + int(from) + 1
-				vm.Frame.code = fn.Function.Code
+				vm.Frame.code = fn.Core.Code
 				vm.Frame.stack = vm.Stack[vm.Frame.bp:]
 				ip = 0
 			} else if fn, ok := val.(GoFn); ok {
