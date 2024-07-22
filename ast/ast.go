@@ -70,7 +70,7 @@ type Pair struct {
 	Value Node
 }
 
-type Document struct {
+type Object struct {
 	Pairs []*Pair
 }
 
@@ -210,7 +210,7 @@ func (n *List) _node()            {}
 func (n *IGet) _node()            {}
 func (n *IGetStmt) _node()        {}
 func (n *Slice) _node()           {}
-func (n *Document) _node()        {}
+func (n *Object) _node()          {}
 func (n *Pair) _node()            {}
 func (n *Property) _node()        {}
 func (n *Select) _node()          {}

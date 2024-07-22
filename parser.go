@@ -437,7 +437,7 @@ func (p *Parser) operand() ast.Node {
 		p.expect(token.RBRACKET)
 		return xs
 	case token.LCURLY:
-		doc := &ast.Document{}
+		doc := &ast.Object{}
 		p.advance()
 		for p.current.Token != token.RCURLY {
 			p.expect(token.IDENTIFIER)

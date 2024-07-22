@@ -171,7 +171,7 @@ func printInstr(ip int, code []byte, counter int, isRunningDebug bool) (string, 
 		sb.WriteRune(32)
 		sb.WriteString(fmt.Sprintf("%4v", int(code[ip])))
 		ip++
-	case doc:
+	case obj:
 		sb.WriteRune(32)
 		sb.WriteString(fmt.Sprintf("%4v", int(code[ip])))
 		ip++

@@ -34,7 +34,7 @@ func gfnLen(args ...Value) (Value, error) {
 		switch v := args[0].(type) {
 		case *List:
 			return Integer(len(v.Value)), nil
-		case *Document:
+		case *Object:
 			return Integer(len(v.Value)), nil
 		case String:
 			return Integer(len(v.Value)), nil

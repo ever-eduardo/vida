@@ -101,8 +101,8 @@ func (c *Compiler) emitList(length byte, from byte, to byte) {
 	c.currentFn.Code = append(c.currentFn.Code, to)
 }
 
-func (c *Compiler) emitDocument(length byte, from byte, to byte) {
-	c.currentFn.Code = append(c.currentFn.Code, doc)
+func (c *Compiler) emitObject(length byte, from byte, to byte) {
+	c.currentFn.Code = append(c.currentFn.Code, obj)
 	c.currentFn.Code = append(c.currentFn.Code, length)
 	c.currentFn.Code = append(c.currentFn.Code, from)
 	c.currentFn.Code = append(c.currentFn.Code, to)

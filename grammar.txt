@@ -37,7 +37,7 @@ primary		:=	'true'
 			|	Float
 			|	String
 			|	List
-			|	Document
+			|	Object
 			|	Function
 			|	callExpr
 binop		:=	'and'
@@ -54,7 +54,7 @@ binop		:=	'and'
 			|	'=='
 			|	'!='
 List		:=	'[' (expr (',' expr)*)? ']'
-Document	:=	'{' (pair (',' pair))* '}'
+Object		:=	'{' (pair (',' pair))* '}'
 pair		:=	ident ':' expr
 Function	:=	'fn' (iden (',' iden)*)? fBody | '=>' expr
 callExpr	:=	expr '(' (expr (',' expr)*)? ')'

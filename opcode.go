@@ -10,7 +10,7 @@ const (
 	binop
 	equals
 	list
-	doc
+	obj
 	iGet
 	iSet
 	slice
@@ -36,7 +36,7 @@ var opcodes = [...]string{
 	binop:    "Binop",
 	equals:   "Eq",
 	list:     "List",
-	doc:      "Doc",
+	obj:      "Obj",
 	iGet:     "IGet",
 	iSet:     "ISet",
 	slice:    "Slice",

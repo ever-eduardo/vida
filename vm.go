@@ -206,7 +206,7 @@ func (vm *VM) Run() (Result, error) {
 				from++
 			}
 			vm.Frame.stack[to] = &List{Value: xs}
-		case doc:
+		case obj:
 			length := vm.Frame.code[ip]
 			ip++
 			from := vm.Frame.code[ip]
@@ -221,7 +221,7 @@ func (vm *VM) Run() (Result, error) {
 				from++
 				rec[k] = v
 			}
-			vm.Frame.stack[to] = &Document{Value: rec}
+			vm.Frame.stack[to] = &Object{Value: rec}
 		case forSet:
 			i := vm.Frame.code[ip]
 			ip++

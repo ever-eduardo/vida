@@ -599,15 +599,15 @@ func (xs *List) Type() string {
 	return "list"
 }
 
-type Document struct {
+type Object struct {
 	Value map[string]Value
 }
 
-func (d *Document) Boolean() Bool {
+func (d *Object) Boolean() Bool {
 	return Bool(true)
 }
 
-func (d *Document) Prefix(op byte) (Value, error) {
+func (d *Object) Prefix(op byte) (Value, error) {
 	switch op {
 	case byte(token.NOT):
 		return Bool(false), nil
@@ -616,9 +616,9 @@ func (d *Document) Prefix(op byte) (Value, error) {
 	}
 }
 
-func (d *Document) Binop(op byte, rhs Value) (Value, error) {
+func (d *Object) Binop(op byte, rhs Value) (Value, error) {
 	switch r := rhs.(type) {
-	case *Document:
+	case *Object:
 		switch op {
 		case byte(token.ADD):
 			rLen := len(r.Value)
@@ -632,7 +632,7 @@ func (d *Document) Binop(op byte, rhs Value) (Value, error) {
 			for k, v := range r.Value {
 				pairs[k] = v
 			}
-			return &Document{Value: pairs}, nil
+			return &Object{Value: pairs}, nil
 		case byte(token.AND):
 			return r, nil
 		case byte(token.OR):
@@ -649,7 +649,7 @@ func (d *Document) Binop(op byte, rhs Value) (Value, error) {
 	return NilValue, verror.RuntimeError
 }
 
-func (d *Document) IGet(index Value) (Value, error) {
+func (d *Object) IGet(index Value) (Value, error) {
 	switch r := index.(type) {
 	case String:
 		if val, ok := d.Value[r.Value]; ok {
@@ -660,7 +660,7 @@ func (d *Document) IGet(index Value) (Value, error) {
 	return NilValue, verror.RuntimeError
 }
 
-func (d *Document) ISet(index, val Value) error {
+func (d *Object) ISet(index, val Value) error {
 	switch r := index.(type) {
 	case String:
 		d.Value[r.Value] = val
@@ -669,22 +669,22 @@ func (d *Document) ISet(index, val Value) error {
 	return verror.RuntimeError
 }
 
-func (d *Document) Equals(other Value) Bool {
-	if val, ok := other.(*Document); ok {
+func (d *Object) Equals(other Value) Bool {
+	if val, ok := other.(*Object); ok {
 		return d == val
 	}
 	return false
 }
 
-func (d *Document) IsIterable() Bool {
+func (d *Object) IsIterable() Bool {
 	return true
 }
 
-func (d *Document) IsCallable() Bool {
+func (d *Object) IsCallable() Bool {
 	return false
 }
 
-func (d *Document) Iterator() Value {
+func (d *Object) Iterator() Value {
 	size := len(d.Value)
 	keys := make([]string, 0, size)
 	for k := range d.Value {
@@ -693,7 +693,7 @@ func (d *Document) Iterator() Value {
 	return &DocIterator{Doc: d.Value, Init: -1, End: size, Keys: keys}
 }
 
-func (d *Document) String() string {
+func (d *Object) String() string {
 	if len(d.Value) == 0 {
 		return "{}"
 	}
@@ -704,8 +704,8 @@ func (d *Document) String() string {
 	return fmt.Sprintf("{%v}", strings.Join(r, ", "))
 }
 
-func (d *Document) Type() string {
-	return "doc"
+func (d *Object) Type() string {
+	return "object"
 }
 
 type Module struct {

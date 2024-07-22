@@ -124,7 +124,7 @@ func printAST(node Node, sb *strings.Builder, level int) {
 				sb.WriteRune(nl)
 			}
 		}
-	case *Document:
+	case *Object:
 		buildIndent(sb, level+oneLevel)
 		sb.WriteString("Document")
 		sb.WriteRune(nl)

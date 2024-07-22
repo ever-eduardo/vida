@@ -333,9 +333,9 @@ func (c *Compiler) compileExpr(node ast.Node) (int, byte) {
 		c.rAlloc -= byte(count)
 		c.emitList(byte(count), c.rAlloc, c.rAlloc)
 		return int(c.rAlloc), rLoc
-	case *ast.Document:
+	case *ast.Object:
 		if len(n.Pairs) == 0 {
-			c.emitDocument(0, c.rAlloc, c.rAlloc)
+			c.emitObject(0, c.rAlloc, c.rAlloc)
 			return int(c.rAlloc), rLoc
 		}
 		var count int
@@ -353,7 +353,7 @@ func (c *Compiler) compileExpr(node ast.Node) (int, byte) {
 			count += 2
 		}
 		c.rAlloc -= byte(count)
-		c.emitDocument(byte(count), c.rAlloc, c.rAlloc)
+		c.emitObject(byte(count), c.rAlloc, c.rAlloc)
 		return int(c.rAlloc), rLoc
 	case *ast.Property:
 		return c.kb.StringIndex(n.Value), rKonst
