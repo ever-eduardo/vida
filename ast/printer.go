@@ -340,7 +340,7 @@ func printAST(node Node, sb *strings.Builder, level int) {
 		buildIndent(sb, level+twoLevels)
 		sb.WriteString("Doc")
 		sb.WriteRune(nl)
-		printAST(n.Doc, sb, level+twoLevels)
+		printAST(n.Obj, sb, level+twoLevels)
 		sb.WriteRune(nl)
 		printAST(n.Prop, sb, level+oneLevel)
 		sb.WriteRune(nl)
@@ -365,6 +365,18 @@ func printAST(node Node, sb *strings.Builder, level int) {
 			printAST(v, sb, level+twoLevels)
 			sb.WriteRune(nl)
 		}
+	case *SuspendExpr:
+		sb.WriteRune(nl)
+		buildIndent(sb, level+oneLevel)
+		sb.WriteString("Suspend")
+		sb.WriteRune(nl)
+		printAST(n.Expr, sb, twoLevels+twoLevels+oneLevel)
+	case *SuspendStmt:
+		sb.WriteRune(nl)
+		buildIndent(sb, level+oneLevel)
+		sb.WriteString("Suspend")
+		sb.WriteRune(nl)
+		printAST(n.Expr, sb, twoLevels+twoLevels+oneLevel)
 	case *Block:
 		sb.WriteRune(nl)
 		buildIndent(sb, level+oneLevel)

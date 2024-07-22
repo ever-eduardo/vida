@@ -117,6 +117,8 @@ func (p *Parser) block(isInsideLoop bool) ast.Node {
 			block.Statement = append(block.Statement, p.loop())
 		case token.RET:
 			block.Statement = append(block.Statement, p.ret())
+		case token.SUSPEND:
+			block.Statement = append(block.Statement, p.suspendStmt())
 		case token.BREAK:
 			if isInsideLoop {
 				block.Statement = append(block.Statement, p.breakStmt())
@@ -511,6 +513,10 @@ func (p *Parser) operand() ast.Node {
 		block.(*ast.Block).Statement = append(block.(*ast.Block).Statement, &ast.Ret{Expr: &ast.Nil{}})
 		f.Body = block
 		return f
+	case token.SUSPEND:
+		p.advance()
+		e := p.expression(token.LowestPrec)
+		return &ast.SuspendExpr{Expr: e}
 	default:
 		p.err = verror.New(p.lexer.ModuleName, "Expected expression", verror.SyntaxErrMsg, p.current.Line)
 		p.ok = false
@@ -523,6 +529,13 @@ func (p *Parser) ret() ast.Node {
 	e := p.expression(token.LowestPrec)
 	p.advance()
 	return &ast.Ret{Expr: e}
+}
+
+func (p *Parser) suspendStmt() ast.Node {
+	p.advance()
+	e := p.expression(token.LowestPrec)
+	p.advance()
+	return &ast.SuspendStmt{Expr: e}
 }
 
 func (p *Parser) callExpr(e ast.Node) ast.Node {
@@ -567,7 +580,7 @@ func (p *Parser) methodCallExpr(e ast.Node) ast.Node {
 	}
 afterParen:
 	p.expect(token.RPAREN)
-	return &ast.MethodCallExpr{Args: args, Doc: e, Prop: prop}
+	return &ast.MethodCallExpr{Args: args, Obj: e, Prop: prop}
 }
 
 func (p *Parser) indexOrSlice(e ast.Node) ast.Node {

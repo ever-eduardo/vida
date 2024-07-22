@@ -431,13 +431,13 @@ func (c *Compiler) compileExpr(node ast.Node) (int, byte) {
 	case *ast.MethodCallExpr:
 		reg := c.rAlloc
 		c.rAlloc++
-		i, s := c.compileExpr(n.Doc)
+		i, s := c.compileExpr(n.Obj)
 		c.rAlloc++
 		j, t := c.compileExpr(n.Prop)
 		c.rAlloc = reg
 		c.emitIGet(i, j, s, t, reg)
 		c.rAlloc++
-		i, s = c.compileExpr(n.Doc)
+		i, s = c.compileExpr(n.Obj)
 		c.emitLoc(i, c.rAlloc, s)
 		c.rAlloc++
 		for _, v := range n.Args {

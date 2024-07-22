@@ -188,7 +188,15 @@ type MethodCallStmt struct {
 type MethodCallExpr struct {
 	Args []Node
 	Prop Node
-	Doc  Node
+	Obj  Node
+}
+
+type SuspendExpr struct {
+	Expr Node
+}
+
+type SuspendStmt struct {
+	Expr Node
 }
 
 func (ast *Ast) _node()           {}
@@ -231,3 +239,5 @@ func (n *CallExpr) _node()        {}
 func (n *CallStmt) _node()        {}
 func (n *MethodCallStmt) _node()  {}
 func (n *MethodCallExpr) _node()  {}
+func (n *SuspendExpr) _node()     {}
+func (n *SuspendStmt) _node()     {}
