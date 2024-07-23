@@ -39,7 +39,6 @@ primary		:=	'true'
 			|	List
 			|	Object
 			|	Function
-			|	suspend
 binop		:=	'and'
 			|	'or'
 			|	'+'
@@ -57,7 +56,7 @@ List		:=	'[' (expr (',' expr)*)? ']'
 Object		:=	'{' (pair (',' pair))* '}'
 pair		:=	ident ':' expr
 Function	:=	'fn' (iden (',' iden)*)? fBody | '=>' expr
-fBody		:=	'{' statement* ret?* suspend?* '}'
+fBody		:=	'{' statement* ret?* '}'
 select		:=	'[' expr | ':' | ':' expr | expr ':' | expr ':' expr ']' select*
 			|	'.' ident select*
 			|	'(' (expr (',' expr)*)? ')' select*
@@ -65,4 +64,3 @@ select		:=	'[' expr | ':' | ':' expr | expr ':' | expr ':' expr ']' select*
 break		:=	'break'
 continue	:=	'continue'
 ret			:=	'ret' expr
-suspend		:=	'suspend' expr
