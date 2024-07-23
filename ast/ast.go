@@ -191,14 +191,6 @@ type MethodCallExpr struct {
 	Obj  Node
 }
 
-type SuspendExpr struct {
-	Expr Node
-}
-
-type SuspendStmt struct {
-	Expr Node
-}
-
 func (ast *Ast) _node()           {}
 func (loc *Loc) _node()           {}
 func (mut *Set) _node()           {}
@@ -239,5 +231,3 @@ func (n *CallExpr) _node()        {}
 func (n *CallStmt) _node()        {}
 func (n *MethodCallStmt) _node()  {}
 func (n *MethodCallExpr) _node()  {}
-func (n *SuspendExpr) _node()     {}
-func (n *SuspendStmt) _node()     {}
