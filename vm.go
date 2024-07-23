@@ -15,13 +15,12 @@ const Success Result = "Success"
 const Failure Result = "Failure"
 
 const frameSize = 1024
-const stackSize = 256
-const genStackSize = 16
+const stackSize = 1024
 
 type frame struct {
 	code   []byte
 	stack  []Value
-	lambda Lambda
+	lambda *Function
 	ip     int
 	bp     int
 	ret    byte
@@ -42,7 +41,8 @@ func NewVM(m *Module) (*VM, error) {
 
 func (vm *VM) Run() (Result, error) {
 	vm.Frame = &vm.Frames[vm.fp]
-	vm.Frame.code = vm.Module.Function.Code
+	vm.Frame.code = vm.Module.MainFunction.CoreFn.Code
+	vm.Frame.lambda = vm.Module.MainFunction
 	vm.Frame.stack = vm.Stack[:]
 	ip := 8
 	for {
@@ -78,7 +78,7 @@ func (vm *VM) Run() (Result, error) {
 			ip += 2
 			to := binary.NativeEndian.Uint16(vm.Frame.code[ip:])
 			ip += 2
-			vm.Frame.lambda.FSet(int(to), vm.valueFrom(scope, from))
+			vm.Frame.lambda.Free[to] = vm.valueFrom(scope, from)
 		case testF:
 			scope := vm.Frame.code[ip]
 			ip++
@@ -297,19 +297,19 @@ func (vm *VM) Run() (Result, error) {
 			ip += 2
 			to := vm.Frame.code[ip]
 			ip++
-			c := &Function{Core: vm.Module.Konstants[from].(*FunctionCore)}
-			if c.Core.Free > 0 {
-				var f []Value
-				for i := 0; i < c.Core.Free; i++ {
-					if c.Core.Info[i].IsLocal {
-						f = append(f, vm.Frame.stack[c.Core.Info[i].Index])
+			fn := &Function{CoreFn: vm.Module.Konstants[from].(*CoreFunction)}
+			if fn.CoreFn.Free > 0 {
+				var free []Value
+				for i := 0; i < fn.CoreFn.Free; i++ {
+					if fn.CoreFn.Info[i].IsLocal {
+						free = append(free, vm.Frame.stack[fn.CoreFn.Info[i].Index])
 					} else {
-						f = append(f, vm.Frame.lambda.FGet(c.Core.Info[i].Index))
+						free = append(free, vm.Frame.lambda.Free[fn.CoreFn.Info[i].Index])
 					}
 				}
-				c.Free = f
+				fn.Free = free
 			}
-			vm.Frame.stack[to] = c
+			vm.Frame.stack[to] = fn
 		case call:
 			from := vm.Frame.code[ip]
 			ip++
@@ -320,7 +320,7 @@ func (vm *VM) Run() (Result, error) {
 				return Failure, verror.RuntimeError
 			}
 			if fn, ok := val.(*Function); ok {
-				if args != byte(fn.Core.Arity) {
+				if args != byte(fn.CoreFn.Arity) {
 					return Failure, verror.RuntimeError
 				}
 				if vm.fp >= frameSize {
@@ -340,7 +340,7 @@ func (vm *VM) Run() (Result, error) {
 				vm.Frame = &vm.Frames[vm.fp]
 				vm.Frame.lambda = fn
 				vm.Frame.bp = bs + int(from) + 1
-				vm.Frame.code = fn.Core.Code
+				vm.Frame.code = fn.CoreFn.Code
 				vm.Frame.stack = vm.Stack[vm.Frame.bp:]
 				ip = 0
 			} else if fn, ok := val.(GoFn); ok {
@@ -389,7 +389,7 @@ func (vm *VM) valueFrom(scope byte, from uint16) Value {
 			return NilValue
 		}
 	case rFree:
-		return vm.Frame.lambda.FGet(int(from))
+		return vm.Frame.lambda.Free[from]
 	default:
 		return NilValue
 	}
@@ -541,7 +541,7 @@ func (vm *VM) processSlice(mode byte, fromV uint16, fromL uint16, fromR uint16, 
 }
 
 func checkISACompatibility(m *Module) error {
-	if m.Function.Code[4] == major {
+	if m.MainFunction.CoreFn.Code[4] == major {
 		return nil
 	}
 	return verror.New(m.Name, "The module was compilated with another ABI version", verror.FileErrMsg, 0)
