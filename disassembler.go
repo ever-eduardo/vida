@@ -16,13 +16,13 @@ func PrintBytecode(m *Module, moduleName string) string {
 	var counter int
 	var ip int = 8
 	var s string
-	for ip < len(m.Function.Code) {
-		s, ip, counter = printInstr(ip, m.Function.Code, counter, false)
+	for ip < len(m.MainFunction.CoreFn.Code) {
+		s, ip, counter = printInstr(ip, m.MainFunction.CoreFn.Code, counter, false)
 		sb.WriteString(s)
 	}
 	for idx, v := range m.Konstants {
 
-		if f, ok := v.(*FunctionCore); ok {
+		if f, ok := v.(*CoreFunction); ok {
 			ip = 0
 			counter = 0
 			sb.WriteString(fmt.Sprintf("\n\nFunction %v/%v/%v", idx, f.Arity, f.Free))
@@ -38,9 +38,9 @@ func PrintBytecode(m *Module, moduleName string) string {
 
 func printHeader(m *Module) string {
 	var sb strings.Builder
-	sb.Write(m.Function.Code[:4])
+	sb.Write(m.MainFunction.CoreFn.Code[:4])
 	sb.WriteRune(32)
-	sb.WriteString(fmt.Sprintf("version %v.%v.%v", int(m.Function.Code[4]), int(m.Function.Code[5]), int(m.Function.Code[6])))
+	sb.WriteString(fmt.Sprintf("version %v.%v.%v", int(m.MainFunction.CoreFn.Code[4]), int(m.MainFunction.CoreFn.Code[5]), int(m.MainFunction.CoreFn.Code[6])))
 	sb.WriteRune(10)
 	sb.WriteRune(10)
 	sb.WriteString("Main\n")
@@ -290,13 +290,6 @@ func printInstr(ip int, code []byte, counter int, isRunningDebug bool) (string, 
 		sb.WriteString(fmt.Sprintf("%4v", binary.NativeEndian.Uint16(code[ip:])))
 		ip += 2
 	case ret:
-		sb.WriteRune(32)
-		sb.WriteString(fmt.Sprintf("%4v", int(code[ip])))
-		ip++
-		sb.WriteRune(32)
-		sb.WriteString(fmt.Sprintf("%4v", binary.NativeEndian.Uint16(code[ip:])))
-		ip += 2
-	case suspend:
 		sb.WriteRune(32)
 		sb.WriteString(fmt.Sprintf("%4v", int(code[ip])))
 		ip++

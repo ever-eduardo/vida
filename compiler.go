@@ -14,8 +14,8 @@ type Compiler struct {
 	breakCount    []int
 	continueJumps []int
 	continueCount []int
-	fn            []*FunctionCore
-	currentFn     *FunctionCore
+	fn            []*CoreFunction
+	currentFn     *CoreFunction
 	ast           *ast.Ast
 	module        *Module
 	kb            *KonstBuilder
@@ -33,8 +33,8 @@ func NewCompiler(ast *ast.Ast, moduleName string) *Compiler {
 		kb:     newKonstBuilder(),
 		sb:     newSymbolBuilder(),
 	}
-	c.fn = append(c.fn, c.module.Function)
-	c.currentFn = c.module.Function
+	c.fn = append(c.fn, c.module.MainFunction.CoreFn)
+	c.currentFn = c.module.MainFunction.CoreFn
 	return c
 }
 
@@ -232,7 +232,11 @@ func (c *Compiler) compileStmt(node ast.Node) {
 		for i := range len(n.Statement) {
 			c.compileStmt(n.Statement[i])
 		}
-		c.rAlloc -= byte(c.sb.clearLocals(c.level, c.scope))
+		locals := c.sb.clearLocals(c.level, c.scope)
+		if c.level > 0 && c.scope == 1 {
+			c.currentFn.Locals += locals
+		}
+		c.rAlloc -= byte(locals)
 		c.scope--
 	case *ast.Ret:
 		if c.level == 0 {
@@ -263,12 +267,6 @@ func (c *Compiler) compileStmt(node ast.Node) {
 		}
 		c.rAlloc = reg
 		c.emitCall(reg, byte(len(n.Args)+1))
-	case *ast.SuspendStmt:
-		if c.level == 0 {
-			c.hadError = true
-		}
-		i, s := c.compileExpr(n.Expr)
-		c.emitSuspend(i, s)
 	}
 }
 
@@ -408,11 +406,11 @@ func (c *Compiler) compileExpr(node ast.Node) (int, byte) {
 		c.emitSlice(byte(n.Mode), fromV, fromL, fromR, scopeV, scopeL, scopeR, resultReg)
 		return int(resultReg), rLoc
 	case *ast.Fun:
-		fn := &FunctionCore{}
+		fn := &CoreFunction{}
 		c.fn = append(c.fn, fn)
 		c.emitFun(c.kb.FunctionIndex(fn), c.rAlloc)
 		c.currentFn = fn
-		reg := c.startFuncScope()
+		reg, scope := c.startFuncScope()
 		for _, v := range n.Args {
 			fn.Arity++
 			c.sb.addLocal(v, c.level, c.scope, c.rAlloc)
@@ -421,6 +419,7 @@ func (c *Compiler) compileExpr(node ast.Node) (int, byte) {
 		c.compileStmt(n.Body)
 		c.leaveFuncScope()
 		c.rAlloc = reg
+		c.scope = scope
 		return int(c.rAlloc), rLoc
 	case *ast.CallExpr:
 		reg := c.rAlloc
@@ -453,12 +452,6 @@ func (c *Compiler) compileExpr(node ast.Node) (int, byte) {
 		}
 		c.rAlloc = reg
 		c.emitCall(reg, byte(len(n.Args)+1))
-		return int(reg), rLoc
-	case *ast.SuspendExpr:
-		reg := c.rAlloc
-		idx, s := c.compileExpr(n.Expr)
-		c.emitLoc(idx, reg, s)
-		c.emitSuspend(idx, s)
 		return int(reg), rLoc
 	default:
 		return 0, rKonst
@@ -530,15 +523,15 @@ func (c *Compiler) startLoopScope() {
 	c.continueCount = append(c.continueCount, 0)
 }
 
-func (c *Compiler) startFuncScope() byte {
-	r := c.rAlloc
-	c.rAlloc = 0
+func (c *Compiler) startFuncScope() (byte, int) {
+	r, s := c.rAlloc, c.scope
+	c.rAlloc, c.scope = 0, 0
 	c.level++
-	return r
+	return r, s
 }
 
 func (c *Compiler) leaveFuncScope() {
-	c.sb.clearLocals(c.level, c.scope)
+	c.currentFn.Locals += c.sb.clearLocals(c.level, c.scope)
 	c.fn = c.fn[:c.level]
 	c.level--
 	c.currentFn = c.fn[c.level]
