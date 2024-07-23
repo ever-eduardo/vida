@@ -24,7 +24,6 @@ const (
 	fun
 	ret
 	call
-	suspend
 )
 
 var opcodes = [...]string{
@@ -51,5 +50,4 @@ var opcodes = [...]string{
 	fun:      "Fun",
 	ret:      "Ret",
 	call:     "Call",
-	suspend:  "Suspend",
 }

@@ -16,8 +16,8 @@ func loadCoreLib() map[string]Value {
 	p["load"] = NilValue
 	p["type"] = GoFn(gfnType)
 	p["assert"] = GoFn(gfnAssert)
-	p["format"] = GoFn(gfnFormat)
-	p["string"] = GoFn(gfnString)
+	p["fmt"] = GoFn(gfnFormat)
+	p["str"] = GoFn(gfnString)
 	return p
 }
 

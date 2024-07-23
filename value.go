@@ -709,18 +709,18 @@ func (d *Object) Type() string {
 }
 
 type Module struct {
-	Konstants []Value
-	Name      string
-	Store     map[string]Value
-	Function  *FunctionCore
+	Konstants    []Value
+	Name         string
+	Store        map[string]Value
+	MainFunction *Function
 }
 
 func newModule(name string) *Module {
 	m := Module{
-		Store:     make(map[string]Value),
-		Konstants: make([]Value, 0, 32),
-		Function:  &FunctionCore{},
-		Name:      name,
+		Store:        make(map[string]Value),
+		Konstants:    make([]Value, 0, 32),
+		MainFunction: &Function{CoreFn: &CoreFunction{}},
+		Name:         name,
 	}
 	return &m
 }
@@ -735,76 +735,64 @@ type freeInfo struct {
 	Id      string
 }
 
-type FunctionCore struct {
-	Code  []byte
-	Info  []freeInfo
-	Free  int
-	Arity int
+type CoreFunction struct {
+	Code   []byte
+	Info   []freeInfo
+	Free   int
+	Locals int
+	Arity  int
 }
 
-func (c *FunctionCore) Boolean() Bool {
+func (c *CoreFunction) Boolean() Bool {
 	return true
 }
 
-func (c *FunctionCore) Prefix(byte) (Value, error) {
+func (c *CoreFunction) Prefix(byte) (Value, error) {
 	return NilValue, verror.RuntimeError
 }
 
-func (c *FunctionCore) Binop(byte, Value) (Value, error) {
+func (c *CoreFunction) Binop(byte, Value) (Value, error) {
 	return NilValue, verror.RuntimeError
 }
 
-func (c *FunctionCore) IGet(Value) (Value, error) {
+func (c *CoreFunction) IGet(Value) (Value, error) {
 	return NilValue, verror.RuntimeError
 }
 
-func (c *FunctionCore) ISet(Value, Value) error {
+func (c *CoreFunction) ISet(Value, Value) error {
 	return verror.RuntimeError
 }
 
-func (c *FunctionCore) Equals(other Value) Bool {
-	if f, ok := other.(*FunctionCore); ok {
+func (c *CoreFunction) Equals(other Value) Bool {
+	if f, ok := other.(*CoreFunction); ok {
 		return c == f
 	}
 	return false
 }
 
-func (c *FunctionCore) IsIterable() Bool {
+func (c *CoreFunction) IsIterable() Bool {
 	return false
 }
 
-func (c *FunctionCore) IsCallable() Bool {
+func (c *CoreFunction) IsCallable() Bool {
 	return false
 }
 
-func (c *FunctionCore) Iterator() Value {
+func (c *CoreFunction) Iterator() Value {
 	return NilValue
 }
 
-func (c *FunctionCore) Type() string {
+func (c *CoreFunction) Type() string {
 	return "function-core"
 }
 
-func (f FunctionCore) String() string {
-	return fmt.Sprintf("[a = %v, f = %v, i = %v]", f.Arity, f.Free, f.Info)
-}
-
-type Lambda interface {
-	FGet(int) Value
-	FSet(int, Value)
+func (f CoreFunction) String() string {
+	return fmt.Sprintf("[a = %v, loc = %v, f = %v, i = %v]", f.Arity, f.Locals, f.Free, f.Info)
 }
 
 type Function struct {
-	Free []Value
-	Core *FunctionCore
-}
-
-func (f *Function) FGet(index int) Value {
-	return f.Free[index]
-}
-
-func (f *Function) FSet(index int, val Value) {
-	f.Free[index] = val
+	Free   []Value
+	CoreFn *CoreFunction
 }
 
 func (f *Function) Boolean() Bool {
@@ -851,70 +839,7 @@ func (f *Function) Type() string {
 }
 
 func (f Function) String() string {
-	return fmt.Sprintf("Function %v, Free = %v", f.Core, f.Free)
-}
-
-type Generator struct {
-	Stack []Value
-	Free  []Value
-	Core  *FunctionCore
-	Ip    int
-	Ret   int
-}
-
-func (g *Generator) FGet(index int) Value {
-	return g.Free[index]
-}
-
-func (g *Generator) FSet(index int, val Value) {
-	g.Free[index] = val
-}
-
-func (g *Generator) Boolean() Bool {
-	return true
-}
-
-func (g *Generator) Prefix(byte) (Value, error) {
-	return NilValue, verror.RuntimeError
-}
-
-func (g *Generator) Binop(byte, Value) (Value, error) {
-	return NilValue, verror.RuntimeError
-}
-
-func (g *Generator) IGet(Value) (Value, error) {
-	return NilValue, verror.RuntimeError
-}
-
-func (g *Generator) ISet(Value, Value) error {
-	return verror.RuntimeError
-}
-
-func (g *Generator) Equals(other Value) Bool {
-	if f, ok := other.(*Generator); ok {
-		return g == f
-	}
-	return false
-}
-
-func (c *Generator) IsIterable() Bool {
-	return false
-}
-
-func (c *Generator) IsCallable() Bool {
-	return true
-}
-
-func (c *Generator) Iterator() Value {
-	return NilValue
-}
-
-func (c *Generator) Type() string {
-	return "generator"
-}
-
-func (c Generator) String() string {
-	return fmt.Sprintf("Generator %v, Free = %v", c.Core, c.Free)
+	return fmt.Sprintf("Function %v, Free = %v", f.CoreFn, f.Free)
 }
 
 type GoFn func(args ...Value) (Value, error)
