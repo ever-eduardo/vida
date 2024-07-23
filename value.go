@@ -603,11 +603,11 @@ type Object struct {
 	Value map[string]Value
 }
 
-func (d *Object) Boolean() Bool {
-	return Bool(true)
+func (o *Object) Boolean() Bool {
+	return true
 }
 
-func (d *Object) Prefix(op byte) (Value, error) {
+func (o *Object) Prefix(op byte) (Value, error) {
 	switch op {
 	case byte(token.NOT):
 		return Bool(false), nil
@@ -616,17 +616,13 @@ func (d *Object) Prefix(op byte) (Value, error) {
 	}
 }
 
-func (d *Object) Binop(op byte, rhs Value) (Value, error) {
+func (o *Object) Binop(op byte, rhs Value) (Value, error) {
 	switch r := rhs.(type) {
 	case *Object:
 		switch op {
 		case byte(token.ADD):
-			rLen := len(r.Value)
-			if rLen == 0 {
-				return d, nil
-			}
 			pairs := make(map[string]Value)
-			for k, v := range d.Value {
+			for k, v := range o.Value {
 				pairs[k] = v
 			}
 			for k, v := range r.Value {
@@ -636,12 +632,12 @@ func (d *Object) Binop(op byte, rhs Value) (Value, error) {
 		case byte(token.AND):
 			return r, nil
 		case byte(token.OR):
-			return d, nil
+			return o, nil
 		}
 	default:
 		switch op {
 		case byte(token.OR):
-			return d, nil
+			return o, nil
 		case byte(token.AND):
 			return r, nil
 		}
@@ -649,62 +645,54 @@ func (d *Object) Binop(op byte, rhs Value) (Value, error) {
 	return NilValue, verror.RuntimeError
 }
 
-func (d *Object) IGet(index Value) (Value, error) {
-	switch r := index.(type) {
-	case String:
-		if val, ok := d.Value[r.Value]; ok {
-			return val, nil
-		}
-		return NilValue, nil
+func (o *Object) IGet(index Value) (Value, error) {
+	if val, ok := o.Value[index.String()]; ok {
+		return val, nil
 	}
-	return NilValue, verror.RuntimeError
+	return NilValue, nil
 }
 
-func (d *Object) ISet(index, val Value) error {
-	switch r := index.(type) {
-	case String:
-		d.Value[r.Value] = val
-		return nil
-	}
-	return verror.RuntimeError
+func (o *Object) ISet(index, val Value) error {
+	o.Value[index.String()] = val
+	return nil
 }
 
-func (d *Object) Equals(other Value) Bool {
+func (o *Object) Equals(other Value) Bool {
 	if val, ok := other.(*Object); ok {
-		return d == val
+		return o == val
 	}
 	return false
 }
 
-func (d *Object) IsIterable() Bool {
+func (o *Object) IsIterable() Bool {
 	return true
 }
 
-func (d *Object) IsCallable() Bool {
+func (o *Object) IsCallable() Bool {
 	return false
 }
 
-func (d *Object) Iterator() Value {
-	size := len(d.Value)
+func (o *Object) Iterator() Value {
+	size := len(o.Value)
 	keys := make([]string, 0, size)
-	for k := range d.Value {
+	for k := range o.Value {
 		keys = append(keys, k)
 	}
-	return &ObjectIterator{Doc: d.Value, Init: -1, End: size, Keys: keys}
+	return &ObjectIterator{Doc: o.Value, Init: -1, End: size, Keys: keys}
 }
 
-func (d *Object) String() string {
-	if len(d.Value) == 0 {
+func (o *Object) String() string {
+	if len(o.Value) == 0 {
 		return "{}"
 	}
 	var r []string
-	for k, v := range d.Value {
+	for k, v := range o.Value {
 		r = append(r, fmt.Sprintf("%v: %v", k, v.String()))
 	}
 	return fmt.Sprintf("{%v}", strings.Join(r, ", "))
 }
 
-func (d *Object) Type() string {
+func (o *Object) Type() string {
 	return "object"
 }
 
@@ -736,11 +724,10 @@ type freeInfo struct {
 }
 
 type CoreFunction struct {
-	Code   []byte
-	Info   []freeInfo
-	Free   int
-	Locals int
-	Arity  int
+	Code  []byte
+	Info  []freeInfo
+	Free  int
+	Arity int
 }
 
 func (c *CoreFunction) Boolean() Bool {
@@ -787,7 +774,7 @@ func (c *CoreFunction) Type() string {
 }
 
 func (f CoreFunction) String() string {
-	return fmt.Sprintf("[a = %v, loc = %v, f = %v, i = %v]", f.Arity, f.Locals, f.Free, f.Info)
+	return fmt.Sprintf("[a = %v, f = %v, i = %v]", f.Arity, f.Free, f.Info)
 }
 
 type Function struct {
