@@ -233,9 +233,6 @@ func (c *Compiler) compileStmt(node ast.Node) {
 			c.compileStmt(n.Statement[i])
 		}
 		locals := c.sb.clearLocals(c.level, c.scope)
-		if c.level > 0 && c.scope == 1 {
-			c.currentFn.Locals += locals
-		}
 		c.rAlloc -= byte(locals)
 		c.scope--
 	case *ast.Ret:
@@ -531,7 +528,7 @@ func (c *Compiler) startFuncScope() (byte, int) {
 }
 
 func (c *Compiler) leaveFuncScope() {
-	c.currentFn.Locals += c.sb.clearLocals(c.level, c.scope)
+	c.sb.clearLocals(c.level, c.scope)
 	c.fn = c.fn[:c.level]
 	c.level--
 	c.currentFn = c.fn[c.level]
