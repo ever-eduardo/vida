@@ -29,6 +29,7 @@ const (
 	LBRACKET
 	RBRACKET
 	ARROW
+	METHOD
 	operator_end
 
 	binary_op_init
@@ -85,7 +86,8 @@ var Tokens = [...]string{
 	RCURLY:     "}",
 	LBRACKET:   "[",
 	RBRACKET:   "]",
-	ARROW:      "->",
+	ARROW:      "=>",
+	METHOD:     "..",
 	ADD:        "+",
 	SUB:        "-",
 	MUL:        "*",

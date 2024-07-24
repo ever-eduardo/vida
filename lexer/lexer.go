@@ -250,7 +250,12 @@ func (l *Lexer) Next() (line uint, tok token.Token, lit string) {
 		case ',':
 			tok = token.COMMA
 		case '.':
-			tok = token.DOT
+			if l.c == '.' {
+				l.next()
+				tok = token.METHOD
+			} else {
+				tok = token.DOT
+			}
 		case '!':
 			if l.c == '=' {
 				l.next()
