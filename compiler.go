@@ -407,7 +407,7 @@ func (c *Compiler) compileExpr(node ast.Node) (int, byte) {
 		c.fn = append(c.fn, fn)
 		c.emitFun(c.kb.FunctionIndex(fn), c.rAlloc)
 		c.currentFn = fn
-		reg, scope := c.startFuncScope()
+		reg := c.startFuncScope()
 		for _, v := range n.Args {
 			fn.Arity++
 			c.sb.addLocal(v, c.level, c.scope, c.rAlloc)
@@ -416,7 +416,6 @@ func (c *Compiler) compileExpr(node ast.Node) (int, byte) {
 		c.compileStmt(n.Body)
 		c.leaveFuncScope()
 		c.rAlloc = reg
-		c.scope = scope
 		return int(c.rAlloc), rLoc
 	case *ast.CallExpr:
 		reg := c.rAlloc
@@ -520,11 +519,11 @@ func (c *Compiler) startLoopScope() {
 	c.continueCount = append(c.continueCount, 0)
 }
 
-func (c *Compiler) startFuncScope() (byte, int) {
-	r, s := c.rAlloc, c.scope
-	c.rAlloc, c.scope = 0, 0
+func (c *Compiler) startFuncScope() byte {
+	r := c.rAlloc
+	c.rAlloc = 0
 	c.level++
-	return r, s
+	return r
 }
 
 func (c *Compiler) leaveFuncScope() {

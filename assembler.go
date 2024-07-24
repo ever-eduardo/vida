@@ -208,8 +208,8 @@ func (c *Compiler) refScope(id string) (int, byte) {
 			if key.level+1 == c.level {
 				fn.Info = append(fn.Info, freeInfo{Index: int(to), IsLocal: true, Id: key.id})
 			} else {
-				for i := key.level; i < c.level; i++ {
-					if i == key.level {
+				for i := key.level + 1; i < c.level; i++ {
+					if i == key.level+1 {
 						c.fn[i].Free++
 						c.fn[i].Info = append(c.fn[i].Info, freeInfo{Index: int(to), IsLocal: true, Id: key.id})
 					} else {
