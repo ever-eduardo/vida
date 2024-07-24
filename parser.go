@@ -403,7 +403,13 @@ func (p *Parser) operand() ast.Node {
 		p.ok = false
 		return &ast.Nil{}
 	case token.STRING:
-		return &ast.String{Value: p.current.Lit}
+		s, e := strconv.Unquote(p.current.Lit)
+		if e != nil {
+			p.err = verror.New(p.lexer.ModuleName, "String value could not be processed", verror.SyntaxErrMsg, p.current.Line)
+			p.ok = false
+			return &ast.Nil{}
+		}
+		return &ast.String{Value: s}
 	case token.TRUE:
 		return &ast.Boolean{Value: true}
 	case token.FALSE:

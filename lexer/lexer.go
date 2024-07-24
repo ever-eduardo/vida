@@ -108,7 +108,7 @@ func isDigit(c rune) bool {
 }
 
 func (l *Lexer) scanString() (token.Token, string) {
-	init := l.pointer
+	init := l.pointer - 1
 	for {
 		ch := l.c
 		if ch == '\n' {
@@ -124,7 +124,7 @@ func (l *Lexer) scanString() (token.Token, string) {
 			break
 		}
 	}
-	return token.STRING, string(l.src[init : l.pointer-1])
+	return token.STRING, string(l.src[init:l.pointer])
 }
 
 func (l *Lexer) scanIdentifier() string {

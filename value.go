@@ -154,6 +154,7 @@ func (b Bool) Type() string {
 }
 
 type String struct {
+	Runes []rune
 	Value string
 }
 
@@ -195,12 +196,16 @@ func (s String) Binop(op byte, rhs Value) (Value, error) {
 func (s String) IGet(index Value) (Value, error) {
 	switch r := index.(type) {
 	case Integer:
-		l := Integer(len(s.Value))
+		if s.Runes == nil {
+			s.Runes = []rune(s.Value)
+		}
+		l := Integer(len(s.Runes))
 		if r < 0 {
 			r += l
 		}
 		if 0 <= r && r < l {
-			return String{Value: s.Value[r : r+Integer(1)]}, nil
+			sr := s.Runes[r : r+Integer(1)]
+			return String{Value: string(sr), Runes: sr}, nil
 		}
 	}
 	return NilValue, verror.RuntimeError
@@ -235,12 +240,10 @@ func (s String) IsCallable() Bool {
 }
 
 func (s String) Iterator() Value {
-	if r, ok := strToRunesMap[s.Value]; ok {
-		return &StringIterator{Runes: r, Init: -1, End: len(r)}
+	if s.Runes == nil {
+		s.Runes = []rune(s.Value)
 	}
-	r := []rune(s.Value)
-	strToRunesMap[s.Value] = r
-	return &StringIterator{Runes: r, Init: -1, End: len(r)}
+	return &StringIterator{Runes: s.Runes, Init: -1, End: len(s.Runes)}
 }
 
 func (s String) String() string {

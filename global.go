@@ -38,7 +38,10 @@ func gfnLen(args ...Value) (Value, error) {
 		case *Object:
 			return Integer(len(v.Value)), nil
 		case String:
-			return Integer(len(v.Value)), nil
+			if v.Runes == nil {
+				v.Runes = []rune(v.Value)
+			}
+			return Integer(len(v.Runes)), nil
 		}
 	}
 	return NilValue, nil
@@ -90,5 +93,3 @@ func gfnString(args ...Value) (Value, error) {
 	}
 	return NilValue, nil
 }
-
-var strToRunesMap = make(map[string][]rune)

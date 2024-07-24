@@ -1,0 +1,14 @@
+
+let move = fn from, to {
+    print("Move one disk from ", from, " to ", to)
+}
+
+let hanoi = fn num, from, help, to {
+    if num != 0 {
+        hanoi(num-1, from, to, help)
+        move(from, to)
+        hanoi(num-1, help, from, to)
+    }
+}
+
+hanoi(7, "A", "B", "C")
