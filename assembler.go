@@ -1,9 +1,5 @@
 package vida
 
-import (
-	"encoding/binary"
-)
-
 const v rune = 'v'
 const i rune = 'i'
 const d rune = 'd'
@@ -42,22 +38,22 @@ func (c *Compiler) appendEnd() {
 func (c *Compiler) emitSetG(from, to int, scope byte) {
 	c.currentFn.Code = append(c.currentFn.Code, setG)
 	c.currentFn.Code = append(c.currentFn.Code, scope)
-	c.currentFn.Code = binary.NativeEndian.AppendUint16(c.currentFn.Code, uint16(from))
-	c.currentFn.Code = binary.NativeEndian.AppendUint16(c.currentFn.Code, uint16(to))
+	c.currentFn.Code = append(c.currentFn.Code, byte(from), byte(from>>8))
+	c.currentFn.Code = append(c.currentFn.Code, byte(to), byte(to>>8))
 }
 
 func (c *Compiler) emitLoc(from int, to byte, scope byte) {
 	c.currentFn.Code = append(c.currentFn.Code, setL)
 	c.currentFn.Code = append(c.currentFn.Code, scope)
-	c.currentFn.Code = binary.NativeEndian.AppendUint16(c.currentFn.Code, uint16(from))
+	c.currentFn.Code = append(c.currentFn.Code, byte(from), byte(from>>8))
 	c.currentFn.Code = append(c.currentFn.Code, to)
 }
 
 func (c *Compiler) emitSetF(from int, to byte, scope byte) {
 	c.currentFn.Code = append(c.currentFn.Code, setF)
 	c.currentFn.Code = append(c.currentFn.Code, scope)
-	c.currentFn.Code = binary.NativeEndian.AppendUint16(c.currentFn.Code, uint16(from))
-	c.currentFn.Code = binary.NativeEndian.AppendUint16(c.currentFn.Code, uint16(to))
+	c.currentFn.Code = append(c.currentFn.Code, byte(from), byte(from>>8))
+	c.currentFn.Code = append(c.currentFn.Code, byte(uint16(to)), byte(uint16(to)>>8))
 }
 
 func (c *Compiler) emitMove(from byte, to byte) {
@@ -70,7 +66,7 @@ func (c *Compiler) emitPrefix(from int, to byte, scope byte, operator byte) {
 	c.currentFn.Code = append(c.currentFn.Code, prefix)
 	c.currentFn.Code = append(c.currentFn.Code, operator)
 	c.currentFn.Code = append(c.currentFn.Code, scope)
-	c.currentFn.Code = binary.NativeEndian.AppendUint16(c.currentFn.Code, uint16(from))
+	c.currentFn.Code = append(c.currentFn.Code, byte(from), byte(from>>8))
 	c.currentFn.Code = append(c.currentFn.Code, to)
 }
 
@@ -79,8 +75,8 @@ func (c *Compiler) emitBinary(fromLHS int, fromRHS int, scopeLHS byte, scopeRHS 
 	c.currentFn.Code = append(c.currentFn.Code, operator)
 	c.currentFn.Code = append(c.currentFn.Code, scopeLHS)
 	c.currentFn.Code = append(c.currentFn.Code, scopeRHS)
-	c.currentFn.Code = binary.NativeEndian.AppendUint16(c.currentFn.Code, uint16(fromLHS))
-	c.currentFn.Code = binary.NativeEndian.AppendUint16(c.currentFn.Code, uint16(fromRHS))
+	c.currentFn.Code = append(c.currentFn.Code, byte(fromLHS), byte(fromLHS>>8))
+	c.currentFn.Code = append(c.currentFn.Code, byte(fromRHS), byte(fromRHS>>8))
 	c.currentFn.Code = append(c.currentFn.Code, to)
 }
 
@@ -89,8 +85,8 @@ func (c *Compiler) emitEq(fromLHS int, fromRHS int, scopeLHS byte, scopeRHS byte
 	c.currentFn.Code = append(c.currentFn.Code, operator)
 	c.currentFn.Code = append(c.currentFn.Code, scopeLHS)
 	c.currentFn.Code = append(c.currentFn.Code, scopeRHS)
-	c.currentFn.Code = binary.NativeEndian.AppendUint16(c.currentFn.Code, uint16(fromLHS))
-	c.currentFn.Code = binary.NativeEndian.AppendUint16(c.currentFn.Code, uint16(fromRHS))
+	c.currentFn.Code = append(c.currentFn.Code, byte(fromLHS), byte(fromLHS>>8))
+	c.currentFn.Code = append(c.currentFn.Code, byte(fromRHS), byte(fromRHS>>8))
 	c.currentFn.Code = append(c.currentFn.Code, to)
 }
 
@@ -112,8 +108,8 @@ func (c *Compiler) emitIGet(fromIndexable int, fromIndex int, scopeIndexable byt
 	c.currentFn.Code = append(c.currentFn.Code, iGet)
 	c.currentFn.Code = append(c.currentFn.Code, scopeIndexable)
 	c.currentFn.Code = append(c.currentFn.Code, scopeIndex)
-	c.currentFn.Code = binary.NativeEndian.AppendUint16(c.currentFn.Code, uint16(fromIndexable))
-	c.currentFn.Code = binary.NativeEndian.AppendUint16(c.currentFn.Code, uint16(fromIndex))
+	c.currentFn.Code = append(c.currentFn.Code, byte(fromIndexable), byte(fromIndexable>>8))
+	c.currentFn.Code = append(c.currentFn.Code, byte(fromIndex), byte(fromIndex>>8))
 	c.currentFn.Code = append(c.currentFn.Code, to)
 }
 
@@ -121,8 +117,8 @@ func (c *Compiler) emitISet(fromIndex int, fromExpr int, scopeIndex byte, scopeE
 	c.currentFn.Code = append(c.currentFn.Code, iSet)
 	c.currentFn.Code = append(c.currentFn.Code, scopeIndex)
 	c.currentFn.Code = append(c.currentFn.Code, scopeExpr)
-	c.currentFn.Code = binary.NativeEndian.AppendUint16(c.currentFn.Code, uint16(fromIndex))
-	c.currentFn.Code = binary.NativeEndian.AppendUint16(c.currentFn.Code, uint16(fromExpr))
+	c.currentFn.Code = append(c.currentFn.Code, byte(fromIndex), byte(fromIndex>>8))
+	c.currentFn.Code = append(c.currentFn.Code, byte(fromExpr), byte(fromExpr>>8))
 	c.currentFn.Code = append(c.currentFn.Code, from)
 	c.currentFn.Code = append(c.currentFn.Code, to)
 }
@@ -133,53 +129,53 @@ func (c *Compiler) emitSlice(mode byte, fromV int, fromL int, fromR int, scopeV 
 	c.currentFn.Code = append(c.currentFn.Code, scopeV)
 	c.currentFn.Code = append(c.currentFn.Code, scopeL)
 	c.currentFn.Code = append(c.currentFn.Code, scopeR)
-	c.currentFn.Code = binary.NativeEndian.AppendUint16(c.currentFn.Code, uint16(fromV))
-	c.currentFn.Code = binary.NativeEndian.AppendUint16(c.currentFn.Code, uint16(fromL))
-	c.currentFn.Code = binary.NativeEndian.AppendUint16(c.currentFn.Code, uint16(fromR))
+	c.currentFn.Code = append(c.currentFn.Code, byte(fromV), byte(fromV>>8))
+	c.currentFn.Code = append(c.currentFn.Code, byte(fromL), byte(fromL>>8))
+	c.currentFn.Code = append(c.currentFn.Code, byte(fromR), byte(fromR>>8))
 	c.currentFn.Code = append(c.currentFn.Code, to)
 }
 
 func (c *Compiler) emitForSet(initReg byte, evalLoopAddr int) {
 	c.currentFn.Code = append(c.currentFn.Code, forSet)
 	c.currentFn.Code = append(c.currentFn.Code, initReg)
-	c.currentFn.Code = binary.NativeEndian.AppendUint16(c.currentFn.Code, uint16(evalLoopAddr))
+	c.currentFn.Code = append(c.currentFn.Code, byte(evalLoopAddr), byte(evalLoopAddr>>8))
 }
 
 func (c *Compiler) emitForLoop(initReg byte, jump int) {
 	c.currentFn.Code = append(c.currentFn.Code, forLoop)
 	c.currentFn.Code = append(c.currentFn.Code, initReg)
-	c.currentFn.Code = binary.NativeEndian.AppendUint16(c.currentFn.Code, uint16(jump))
+	c.currentFn.Code = append(c.currentFn.Code, byte(jump), byte(jump>>8))
 }
 
 func (c *Compiler) emitIForSet(evalLoopAddr, idx int, scope byte, reg byte) {
 	c.currentFn.Code = append(c.currentFn.Code, iForSet)
 	c.currentFn.Code = append(c.currentFn.Code, scope)
 	c.currentFn.Code = append(c.currentFn.Code, reg)
-	c.currentFn.Code = binary.NativeEndian.AppendUint16(c.currentFn.Code, uint16(idx))
-	c.currentFn.Code = binary.NativeEndian.AppendUint16(c.currentFn.Code, uint16(evalLoopAddr))
+	c.currentFn.Code = append(c.currentFn.Code, byte(idx), byte(idx>>8))
+	c.currentFn.Code = append(c.currentFn.Code, byte(evalLoopAddr), byte(evalLoopAddr>>8))
 }
 
 func (c *Compiler) emitIForLoop(forLoopReg byte, jump int) {
 	c.currentFn.Code = append(c.currentFn.Code, iForLoop)
 	c.currentFn.Code = append(c.currentFn.Code, forLoopReg)
-	c.currentFn.Code = binary.NativeEndian.AppendUint16(c.currentFn.Code, uint16(jump))
+	c.currentFn.Code = append(c.currentFn.Code, byte(jump), byte(jump>>8))
 }
 
 func (c *Compiler) emitJump(to int) {
 	c.currentFn.Code = append(c.currentFn.Code, jump)
-	c.currentFn.Code = binary.NativeEndian.AppendUint16(c.currentFn.Code, uint16(to))
+	c.currentFn.Code = append(c.currentFn.Code, byte(to), byte(to>>8))
 }
 
 func (c *Compiler) emitTestF(from int, scope byte, jump int) {
 	c.currentFn.Code = append(c.currentFn.Code, testF)
 	c.currentFn.Code = append(c.currentFn.Code, scope)
-	c.currentFn.Code = binary.NativeEndian.AppendUint16(c.currentFn.Code, uint16(from))
-	c.currentFn.Code = binary.NativeEndian.AppendUint16(c.currentFn.Code, uint16(jump))
+	c.currentFn.Code = append(c.currentFn.Code, byte(from), byte(from>>8))
+	c.currentFn.Code = append(c.currentFn.Code, byte(jump), byte(jump>>8))
 }
 
 func (c *Compiler) emitFun(from int, to byte) {
 	c.currentFn.Code = append(c.currentFn.Code, fun)
-	c.currentFn.Code = binary.NativeEndian.AppendUint16(c.currentFn.Code, uint16(from))
+	c.currentFn.Code = append(c.currentFn.Code, byte(from), byte(from>>8))
 	c.currentFn.Code = append(c.currentFn.Code, to)
 }
 
@@ -192,7 +188,7 @@ func (c *Compiler) emitCall(from, argCount byte) {
 func (c *Compiler) emitRet(from int, scope byte) {
 	c.currentFn.Code = append(c.currentFn.Code, ret)
 	c.currentFn.Code = append(c.currentFn.Code, scope)
-	c.currentFn.Code = binary.NativeEndian.AppendUint16(c.currentFn.Code, uint16(from))
+	c.currentFn.Code = append(c.currentFn.Code, byte(from), byte(from>>8))
 }
 
 func (c *Compiler) refScope(id string) (int, byte) {

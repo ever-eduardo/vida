@@ -1,7 +1,6 @@
 package vida
 
 import (
-	"encoding/binary"
 	"fmt"
 	"math"
 
@@ -50,15 +49,15 @@ func (vm *VM) Debug() (Result, error) {
 		case setG:
 			scope := vm.Frame.code[ip]
 			ip++
-			from := binary.NativeEndian.Uint16(vm.Frame.code[ip:])
+			from := uint16(vm.Frame.code[ip]) | uint16(vm.Frame.code[ip+1])<<8
 			ip += 2
-			to := binary.NativeEndian.Uint16(vm.Frame.code[ip:])
+			to := uint16(vm.Frame.code[ip]) | uint16(vm.Frame.code[ip+1])<<8
 			ip += 2
 			vm.Module.Store[vm.Module.Konstants[to].(String).Value] = vm.valueFrom(scope, from)
 		case setL:
 			scope := vm.Frame.code[ip]
 			ip++
-			from := binary.NativeEndian.Uint16(vm.Frame.code[ip:])
+			from := uint16(vm.Frame.code[ip]) | uint16(vm.Frame.code[ip+1])<<8
 			ip += 2
 			to := vm.Frame.code[ip]
 			ip++
@@ -72,23 +71,23 @@ func (vm *VM) Debug() (Result, error) {
 		case setF:
 			scope := vm.Frame.code[ip]
 			ip++
-			from := binary.NativeEndian.Uint16(vm.Frame.code[ip:])
+			from := uint16(vm.Frame.code[ip]) | uint16(vm.Frame.code[ip+1])<<8
 			ip += 2
-			to := binary.NativeEndian.Uint16(vm.Frame.code[ip:])
+			to := uint16(vm.Frame.code[ip]) | uint16(vm.Frame.code[ip+1])<<8
 			ip += 2
 			vm.Frame.lambda.Free[to] = vm.valueFrom(scope, from)
 		case testF:
 			scope := vm.Frame.code[ip]
 			ip++
-			from := binary.NativeEndian.Uint16(vm.Frame.code[ip:])
+			from := uint16(vm.Frame.code[ip]) | uint16(vm.Frame.code[ip+1])<<8
 			ip += 2
-			jump := binary.NativeEndian.Uint16(vm.Frame.code[ip:])
+			jump := uint16(vm.Frame.code[ip]) | uint16(vm.Frame.code[ip+1])<<8
 			ip += 2
 			if !vm.valueFrom(scope, from).Boolean() {
 				ip = int(jump)
 			}
 		case jump:
-			ip = int(binary.NativeEndian.Uint16(vm.Frame.code[ip:]))
+			ip = int(uint16(vm.Frame.code[ip]) | uint16(vm.Frame.code[ip+1])<<8)
 		case binop:
 			op := vm.Frame.code[ip]
 			ip++
@@ -96,9 +95,9 @@ func (vm *VM) Debug() (Result, error) {
 			ip++
 			scopeRHS := vm.Frame.code[ip]
 			ip++
-			fromLHS := binary.NativeEndian.Uint16(vm.Frame.code[ip:])
+			fromLHS := uint16(vm.Frame.code[ip]) | uint16(vm.Frame.code[ip+1])<<8
 			ip += 2
-			fromRHS := binary.NativeEndian.Uint16(vm.Frame.code[ip:])
+			fromRHS := uint16(vm.Frame.code[ip]) | uint16(vm.Frame.code[ip+1])<<8
 			ip += 2
 			to := vm.Frame.code[ip]
 			ip++
@@ -114,9 +113,9 @@ func (vm *VM) Debug() (Result, error) {
 			ip++
 			scopeRHS := vm.Frame.code[ip]
 			ip++
-			fromLHS := binary.NativeEndian.Uint16(vm.Frame.code[ip:])
+			fromLHS := uint16(vm.Frame.code[ip]) | uint16(vm.Frame.code[ip+1])<<8
 			ip += 2
-			fromRHS := binary.NativeEndian.Uint16(vm.Frame.code[ip:])
+			fromRHS := uint16(vm.Frame.code[ip]) | uint16(vm.Frame.code[ip+1])<<8
 			ip += 2
 			to := vm.Frame.code[ip]
 			ip++
@@ -130,7 +129,7 @@ func (vm *VM) Debug() (Result, error) {
 			ip++
 			scope := vm.Frame.code[ip]
 			ip++
-			from := binary.NativeEndian.Uint16(vm.Frame.code[ip:])
+			from := uint16(vm.Frame.code[ip]) | uint16(vm.Frame.code[ip+1])<<8
 			ip += 2
 			to := vm.Frame.code[ip]
 			ip++
@@ -144,9 +143,9 @@ func (vm *VM) Debug() (Result, error) {
 			ip++
 			scopeIndex := vm.Frame.code[ip]
 			ip++
-			fromIndexable := binary.NativeEndian.Uint16(vm.Frame.code[ip:])
+			fromIndexable := uint16(vm.Frame.code[ip]) | uint16(vm.Frame.code[ip+1])<<8
 			ip += 2
-			fromIndex := binary.NativeEndian.Uint16(vm.Frame.code[ip:])
+			fromIndex := uint16(vm.Frame.code[ip]) | uint16(vm.Frame.code[ip+1])<<8
 			ip += 2
 			to := vm.Frame.code[ip]
 			ip++
@@ -160,9 +159,9 @@ func (vm *VM) Debug() (Result, error) {
 			ip++
 			scopeExpr := vm.Frame.code[ip]
 			ip++
-			fromIndex := binary.NativeEndian.Uint16(vm.Frame.code[ip:])
+			fromIndex := uint16(vm.Frame.code[ip]) | uint16(vm.Frame.code[ip+1])<<8
 			ip += 2
-			fromExpr := binary.NativeEndian.Uint16(vm.Frame.code[ip:])
+			fromExpr := uint16(vm.Frame.code[ip]) | uint16(vm.Frame.code[ip+1])<<8
 			ip += 2
 			from := vm.Frame.code[ip]
 			ip += 2
@@ -179,11 +178,11 @@ func (vm *VM) Debug() (Result, error) {
 			ip++
 			scopeR := vm.Frame.code[ip]
 			ip++
-			fromV := binary.NativeEndian.Uint16(vm.Frame.code[ip:])
+			fromV := uint16(vm.Frame.code[ip]) | uint16(vm.Frame.code[ip+1])<<8
 			ip += 2
-			fromL := binary.NativeEndian.Uint16(vm.Frame.code[ip:])
+			fromL := uint16(vm.Frame.code[ip]) | uint16(vm.Frame.code[ip+1])<<8
 			ip += 2
-			fromR := binary.NativeEndian.Uint16(vm.Frame.code[ip:])
+			fromR := uint16(vm.Frame.code[ip]) | uint16(vm.Frame.code[ip+1])<<8
 			ip += 2
 			to := vm.Frame.code[ip]
 			ip++
@@ -224,7 +223,7 @@ func (vm *VM) Debug() (Result, error) {
 		case forSet:
 			i := vm.Frame.code[ip]
 			ip++
-			jump := binary.NativeEndian.Uint16(vm.Frame.code[ip:])
+			jump := uint16(vm.Frame.code[ip]) | uint16(vm.Frame.code[ip+1])<<8
 			ip += 2
 			if _, isInteger := vm.Frame.stack[i].(Integer); !isInteger {
 				return Failure, verror.RuntimeError
@@ -245,9 +244,9 @@ func (vm *VM) Debug() (Result, error) {
 			ip++
 			reg := vm.Frame.code[ip]
 			ip++
-			idx := binary.NativeEndian.Uint16(vm.Frame.code[ip:])
+			idx := uint16(vm.Frame.code[ip]) | uint16(vm.Frame.code[ip+1])<<8
 			ip += 2
-			jump := binary.NativeEndian.Uint16(vm.Frame.code[ip:])
+			jump := uint16(vm.Frame.code[ip]) | uint16(vm.Frame.code[ip+1])<<8
 			ip += 2
 			val := vm.valueFrom(scope, idx)
 			if !val.IsIterable() {
@@ -258,7 +257,7 @@ func (vm *VM) Debug() (Result, error) {
 		case forLoop:
 			r := vm.Frame.code[ip]
 			ip++
-			jump := binary.NativeEndian.Uint16(vm.Frame.code[ip:])
+			jump := uint16(vm.Frame.code[ip]) | uint16(vm.Frame.code[ip+1])<<8
 			ip += 2
 			i := vm.Frame.stack[r].(Integer)
 			e := vm.Frame.stack[r+1].(Integer)
@@ -281,7 +280,7 @@ func (vm *VM) Debug() (Result, error) {
 		case iForLoop:
 			r := vm.Frame.code[ip]
 			ip++
-			jump := binary.NativeEndian.Uint16(vm.Frame.code[ip:])
+			jump := uint16(vm.Frame.code[ip]) | uint16(vm.Frame.code[ip+1])<<8
 			ip += 2
 			i, _ := vm.Frame.stack[r].(Iterator)
 			if i.Next() {
@@ -291,7 +290,7 @@ func (vm *VM) Debug() (Result, error) {
 				continue
 			}
 		case fun:
-			from := binary.NativeEndian.Uint16(vm.Frame.code[ip:])
+			from := uint16(vm.Frame.code[ip]) | uint16(vm.Frame.code[ip+1])<<8
 			ip += 2
 			to := vm.Frame.code[ip]
 			ip++
@@ -351,7 +350,7 @@ func (vm *VM) Debug() (Result, error) {
 		case ret:
 			scope := vm.Frame.code[ip]
 			ip++
-			from := binary.NativeEndian.Uint16(vm.Frame.code[ip:])
+			from := uint16(vm.Frame.code[ip]) | uint16(vm.Frame.code[ip+1])<<8
 			ip += 2
 			val := vm.valueFrom(scope, from)
 			vm.fp--
