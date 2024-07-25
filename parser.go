@@ -62,7 +62,7 @@ func (p *Parser) mutOrCall(statements *[]ast.Node) ast.Node {
 	if p.next.Token == token.DOT ||
 		p.next.Token == token.LBRACKET ||
 		p.next.Token == token.LPAREN ||
-		p.next.Token == token.METHOD {
+		p.next.Token == token.COLON {
 		return p.mutateDataStructureOrCall(statements)
 	}
 	i := p.current.Lit
@@ -152,7 +152,7 @@ Loop:
 	for p.next.Token == token.LBRACKET ||
 		p.next.Token == token.DOT ||
 		p.next.Token == token.LPAREN ||
-		p.next.Token == token.METHOD {
+		p.next.Token == token.COLON {
 		p.advance()
 		switch p.current.Token {
 		case token.LBRACKET:
@@ -192,12 +192,12 @@ Loop:
 			if p.next.Token != token.LBRACKET &&
 				p.next.Token != token.DOT &&
 				p.next.Token != token.LPAREN &&
-				p.next.Token != token.METHOD {
+				p.next.Token != token.COLON {
 				p.advance()
 				return &ast.CallStmt{Args: args}
 			}
 			*statements = append(*statements, &ast.CallStmt{Args: args})
-		case token.METHOD:
+		case token.COLON:
 			var args []ast.Node
 			p.advance()
 			p.expect(token.IDENTIFIER)
@@ -222,7 +222,7 @@ Loop:
 			if p.next.Token != token.LBRACKET &&
 				p.next.Token != token.DOT &&
 				p.next.Token != token.LPAREN &&
-				p.next.Token != token.METHOD {
+				p.next.Token != token.COLON {
 				p.advance()
 				return &ast.MethodCallStmt{Args: args, Prop: prop}
 			}
@@ -360,7 +360,7 @@ Loop:
 	for p.next.Token == token.LBRACKET ||
 		p.next.Token == token.DOT ||
 		p.next.Token == token.LPAREN ||
-		p.next.Token == token.METHOD {
+		p.next.Token == token.COLON {
 		p.advance()
 		switch p.current.Token {
 		case token.LBRACKET:
@@ -377,7 +377,7 @@ Loop:
 			}
 		case token.LPAREN:
 			e = p.callExpr(e)
-		case token.METHOD:
+		case token.COLON:
 			e = p.methodCallExpr(e)
 		default:
 			break Loop
@@ -580,13 +580,13 @@ func (p *Parser) indexOrSlice(e ast.Node) ast.Node {
 	p.advance()
 	var index [2]ast.Node
 	mode := 2
-	if p.current.Token != token.COLON {
+	if p.current.Token != token.DOUBLE_DOT {
 		mode |= 4
 		index[0] = p.expression(token.LowestPrec)
 		p.advance()
 	}
 	var numColons int
-	if p.current.Token == token.COLON {
+	if p.current.Token == token.DOUBLE_DOT {
 		numColons++
 		p.advance()
 		if p.current.Token != token.RBRACKET && p.current.Token != token.EOF {
