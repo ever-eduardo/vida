@@ -13,6 +13,7 @@ func loadCoreLib() map[string]Value {
 	p["print"] = GoFn(gfnPrint)
 	p["len"] = GoFn(gfnLen)
 	p["append"] = GoFn(gfnAppend)
+	p["make"] = GoFn(gfnMakeArray)
 	p["load"] = NilValue
 	p["type"] = GoFn(gfnType)
 	p["assert"] = GoFn(gfnAssert)
@@ -82,6 +83,27 @@ func gfnAppend(args ...Value) (Value, error) {
 		case *List:
 			v.Value = append(v.Value, args[1:]...)
 			return v, nil
+		}
+	}
+	return NilValue, nil
+}
+
+func gfnMakeArray(args ...Value) (Value, error) {
+	largs := len(args)
+	if largs > 0 {
+		switch v := args[0].(type) {
+		case Integer:
+			var init Value = NilValue
+			if largs > 1 {
+				init = args[1]
+			}
+			if v >= 0 && v <= 0x7FFF_FFFF {
+				arr := make([]Value, v)
+				for i := range v {
+					arr[i] = init
+				}
+				return &List{Value: arr}, nil
+			}
 		}
 	}
 	return NilValue, nil
