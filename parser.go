@@ -48,6 +48,8 @@ func (p *Parser) Parse() (*ast.Ast, error) {
 		case token.LCURLY:
 			p.ast.Statement = append(p.ast.Statement, p.block(false))
 			p.advance()
+		case token.COMMENT:
+			p.advance()
 		case token.EOF:
 			return p.ast, nil
 		default:
@@ -135,6 +137,8 @@ func (p *Parser) block(isInsideLoop bool) ast.Node {
 			}
 		case token.LCURLY:
 			block.Statement = append(block.Statement, p.block(isInsideLoop))
+			p.advance()
+		case token.COMMENT:
 			p.advance()
 		default:
 			p.err = verror.New(p.lexer.ModuleName, "Expected statement Block", verror.SyntaxErrMsg, p.current.Line)

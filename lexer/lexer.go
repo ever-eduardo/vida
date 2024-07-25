@@ -107,6 +107,33 @@ func isDigit(c rune) bool {
 	return isDecimal(c) || c >= utf8.RuneSelf && unicode.IsDigit(c)
 }
 
+func (l *Lexer) scanComment() token.Token {
+	if l.c == '/' {
+		l.next()
+		for l.c != '\n' && l.c >= 0 {
+			l.next()
+		}
+		if l.c == '\n' {
+			l.next()
+		}
+		goto exit
+	}
+	l.next()
+	for l.c >= 0 {
+		ch := l.c
+		if ch == '\n' {
+			l.line++
+		}
+		l.next()
+		if ch == '*' && l.c == '/' {
+			l.next()
+			goto exit
+		}
+	}
+exit:
+	return token.COMMENT
+}
+
 func (l *Lexer) scanString() (token.Token, string) {
 	init := l.pointer - 1
 	for {
@@ -244,7 +271,11 @@ func (l *Lexer) Next() (line uint, tok token.Token, lit string) {
 		case '*':
 			tok = token.MUL
 		case '/':
-			tok = token.DIV
+			if l.c == '/' || l.c == '*' {
+				tok = l.scanComment()
+			} else {
+				tok = token.DIV
+			}
 		case '%':
 			tok = token.REM
 		case ',':
