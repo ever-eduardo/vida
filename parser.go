@@ -585,9 +585,9 @@ func (p *Parser) indexOrSlice(e ast.Node) ast.Node {
 		index[0] = p.expression(token.LowestPrec)
 		p.advance()
 	}
-	var numColons int
+	var numDDots int
 	if p.current.Token == token.DOUBLE_DOT {
-		numColons++
+		numDDots++
 		p.advance()
 		if p.current.Token != token.RBRACKET && p.current.Token != token.EOF {
 			mode |= 1
@@ -596,7 +596,7 @@ func (p *Parser) indexOrSlice(e ast.Node) ast.Node {
 		}
 	}
 	p.expect(token.RBRACKET)
-	if numColons > 0 {
+	if numDDots > 0 {
 		return &ast.Slice{
 			Value: e,
 			First: index[0],

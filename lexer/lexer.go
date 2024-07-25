@@ -186,7 +186,7 @@ func (l *Lexer) scanNumber() (token.Token, string) {
 		}
 	}
 fractional:
-	if l.c == '.' {
+	if l.c == '.' && rune(l.peek()) != '.' {
 		tok = token.FLOAT
 		l.next()
 		for isDecimal(l.c) || l.c == '_' {
