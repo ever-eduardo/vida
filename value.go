@@ -708,7 +708,6 @@ type Module struct {
 
 func newModule(name string) *Module {
 	m := Module{
-		Store:        make(map[string]Value),
 		Konstants:    make([]Value, 0, 32),
 		MainFunction: &Function{CoreFn: &CoreFunction{}},
 		Name:         name,
@@ -832,48 +831,48 @@ func (f Function) String() string {
 	return fmt.Sprintf("Function %v, Free = %v", f.CoreFn, f.Free)
 }
 
-type GoFn func(args ...Value) (Value, error)
+type GFn func(args ...Value) (Value, error)
 
-func (gfn GoFn) Boolean() Bool {
+func (gfn GFn) Boolean() Bool {
 	return Bool(true)
 }
 
-func (gfn GoFn) Prefix(op byte) (Value, error) {
+func (gfn GFn) Prefix(op byte) (Value, error) {
 	return NilValue, verror.RuntimeError
 }
 
-func (gfn GoFn) Binop(op byte, rhs Value) (Value, error) {
+func (gfn GFn) Binop(op byte, rhs Value) (Value, error) {
 	return NilValue, verror.RuntimeError
 }
 
-func (gfn GoFn) IGet(index Value) (Value, error) {
+func (gfn GFn) IGet(index Value) (Value, error) {
 	return NilValue, verror.RuntimeError
 }
 
-func (gfn GoFn) ISet(index, val Value) error {
+func (gfn GFn) ISet(index, val Value) error {
 	return verror.RuntimeError
 }
 
-func (gfn GoFn) Equals(other Value) Bool {
+func (gfn GFn) Equals(other Value) Bool {
 	return false
 }
 
-func (gfn GoFn) IsIterable() Bool {
+func (gfn GFn) IsIterable() Bool {
 	return false
 }
 
-func (gfn GoFn) IsCallable() Bool {
+func (gfn GFn) IsCallable() Bool {
 	return true
 }
 
-func (gfn GoFn) Iterator() Value {
+func (gfn GFn) Iterator() Value {
 	return NilValue
 }
 
-func (gfn GoFn) String() string {
-	return "GFunction"
+func (gfn GFn) String() string {
+	return "GFn"
 }
 
-func (gfn GoFn) Type() string {
+func (gfn GFn) Type() string {
 	return "function"
 }

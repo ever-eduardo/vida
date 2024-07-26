@@ -26,16 +26,16 @@ type frame struct {
 }
 
 type VM struct {
-	Frames  [frameSize]frame
-	Stack   [stackSize]Value
-	CoreLib map[string]Value
-	Module  *Module
-	Frame   *frame
-	fp      int
+	Frames [frameSize]frame
+	Stack  [stackSize]Value
+	Module *Module
+	Frame  *frame
+	fp     int
 }
 
 func NewVM(m *Module) (*VM, error) {
-	return &VM{Module: m, CoreLib: loadCoreLib()}, checkISACompatibility(m)
+	m.Store = loadCoreLib()
+	return &VM{Module: m}, checkISACompatibility(m)
 }
 
 func (vm *VM) Run() (Result, error) {
@@ -342,7 +342,7 @@ func (vm *VM) Run() (Result, error) {
 				vm.Frame.code = fn.CoreFn.Code
 				vm.Frame.stack = vm.Stack[vm.Frame.bp:]
 				ip = 0
-			} else if fn, ok := val.(GoFn); ok {
+			} else if fn, ok := val.(GFn); ok {
 				v, err := fn(vm.Frame.stack[from+1 : from+args+1]...)
 				if err != nil {
 					return Failure, err
@@ -377,12 +377,6 @@ func (vm *VM) valueFrom(scope byte, from uint16) Value {
 		return vm.Frame.stack[from]
 	case rGlob:
 		if v, defined := vm.Module.Store[vm.Module.Konstants[from].(String).Value]; defined {
-			return v
-		} else {
-			return NilValue
-		}
-	case rCore:
-		if v, defined := vm.CoreLib[vm.Module.Konstants[from].(String).Value]; defined {
 			return v
 		} else {
 			return NilValue
@@ -543,5 +537,5 @@ func checkISACompatibility(m *Module) error {
 	if m.MainFunction.CoreFn.Code[4] == major {
 		return nil
 	}
-	return verror.New(m.Name, "The module was compilated with another ABI version", verror.FileErrMsg, 0)
+	return verror.New(m.Name, "The module was compiled with another ABI version", verror.FileErrMsg, 0)
 }

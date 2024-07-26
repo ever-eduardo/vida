@@ -340,7 +340,7 @@ func (vm *VM) Debug() (Result, error) {
 				vm.Frame.code = fn.CoreFn.Code
 				vm.Frame.stack = vm.Stack[vm.Frame.bp:]
 				ip = 0
-			} else if fn, ok := val.(GoFn); ok {
+			} else if fn, ok := val.(GFn); ok {
 				v, err := fn(vm.Frame.stack[from+1 : from+args+1]...)
 				if err != nil {
 					return Failure, err

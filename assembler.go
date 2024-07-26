@@ -9,7 +9,6 @@ const (
 	rKonst byte = iota
 	rLoc
 	rGlob
-	rCore
 	rFree
 )
 
@@ -225,5 +224,5 @@ func (c *Compiler) refScope(id string) (int, byte) {
 		return idx, rGlob
 	}
 	idx := c.kb.StringIndex(id)
-	return idx, rCore
+	return idx, rGlob
 }

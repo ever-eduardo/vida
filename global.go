@@ -10,15 +10,15 @@ var NilValue = Nil{}
 
 func loadCoreLib() map[string]Value {
 	p := make(map[string]Value)
-	p["print"] = GoFn(gfnPrint)
-	p["len"] = GoFn(gfnLen)
-	p["append"] = GoFn(gfnAppend)
-	p["make"] = GoFn(gfnMakeArray)
+	p["print"] = GFn(gfnPrint)
+	p["len"] = GFn(gfnLen)
+	p["append"] = GFn(gfnAppend)
+	p["make"] = GFn(gfnMakeArray)
 	p["load"] = NilValue
-	p["type"] = GoFn(gfnType)
-	p["assert"] = GoFn(gfnAssert)
-	p["fmt"] = GoFn(gfnFormat)
-	p["str"] = GoFn(gfnString)
+	p["type"] = GFn(gfnType)
+	p["assert"] = GFn(gfnAssert)
+	p["fmt"] = GFn(gfnFormat)
+	p["str"] = GFn(gfnString)
 	return p
 }
 
