@@ -1,11 +1,16 @@
 package vida
 
+// 6 | 26
+// 6 | 10 | 16
+type Instruction uint32
+
 const (
 	end = iota
 	setG
 	setL
 	setF
 	move
+	getR
 	prefix
 	binop
 	equals
@@ -18,8 +23,7 @@ const (
 	forLoop
 	iForSet
 	iForLoop
-	testF
-	test
+	checkF
 	jump
 	fun
 	ret
@@ -32,6 +36,7 @@ var opcodes = [...]string{
 	setL:     "SetL",
 	setF:     "SetF",
 	move:     "Move",
+	getR:     "GetR",
 	prefix:   "Prefix",
 	binop:    "Binop",
 	equals:   "Eq",
@@ -44,10 +49,13 @@ var opcodes = [...]string{
 	forLoop:  "Loop",
 	iForSet:  "IFor",
 	iForLoop: "ILoop",
-	testF:    "TestF",
-	test:     "Test",
+	checkF:   "TestF",
 	jump:     "Jump",
 	fun:      "Fun",
 	ret:      "Ret",
 	call:     "Call",
+}
+
+func (i Instruction) String() string {
+	return opcodes[i]
 }

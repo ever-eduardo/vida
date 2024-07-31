@@ -35,153 +35,160 @@ func (c *Compiler) appendEnd() {
 }
 
 func (c *Compiler) emitSetG(from, to int, scope byte) {
-	c.currentFn.Code = append(c.currentFn.Code, setG)
-	c.currentFn.Code = append(c.currentFn.Code, scope)
-	c.currentFn.Code = append(c.currentFn.Code, byte(from), byte(from>>8))
-	c.currentFn.Code = append(c.currentFn.Code, byte(to), byte(to>>8))
+	// c.currentFn.Code = append(c.currentFn.Code, setG)
+	// c.currentFn.Code = append(c.currentFn.Code, scope)
+	// c.currentFn.Code = append(c.currentFn.Code, byte(from), byte(from>>8))
+	// c.currentFn.Code = append(c.currentFn.Code, byte(to), byte(to>>8))
 }
 
-func (c *Compiler) emitLoc(from int, to byte, scope byte) {
-	c.currentFn.Code = append(c.currentFn.Code, setL)
-	c.currentFn.Code = append(c.currentFn.Code, scope)
-	c.currentFn.Code = append(c.currentFn.Code, byte(from), byte(from>>8))
-	c.currentFn.Code = append(c.currentFn.Code, to)
+func (c *Compiler) emitLoc(from, to int, scope byte) {
+	// c.currentFn.Code = append(c.currentFn.Code, setL)
+	// c.currentFn.Code = append(c.currentFn.Code, scope)
+	// c.currentFn.Code = append(c.currentFn.Code, byte(from), byte(from>>8))
+	// c.currentFn.Code = append(c.currentFn.Code, to)
 }
 
-func (c *Compiler) emitSetF(from int, to byte, scope byte) {
-	c.currentFn.Code = append(c.currentFn.Code, setF)
-	c.currentFn.Code = append(c.currentFn.Code, scope)
-	c.currentFn.Code = append(c.currentFn.Code, byte(from), byte(from>>8))
-	c.currentFn.Code = append(c.currentFn.Code, byte(uint16(to)), byte(uint16(to)>>8))
+func (c *Compiler) emitSetF(from, to int, scope byte) {
+	// c.currentFn.Code = append(c.currentFn.Code, setF)
+	// c.currentFn.Code = append(c.currentFn.Code, scope)
+	// c.currentFn.Code = append(c.currentFn.Code, byte(from), byte(from>>8))
+	// c.currentFn.Code = append(c.currentFn.Code, byte(uint16(to)), byte(uint16(to)>>8))
 }
 
-func (c *Compiler) emitMove(from byte, to byte) {
-	c.currentFn.Code = append(c.currentFn.Code, move)
-	c.currentFn.Code = append(c.currentFn.Code, from)
-	c.currentFn.Code = append(c.currentFn.Code, to)
+func (c *Compiler) emitGetR(from, to int, refType byte) {
+	// c.currentFn.Code = append(c.currentFn.Code, getR)
+	// c.currentFn.Code = append(c.currentFn.Code, refType)
+	// c.currentFn.Code = append(c.currentFn.Code, byte(from), byte(from>>8))
+	// c.currentFn.Code = append(c.currentFn.Code, byte(uint16(to)), byte(uint16(to)>>8))
 }
 
-func (c *Compiler) emitPrefix(from int, to byte, scope byte, operator byte) {
-	c.currentFn.Code = append(c.currentFn.Code, prefix)
-	c.currentFn.Code = append(c.currentFn.Code, operator)
-	c.currentFn.Code = append(c.currentFn.Code, scope)
-	c.currentFn.Code = append(c.currentFn.Code, byte(from), byte(from>>8))
-	c.currentFn.Code = append(c.currentFn.Code, to)
+func (c *Compiler) emitMove(from, to int) {
+	// c.currentFn.Code = append(c.currentFn.Code, move)
+	// c.currentFn.Code = append(c.currentFn.Code, from)
+	// c.currentFn.Code = append(c.currentFn.Code, to)
 }
 
-func (c *Compiler) emitBinary(fromLHS int, fromRHS int, scopeLHS byte, scopeRHS byte, to byte, operator byte) {
-	c.currentFn.Code = append(c.currentFn.Code, binop)
-	c.currentFn.Code = append(c.currentFn.Code, operator)
-	c.currentFn.Code = append(c.currentFn.Code, scopeLHS)
-	c.currentFn.Code = append(c.currentFn.Code, scopeRHS)
-	c.currentFn.Code = append(c.currentFn.Code, byte(fromLHS), byte(fromLHS>>8))
-	c.currentFn.Code = append(c.currentFn.Code, byte(fromRHS), byte(fromRHS>>8))
-	c.currentFn.Code = append(c.currentFn.Code, to)
+func (c *Compiler) emitPrefix(from, to int, scope byte, operator byte) {
+	// c.currentFn.Code = append(c.currentFn.Code, prefix)
+	// c.currentFn.Code = append(c.currentFn.Code, operator)
+	// c.currentFn.Code = append(c.currentFn.Code, scope)
+	// c.currentFn.Code = append(c.currentFn.Code, byte(from), byte(from>>8))
+	// c.currentFn.Code = append(c.currentFn.Code, to)
 }
 
-func (c *Compiler) emitEq(fromLHS int, fromRHS int, scopeLHS byte, scopeRHS byte, to byte, operator byte) {
-	c.currentFn.Code = append(c.currentFn.Code, equals)
-	c.currentFn.Code = append(c.currentFn.Code, operator)
-	c.currentFn.Code = append(c.currentFn.Code, scopeLHS)
-	c.currentFn.Code = append(c.currentFn.Code, scopeRHS)
-	c.currentFn.Code = append(c.currentFn.Code, byte(fromLHS), byte(fromLHS>>8))
-	c.currentFn.Code = append(c.currentFn.Code, byte(fromRHS), byte(fromRHS>>8))
-	c.currentFn.Code = append(c.currentFn.Code, to)
+func (c *Compiler) emitBinary(fromLHS int, fromRHS int, scopeLHS byte, scopeRHS byte, to int, operator byte) {
+	// c.currentFn.Code = append(c.currentFn.Code, binop)
+	// c.currentFn.Code = append(c.currentFn.Code, operator)
+	// c.currentFn.Code = append(c.currentFn.Code, scopeLHS)
+	// c.currentFn.Code = append(c.currentFn.Code, scopeRHS)
+	// c.currentFn.Code = append(c.currentFn.Code, byte(fromLHS), byte(fromLHS>>8))
+	// c.currentFn.Code = append(c.currentFn.Code, byte(fromRHS), byte(fromRHS>>8))
+	// c.currentFn.Code = append(c.currentFn.Code, to)
 }
 
-func (c *Compiler) emitList(length byte, from byte, to byte) {
-	c.currentFn.Code = append(c.currentFn.Code, list)
-	c.currentFn.Code = append(c.currentFn.Code, length)
-	c.currentFn.Code = append(c.currentFn.Code, from)
-	c.currentFn.Code = append(c.currentFn.Code, to)
+func (c *Compiler) emitEq(fromLHS int, fromRHS int, scopeLHS byte, scopeRHS byte, to int, operator byte) {
+	// c.currentFn.Code = append(c.currentFn.Code, equals)
+	// c.currentFn.Code = append(c.currentFn.Code, operator)
+	// c.currentFn.Code = append(c.currentFn.Code, scopeLHS)
+	// c.currentFn.Code = append(c.currentFn.Code, scopeRHS)
+	// c.currentFn.Code = append(c.currentFn.Code, byte(fromLHS), byte(fromLHS>>8))
+	// c.currentFn.Code = append(c.currentFn.Code, byte(fromRHS), byte(fromRHS>>8))
+	// c.currentFn.Code = append(c.currentFn.Code, to)
 }
 
-func (c *Compiler) emitObject(length byte, from byte, to byte) {
-	c.currentFn.Code = append(c.currentFn.Code, obj)
-	c.currentFn.Code = append(c.currentFn.Code, length)
-	c.currentFn.Code = append(c.currentFn.Code, from)
-	c.currentFn.Code = append(c.currentFn.Code, to)
+func (c *Compiler) emitList(length int, from, to int) {
+	// c.currentFn.Code = append(c.currentFn.Code, list)
+	// c.currentFn.Code = append(c.currentFn.Code, length)
+	// c.currentFn.Code = append(c.currentFn.Code, from)
+	// c.currentFn.Code = append(c.currentFn.Code, to)
 }
 
-func (c *Compiler) emitIGet(fromIndexable int, fromIndex int, scopeIndexable byte, scopeIndex byte, to byte) {
-	c.currentFn.Code = append(c.currentFn.Code, iGet)
-	c.currentFn.Code = append(c.currentFn.Code, scopeIndexable)
-	c.currentFn.Code = append(c.currentFn.Code, scopeIndex)
-	c.currentFn.Code = append(c.currentFn.Code, byte(fromIndexable), byte(fromIndexable>>8))
-	c.currentFn.Code = append(c.currentFn.Code, byte(fromIndex), byte(fromIndex>>8))
-	c.currentFn.Code = append(c.currentFn.Code, to)
+func (c *Compiler) emitObject(length int, from, to int) {
+	// c.currentFn.Code = append(c.currentFn.Code, obj)
+	// c.currentFn.Code = append(c.currentFn.Code, length)
+	// c.currentFn.Code = append(c.currentFn.Code, from)
+	// c.currentFn.Code = append(c.currentFn.Code, to)
 }
 
-func (c *Compiler) emitISet(fromIndex int, fromExpr int, scopeIndex byte, scopeExpr byte, from byte, to byte) {
-	c.currentFn.Code = append(c.currentFn.Code, iSet)
-	c.currentFn.Code = append(c.currentFn.Code, scopeIndex)
-	c.currentFn.Code = append(c.currentFn.Code, scopeExpr)
-	c.currentFn.Code = append(c.currentFn.Code, byte(fromIndex), byte(fromIndex>>8))
-	c.currentFn.Code = append(c.currentFn.Code, byte(fromExpr), byte(fromExpr>>8))
-	c.currentFn.Code = append(c.currentFn.Code, from)
-	c.currentFn.Code = append(c.currentFn.Code, to)
+func (c *Compiler) emitIGet(fromIndexable int, fromIndex int, scopeIndexable byte, scopeIndex byte, to int) {
+	// c.currentFn.Code = append(c.currentFn.Code, iGet)
+	// c.currentFn.Code = append(c.currentFn.Code, scopeIndexable)
+	// c.currentFn.Code = append(c.currentFn.Code, scopeIndex)
+	// c.currentFn.Code = append(c.currentFn.Code, byte(fromIndexable), byte(fromIndexable>>8))
+	// c.currentFn.Code = append(c.currentFn.Code, byte(fromIndex), byte(fromIndex>>8))
+	// c.currentFn.Code = append(c.currentFn.Code, to)
 }
 
-func (c *Compiler) emitSlice(mode byte, fromV int, fromL int, fromR int, scopeV byte, scopeL byte, scopeR byte, to byte) {
-	c.currentFn.Code = append(c.currentFn.Code, slice)
-	c.currentFn.Code = append(c.currentFn.Code, mode)
-	c.currentFn.Code = append(c.currentFn.Code, scopeV)
-	c.currentFn.Code = append(c.currentFn.Code, scopeL)
-	c.currentFn.Code = append(c.currentFn.Code, scopeR)
-	c.currentFn.Code = append(c.currentFn.Code, byte(fromV), byte(fromV>>8))
-	c.currentFn.Code = append(c.currentFn.Code, byte(fromL), byte(fromL>>8))
-	c.currentFn.Code = append(c.currentFn.Code, byte(fromR), byte(fromR>>8))
-	c.currentFn.Code = append(c.currentFn.Code, to)
+func (c *Compiler) emitISet(fromIndex int, fromExpr int, scopeIndex byte, scopeExpr byte, from, to int) {
+	// c.currentFn.Code = append(c.currentFn.Code, iSet)
+	// c.currentFn.Code = append(c.currentFn.Code, scopeIndex)
+	// c.currentFn.Code = append(c.currentFn.Code, scopeExpr)
+	// c.currentFn.Code = append(c.currentFn.Code, byte(fromIndex), byte(fromIndex>>8))
+	// c.currentFn.Code = append(c.currentFn.Code, byte(fromExpr), byte(fromExpr>>8))
+	// c.currentFn.Code = append(c.currentFn.Code, from)
+	// c.currentFn.Code = append(c.currentFn.Code, to)
 }
 
-func (c *Compiler) emitForSet(initReg byte, evalLoopAddr int) {
-	c.currentFn.Code = append(c.currentFn.Code, forSet)
-	c.currentFn.Code = append(c.currentFn.Code, initReg)
-	c.currentFn.Code = append(c.currentFn.Code, byte(evalLoopAddr), byte(evalLoopAddr>>8))
+func (c *Compiler) emitSlice(mode byte, fromV int, fromL int, fromR int, scopeV byte, scopeL byte, scopeR byte, to int) {
+	// c.currentFn.Code = append(c.currentFn.Code, slice)
+	// c.currentFn.Code = append(c.currentFn.Code, mode)
+	// c.currentFn.Code = append(c.currentFn.Code, scopeV)
+	// c.currentFn.Code = append(c.currentFn.Code, scopeL)
+	// c.currentFn.Code = append(c.currentFn.Code, scopeR)
+	// c.currentFn.Code = append(c.currentFn.Code, byte(fromV), byte(fromV>>8))
+	// c.currentFn.Code = append(c.currentFn.Code, byte(fromL), byte(fromL>>8))
+	// c.currentFn.Code = append(c.currentFn.Code, byte(fromR), byte(fromR>>8))
+	// c.currentFn.Code = append(c.currentFn.Code, to)
 }
 
-func (c *Compiler) emitForLoop(initReg byte, jump int) {
-	c.currentFn.Code = append(c.currentFn.Code, forLoop)
-	c.currentFn.Code = append(c.currentFn.Code, initReg)
-	c.currentFn.Code = append(c.currentFn.Code, byte(jump), byte(jump>>8))
+func (c *Compiler) emitForSet(initReg, evalLoopAddr int) {
+	// c.currentFn.Code = append(c.currentFn.Code, forSet)
+	// c.currentFn.Code = append(c.currentFn.Code, initReg)
+	// c.currentFn.Code = append(c.currentFn.Code, byte(evalLoopAddr), byte(evalLoopAddr>>8))
 }
 
-func (c *Compiler) emitIForSet(evalLoopAddr, idx int, scope byte, reg byte) {
-	c.currentFn.Code = append(c.currentFn.Code, iForSet)
-	c.currentFn.Code = append(c.currentFn.Code, scope)
-	c.currentFn.Code = append(c.currentFn.Code, reg)
-	c.currentFn.Code = append(c.currentFn.Code, byte(idx), byte(idx>>8))
-	c.currentFn.Code = append(c.currentFn.Code, byte(evalLoopAddr), byte(evalLoopAddr>>8))
+func (c *Compiler) emitForLoop(initReg, jump int) {
+	// c.currentFn.Code = append(c.currentFn.Code, forLoop)
+	// c.currentFn.Code = append(c.currentFn.Code, initReg)
+	// c.currentFn.Code = append(c.currentFn.Code, byte(jump), byte(jump>>8))
 }
 
-func (c *Compiler) emitIForLoop(forLoopReg byte, jump int) {
-	c.currentFn.Code = append(c.currentFn.Code, iForLoop)
-	c.currentFn.Code = append(c.currentFn.Code, forLoopReg)
-	c.currentFn.Code = append(c.currentFn.Code, byte(jump), byte(jump>>8))
+func (c *Compiler) emitIForSet(evalLoopAddr, idx int, scope byte, reg int) {
+	// c.currentFn.Code = append(c.currentFn.Code, iForSet)
+	// c.currentFn.Code = append(c.currentFn.Code, scope)
+	// c.currentFn.Code = append(c.currentFn.Code, reg)
+	// c.currentFn.Code = append(c.currentFn.Code, byte(idx), byte(idx>>8))
+	// c.currentFn.Code = append(c.currentFn.Code, byte(evalLoopAddr), byte(evalLoopAddr>>8))
+}
+
+func (c *Compiler) emitIForLoop(forLoopReg, jump int) {
+	// c.currentFn.Code = append(c.currentFn.Code, iForLoop)
+	// c.currentFn.Code = append(c.currentFn.Code, forLoopReg)
+	// c.currentFn.Code = append(c.currentFn.Code, byte(jump), byte(jump>>8))
 }
 
 func (c *Compiler) emitJump(to int) {
-	c.currentFn.Code = append(c.currentFn.Code, jump)
-	c.currentFn.Code = append(c.currentFn.Code, byte(to), byte(to>>8))
+	// c.currentFn.Code = append(c.currentFn.Code, jump)
+	// c.currentFn.Code = append(c.currentFn.Code, byte(to), byte(to>>8))
 }
 
 func (c *Compiler) emitTestF(from int, scope byte, jump int) {
-	c.currentFn.Code = append(c.currentFn.Code, testF)
-	c.currentFn.Code = append(c.currentFn.Code, scope)
-	c.currentFn.Code = append(c.currentFn.Code, byte(from), byte(from>>8))
-	c.currentFn.Code = append(c.currentFn.Code, byte(jump), byte(jump>>8))
+	// c.currentFn.Code = append(c.currentFn.Code, checkF)
+	// c.currentFn.Code = append(c.currentFn.Code, scope)
+	// c.currentFn.Code = append(c.currentFn.Code, byte(from), byte(from>>8))
+	// c.currentFn.Code = append(c.currentFn.Code, byte(jump), byte(jump>>8))
 }
 
-func (c *Compiler) emitFun(from int, to byte) {
-	c.currentFn.Code = append(c.currentFn.Code, fun)
-	c.currentFn.Code = append(c.currentFn.Code, byte(from), byte(from>>8))
-	c.currentFn.Code = append(c.currentFn.Code, to)
+func (c *Compiler) emitFun(from, to int) {
+	// c.currentFn.Code = append(c.currentFn.Code, fun)
+	// c.currentFn.Code = append(c.currentFn.Code, byte(from), byte(from>>8))
+	// c.currentFn.Code = append(c.currentFn.Code, to)
 }
 
-func (c *Compiler) emitCall(from, argCount byte) {
-	c.currentFn.Code = append(c.currentFn.Code, call)
-	c.currentFn.Code = append(c.currentFn.Code, from)
-	c.currentFn.Code = append(c.currentFn.Code, argCount)
+func (c *Compiler) emitCall(from, argCount int) {
+	// c.currentFn.Code = append(c.currentFn.Code, call)
+	// c.currentFn.Code = append(c.currentFn.Code, from)
+	// c.currentFn.Code = append(c.currentFn.Code, argCount)
 }
 
 func (c *Compiler) emitRet(from int, scope byte) {

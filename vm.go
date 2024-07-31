@@ -78,7 +78,7 @@ func (vm *VM) Run() (Result, error) {
 			to := uint16(vm.Frame.code[ip]) | uint16(vm.Frame.code[ip+1])<<8
 			ip += 2
 			vm.Frame.lambda.Free[to] = vm.valueFrom(scope, from)
-		case testF:
+		case checkF:
 			scope := vm.Frame.code[ip]
 			ip++
 			from := uint16(vm.Frame.code[ip]) | uint16(vm.Frame.code[ip+1])<<8

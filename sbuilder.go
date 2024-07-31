@@ -6,7 +6,7 @@ type lKey struct {
 	id    string
 	level int
 	scope int
-	reg   byte
+	reg   int
 }
 
 type symbolBuilder struct {
@@ -20,7 +20,7 @@ func newSymbolBuilder() *symbolBuilder {
 	}
 }
 
-func (sb *symbolBuilder) isLocal(id string) (byte, bool, lKey) {
+func (sb *symbolBuilder) isLocal(id string) (int, bool, lKey) {
 	var k lKey
 	for i := len(sb.History) - 1; i >= 0; i-- {
 		if sb.History[i].id == id {
@@ -36,7 +36,7 @@ func (sb *symbolBuilder) isGlobal(id string) (isGlobal bool) {
 	return
 }
 
-func (sb *symbolBuilder) addLocal(id string, level int, scope int, reg byte) {
+func (sb *symbolBuilder) addLocal(id string, level int, scope int, reg int) {
 	sb.History = append(sb.History,
 		lKey{
 			id:    id,

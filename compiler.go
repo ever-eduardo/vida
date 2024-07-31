@@ -22,7 +22,7 @@ type Compiler struct {
 	sb            *symbolBuilder
 	scope         int
 	level         int
-	rAlloc        byte
+	rAlloc        int
 	hadError      bool
 }
 
@@ -57,15 +57,15 @@ func (c *Compiler) compileStmt(node ast.Node) {
 		from, se := c.compileExpr(n.Expr)
 		to, si := c.refScope(n.Indentifier)
 		if si == rFree {
-			c.emitSetF(from, byte(to), se)
+			c.emitSetF(from, to, se)
 		} else if si == rLoc {
 			if from == to {
 				return
 			}
 			if se == rLoc {
-				c.emitMove(byte(from), byte(to))
+				c.emitMove(from, to)
 			} else {
-				c.emitLoc(from, byte(to), se)
+				c.emitLoc(from, to, se)
 			}
 		} else if isGlobal := c.sb.isGlobal(n.Indentifier); isGlobal {
 			to := c.kb.StringIndex(n.Indentifier)
@@ -136,7 +136,7 @@ func (c *Compiler) compileStmt(node ast.Node) {
 		c.emitForLoop(ireg, jump)
 		c.cleanUpLoopScope(evalLoopAddr)
 
-		c.rAlloc -= byte(c.sb.clearLocals(c.level, c.scope))
+		c.rAlloc -= c.sb.clearLocals(c.level, c.scope)
 		c.rAlloc -= 3
 		c.scope--
 	case *ast.IFor:
@@ -164,7 +164,7 @@ func (c *Compiler) compileStmt(node ast.Node) {
 		c.emitIForLoop(ireg, jump)
 		c.cleanUpLoopScope(evalLoopAddr)
 
-		c.rAlloc -= byte(c.sb.clearLocals(c.level, c.scope))
+		c.rAlloc -= c.sb.clearLocals(c.level, c.scope)
 		c.rAlloc--
 		c.scope--
 	case *ast.While:
@@ -233,7 +233,7 @@ func (c *Compiler) compileStmt(node ast.Node) {
 			c.compileStmt(n.Statement[i])
 		}
 		locals := c.sb.clearLocals(c.level, c.scope)
-		c.rAlloc -= byte(locals)
+		c.rAlloc -= locals
 		c.scope--
 	case *ast.Ret:
 		if c.level == 0 {
@@ -249,7 +249,7 @@ func (c *Compiler) compileStmt(node ast.Node) {
 			c.emitLoc(i, c.rAlloc, s)
 		}
 		c.rAlloc = reg
-		c.emitCall(reg, byte(len(n.Args)))
+		c.emitCall(reg, len(n.Args))
 	case *ast.MethodCallStmt:
 		reg := c.rAlloc
 		c.rAlloc++
@@ -263,7 +263,7 @@ func (c *Compiler) compileStmt(node ast.Node) {
 			c.rAlloc++
 		}
 		c.rAlloc = reg
-		c.emitCall(reg, byte(len(n.Args)+1))
+		c.emitCall(reg, len(n.Args)+1)
 	}
 }
 
@@ -326,13 +326,13 @@ func (c *Compiler) compileExpr(node ast.Node) (int, byte) {
 			if scope != rLoc {
 				c.emitLoc(idx, c.rAlloc, scope)
 			} else if idx != int(c.rAlloc) {
-				c.emitMove(byte(idx), c.rAlloc)
+				c.emitMove(idx, c.rAlloc)
 			}
 			c.rAlloc++
 			count++
 		}
-		c.rAlloc -= byte(count)
-		c.emitList(byte(count), c.rAlloc, c.rAlloc)
+		c.rAlloc -= count
+		c.emitList(count, c.rAlloc, c.rAlloc)
 		return int(c.rAlloc), rLoc
 	case *ast.Object:
 		if len(n.Pairs) == 0 {
@@ -348,13 +348,13 @@ func (c *Compiler) compileExpr(node ast.Node) (int, byte) {
 			if scopeV != rLoc {
 				c.emitLoc(iv, c.rAlloc, scopeV)
 			} else if iv != int(c.rAlloc) {
-				c.emitMove(byte(iv), c.rAlloc)
+				c.emitMove(iv, c.rAlloc)
 			}
 			c.rAlloc++
 			count += 2
 		}
-		c.rAlloc -= byte(count)
-		c.emitObject(byte(count), c.rAlloc, c.rAlloc)
+		c.rAlloc -= count
+		c.emitObject(count, c.rAlloc, c.rAlloc)
 		return int(c.rAlloc), rLoc
 	case *ast.Property:
 		return c.kb.StringIndex(n.Value), rKonst
@@ -427,7 +427,7 @@ func (c *Compiler) compileExpr(node ast.Node) (int, byte) {
 			c.emitLoc(i, c.rAlloc, s)
 		}
 		c.rAlloc = reg
-		c.emitCall(reg, byte(len(n.Args)))
+		c.emitCall(reg, len(n.Args))
 		return int(reg), rLoc
 	case *ast.MethodCallExpr:
 		reg := c.rAlloc
@@ -447,7 +447,7 @@ func (c *Compiler) compileExpr(node ast.Node) (int, byte) {
 			c.rAlloc++
 		}
 		c.rAlloc = reg
-		c.emitCall(reg, byte(len(n.Args)+1))
+		c.emitCall(reg, len(n.Args)+1)
 		return int(reg), rLoc
 	default:
 		return 0, rKonst
@@ -519,7 +519,7 @@ func (c *Compiler) startLoopScope() {
 	c.continueCount = append(c.continueCount, 0)
 }
 
-func (c *Compiler) startFuncScope() byte {
+func (c *Compiler) startFuncScope() int {
 	r := c.rAlloc
 	c.rAlloc = 0
 	c.level++
