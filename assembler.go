@@ -20,14 +20,14 @@ const (
 )
 
 func (c *Compiler) appendHeader() {
-	c.currentFn.Code = append(c.currentFn.Code, byte(v))
-	c.currentFn.Code = append(c.currentFn.Code, byte(i))
-	c.currentFn.Code = append(c.currentFn.Code, byte(d))
-	c.currentFn.Code = append(c.currentFn.Code, byte(a))
-	c.currentFn.Code = append(c.currentFn.Code, byte(major))
-	c.currentFn.Code = append(c.currentFn.Code, byte(minor))
-	c.currentFn.Code = append(c.currentFn.Code, byte(patch))
-	c.currentFn.Code = append(c.currentFn.Code, byte(inception))
+	// c.currentFn.Code = append(c.currentFn.Code, byte(v))
+	// c.currentFn.Code = append(c.currentFn.Code, byte(i))
+	// c.currentFn.Code = append(c.currentFn.Code, byte(d))
+	// c.currentFn.Code = append(c.currentFn.Code, byte(a))
+	// c.currentFn.Code = append(c.currentFn.Code, byte(major))
+	// c.currentFn.Code = append(c.currentFn.Code, byte(minor))
+	// c.currentFn.Code = append(c.currentFn.Code, byte(patch))
+	// c.currentFn.Code = append(c.currentFn.Code, byte(inception))
 }
 
 func (c *Compiler) appendEnd() {
@@ -192,9 +192,9 @@ func (c *Compiler) emitCall(from, argCount int) {
 }
 
 func (c *Compiler) emitRet(from int, scope byte) {
-	c.currentFn.Code = append(c.currentFn.Code, ret)
-	c.currentFn.Code = append(c.currentFn.Code, scope)
-	c.currentFn.Code = append(c.currentFn.Code, byte(from), byte(from>>8))
+	// c.currentFn.Code = append(c.currentFn.Code, ret)
+	// c.currentFn.Code = append(c.currentFn.Code, scope)
+	// c.currentFn.Code = append(c.currentFn.Code, byte(from), byte(from>>8))
 }
 
 func (c *Compiler) refScope(id string) (int, byte) {

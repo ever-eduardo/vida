@@ -1,11 +1,8 @@
 package vida
 
 import (
-	"encoding/binary"
 	"fmt"
 	"strings"
-
-	"github.com/ever-eduardo/vida/token"
 )
 
 func PrintBytecode(m *Module, moduleName string) string {
@@ -38,7 +35,6 @@ func PrintBytecode(m *Module, moduleName string) string {
 
 func printHeader(m *Module) string {
 	var sb strings.Builder
-	sb.Write(m.MainFunction.CoreFn.Code[:4])
 	sb.WriteRune(32)
 	sb.WriteString(fmt.Sprintf("version %v.%v.%v", int(m.MainFunction.CoreFn.Code[4]), int(m.MainFunction.CoreFn.Code[5]), int(m.MainFunction.CoreFn.Code[6])))
 	sb.WriteRune(10)
@@ -56,9 +52,9 @@ func printKonstants(konst []Value) string {
 	return sb.String()
 }
 
-func printInstr(ip int, code []byte, counter int, isRunningDebug bool) (string, int, int) {
+func printInstr(ip int, code []uint32, counter int, isRunningDebug bool) (string, int, int) {
 	var sb strings.Builder
-	var op byte
+	var op uint32
 	if !isRunningDebug {
 		counter++
 		op = code[ip]
@@ -73,243 +69,6 @@ func printInstr(ip int, code []byte, counter int, isRunningDebug bool) (string, 
 	switch op {
 	case end:
 		return sb.String(), ip, counter
-	case setG:
-		sb.WriteRune(32)
-		sb.WriteString(fmt.Sprintf("%4v", int(code[ip])))
-		ip++
-		sb.WriteRune(32)
-		sb.WriteString(fmt.Sprintf("%4v", binary.NativeEndian.Uint16(code[ip:])))
-		ip += 2
-		sb.WriteRune(32)
-		sb.WriteString(fmt.Sprintf("%4v", binary.NativeEndian.Uint16(code[ip:])))
-		ip += 2
-	case setL:
-		sb.WriteRune(32)
-		sb.WriteString(fmt.Sprintf("%4v", int(code[ip])))
-		ip++
-		sb.WriteRune(32)
-		sb.WriteString(fmt.Sprintf("%4v", binary.NativeEndian.Uint16(code[ip:])))
-		ip += 2
-		sb.WriteRune(32)
-		sb.WriteString(fmt.Sprintf("%4v", int(code[ip])))
-		ip++
-	case setF:
-		sb.WriteRune(32)
-		sb.WriteString(fmt.Sprintf("%4v", int(code[ip])))
-		ip++
-		sb.WriteRune(32)
-		sb.WriteString(fmt.Sprintf("%4v", binary.NativeEndian.Uint16(code[ip:])))
-		ip += 2
-		sb.WriteRune(32)
-		sb.WriteString(fmt.Sprintf("%4v", binary.NativeEndian.Uint16(code[ip:])))
-		ip += 2
-	case move:
-		sb.WriteRune(32)
-		sb.WriteString(fmt.Sprintf("%4v", int(code[ip])))
-		ip++
-		sb.WriteRune(32)
-		sb.WriteString(fmt.Sprintf("%4v", int(code[ip])))
-		ip++
-	case prefix:
-		sb.WriteRune(32)
-		sb.WriteString(fmt.Sprintf("%4v", int(code[ip])))
-		ip++
-		sb.WriteRune(32)
-		sb.WriteString(fmt.Sprintf("%4v", int(code[ip])))
-		ip++
-		sb.WriteRune(32)
-		sb.WriteString(fmt.Sprintf("%4v", binary.NativeEndian.Uint16(code[ip:])))
-		ip += 2
-		sb.WriteRune(32)
-		sb.WriteString(fmt.Sprintf("%4v", int(code[ip])))
-		ip++
-	case equals:
-		sb.WriteRune(32)
-		sb.WriteString(fmt.Sprintf("%4v", int(code[ip])))
-		ip++
-		sb.WriteRune(32)
-		sb.WriteString(fmt.Sprintf("%4v", int(code[ip])))
-		ip++
-		sb.WriteRune(32)
-		sb.WriteString(fmt.Sprintf("%4v", int(code[ip])))
-		ip++
-		sb.WriteRune(32)
-		sb.WriteString(fmt.Sprintf("%4v", binary.NativeEndian.Uint16(code[ip:])))
-		ip += 2
-		sb.WriteRune(32)
-		sb.WriteString(fmt.Sprintf("%4v", binary.NativeEndian.Uint16(code[ip:])))
-		ip += 2
-		sb.WriteRune(32)
-		sb.WriteString(fmt.Sprintf("%4v", int(code[ip])))
-		ip++
-	case binop:
-		sb.WriteRune(32)
-		sb.WriteString(fmt.Sprintf("%4v", token.Tokens[int(code[ip])]))
-		ip++
-		sb.WriteRune(32)
-		sb.WriteString(fmt.Sprintf("%4v", int(code[ip])))
-		ip++
-		sb.WriteRune(32)
-		sb.WriteString(fmt.Sprintf("%4v", int(code[ip])))
-		ip++
-		sb.WriteRune(32)
-		sb.WriteString(fmt.Sprintf("%4v", binary.NativeEndian.Uint16(code[ip:])))
-		ip += 2
-		sb.WriteRune(32)
-		sb.WriteString(fmt.Sprintf("%4v", binary.NativeEndian.Uint16(code[ip:])))
-		ip += 2
-		sb.WriteRune(32)
-		sb.WriteString(fmt.Sprintf("%4v", int(code[ip])))
-		ip++
-	case list:
-		sb.WriteRune(32)
-		sb.WriteString(fmt.Sprintf("%4v", int(code[ip])))
-		ip++
-		sb.WriteRune(32)
-		sb.WriteString(fmt.Sprintf("%4v", int(code[ip])))
-		ip++
-		sb.WriteRune(32)
-		sb.WriteString(fmt.Sprintf("%4v", int(code[ip])))
-		ip++
-	case obj:
-		sb.WriteRune(32)
-		sb.WriteString(fmt.Sprintf("%4v", int(code[ip])))
-		ip++
-		sb.WriteRune(32)
-		sb.WriteString(fmt.Sprintf("%4v", int(code[ip])))
-		ip++
-		sb.WriteRune(32)
-		sb.WriteString(fmt.Sprintf("%4v", int(code[ip])))
-		ip++
-	case iGet:
-		sb.WriteRune(32)
-		sb.WriteString(fmt.Sprintf("%4v", int(code[ip])))
-		ip++
-		sb.WriteRune(32)
-		sb.WriteString(fmt.Sprintf("%4v", int(code[ip])))
-		ip++
-		sb.WriteRune(32)
-		sb.WriteString(fmt.Sprintf("%4v", binary.NativeEndian.Uint16(code[ip:])))
-		ip += 2
-		sb.WriteRune(32)
-		sb.WriteString(fmt.Sprintf("%4v", binary.NativeEndian.Uint16(code[ip:])))
-		ip += 2
-		sb.WriteRune(32)
-		sb.WriteString(fmt.Sprintf("%4v", int(code[ip])))
-		ip++
-	case iSet:
-		sb.WriteRune(32)
-		sb.WriteString(fmt.Sprintf("%4v", int(code[ip])))
-		ip++
-		sb.WriteRune(32)
-		sb.WriteString(fmt.Sprintf("%4v", int(code[ip])))
-		ip++
-		sb.WriteRune(32)
-		sb.WriteString(fmt.Sprintf("%4v", binary.NativeEndian.Uint16(code[ip:])))
-		ip += 2
-		sb.WriteRune(32)
-		sb.WriteString(fmt.Sprintf("%4v", binary.NativeEndian.Uint16(code[ip:])))
-		ip += 2
-		sb.WriteRune(32)
-		sb.WriteString(fmt.Sprintf("%4v", int(code[ip])))
-		ip++
-		sb.WriteRune(32)
-		sb.WriteString(fmt.Sprintf("%4v", int(code[ip])))
-		ip++
-	case slice:
-		sb.WriteRune(32)
-		sb.WriteString(fmt.Sprintf("%4v", int(code[ip])))
-		ip++
-		sb.WriteRune(32)
-		sb.WriteString(fmt.Sprintf("%4v", int(code[ip])))
-		ip++
-		sb.WriteRune(32)
-		sb.WriteString(fmt.Sprintf("%4v", int(code[ip])))
-		ip++
-		sb.WriteRune(32)
-		sb.WriteString(fmt.Sprintf("%4v", int(code[ip])))
-		ip++
-		sb.WriteRune(32)
-		sb.WriteString(fmt.Sprintf("%4v", binary.NativeEndian.Uint16(code[ip:])))
-		ip += 2
-		sb.WriteRune(32)
-		sb.WriteString(fmt.Sprintf("%4v", binary.NativeEndian.Uint16(code[ip:])))
-		ip += 2
-		sb.WriteRune(32)
-		sb.WriteString(fmt.Sprintf("%4v", binary.NativeEndian.Uint16(code[ip:])))
-		ip += 2
-		sb.WriteRune(32)
-		sb.WriteString(fmt.Sprintf("%4v", int(code[ip])))
-		ip++
-	case forSet:
-		sb.WriteRune(32)
-		sb.WriteString(fmt.Sprintf("%4v", int(code[ip])))
-		ip++
-		sb.WriteRune(32)
-		sb.WriteString(fmt.Sprintf("%4v", binary.NativeEndian.Uint16(code[ip:])))
-		ip += 2
-	case iForSet:
-		sb.WriteRune(32)
-		sb.WriteString(fmt.Sprintf("%4v", int(code[ip])))
-		ip++
-		sb.WriteRune(32)
-		sb.WriteString(fmt.Sprintf("%4v", int(code[ip])))
-		ip++
-		sb.WriteRune(32)
-		sb.WriteString(fmt.Sprintf("%4v", binary.NativeEndian.Uint16(code[ip:])))
-		ip += 2
-		sb.WriteRune(32)
-		sb.WriteString(fmt.Sprintf("%4v", binary.NativeEndian.Uint16(code[ip:])))
-		ip += 2
-	case forLoop:
-		sb.WriteRune(32)
-		sb.WriteString(fmt.Sprintf("%4v", int(code[ip])))
-		ip++
-		sb.WriteRune(32)
-		sb.WriteString(fmt.Sprintf("%4v", binary.NativeEndian.Uint16(code[ip:])))
-		ip += 2
-	case iForLoop:
-		sb.WriteRune(32)
-		sb.WriteString(fmt.Sprintf("%4v", int(code[ip])))
-		ip++
-		sb.WriteRune(32)
-		sb.WriteString(fmt.Sprintf("%4v", binary.NativeEndian.Uint16(code[ip:])))
-		ip += 2
-	case jump:
-		sb.WriteRune(32)
-		sb.WriteString(fmt.Sprintf("%4v", binary.NativeEndian.Uint16(code[ip:])))
-		ip += 2
-	case checkF:
-		sb.WriteRune(32)
-		sb.WriteString(fmt.Sprintf("%4v", int(code[ip])))
-		ip++
-		sb.WriteRune(32)
-		sb.WriteString(fmt.Sprintf("%4v", binary.NativeEndian.Uint16(code[ip:])))
-		ip += 2
-		sb.WriteRune(32)
-		sb.WriteString(fmt.Sprintf("%4v", binary.NativeEndian.Uint16(code[ip:])))
-		ip += 2
-	case ret:
-		sb.WriteRune(32)
-		sb.WriteString(fmt.Sprintf("%4v", int(code[ip])))
-		ip++
-		sb.WriteRune(32)
-		sb.WriteString(fmt.Sprintf("%4v", binary.NativeEndian.Uint16(code[ip:])))
-		ip += 2
-	case fun:
-		sb.WriteRune(32)
-		sb.WriteString(fmt.Sprintf("%4v", binary.NativeEndian.Uint16(code[ip:])))
-		ip += 2
-		sb.WriteRune(32)
-		sb.WriteString(fmt.Sprintf("%4v", int(code[ip])))
-		ip++
-	case call:
-		sb.WriteRune(32)
-		sb.WriteString(fmt.Sprintf("%4v", int(code[ip])))
-		ip++
-		sb.WriteRune(32)
-		sb.WriteString(fmt.Sprintf("%4v", int(code[ip])))
-		ip++
 	}
 	return sb.String(), ip, counter
 }

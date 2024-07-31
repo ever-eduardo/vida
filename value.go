@@ -726,7 +726,7 @@ type freeInfo struct {
 }
 
 type CoreFunction struct {
-	Code  []byte
+	Code  []uint32
 	Info  []freeInfo
 	Free  int
 	Arity int

@@ -1,9 +1,5 @@
 package vida
 
-// 6 | 26
-// 6 | 10 | 16
-type Instruction uint32
-
 const (
 	end = iota
 	setG
@@ -54,8 +50,4 @@ var opcodes = [...]string{
 	fun:      "Fun",
 	ret:      "Ret",
 	call:     "Call",
-}
-
-func (i Instruction) String() string {
-	return opcodes[i]
 }

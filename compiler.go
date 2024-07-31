@@ -1,8 +1,6 @@
 package vida
 
 import (
-	"encoding/binary"
-
 	"github.com/ever-eduardo/vida/ast"
 	"github.com/ever-eduardo/vida/token"
 	"github.com/ever-eduardo/vida/verror"
@@ -100,10 +98,10 @@ func (c *Compiler) compileStmt(node ast.Node) {
 			c.compileStmt(e.Block)
 		}
 		if shouldJumpOutside {
-			addr := len(c.currentFn.Code)
-			for _, v := range c.jumps {
-				binary.NativeEndian.PutUint16(c.currentFn.Code[v:], uint16(addr))
-			}
+			// _ = len(c.currentFn.Code)
+			// for _, v := range c.jumps {
+			// 	// binary.NativeEndian.PutUint16(c.currentFn.Code[v:], uint16(addr))
+			// }
 			c.jumps = c.jumps[:0]
 		}
 	case *ast.For:
@@ -131,10 +129,10 @@ func (c *Compiler) compileStmt(node ast.Node) {
 		c.emitForSet(ireg, 0)
 		jump := len(c.currentFn.Code)
 		c.compileStmt(n.Block)
-		evalLoopAddr := len(c.currentFn.Code)
-		binary.NativeEndian.PutUint16(c.currentFn.Code[jump-2:], uint16(evalLoopAddr))
+		// evalLoop_ = len(c.currentFn.Code)
+		// binary.NativeEndian.PutUint16(c.currentFn.Code[jump-2:], uint16(evalLoopAddr))
 		c.emitForLoop(ireg, jump)
-		c.cleanUpLoopScope(evalLoopAddr)
+		// c.cleanUpLoopScope(evalLoopAddr)
 
 		c.rAlloc -= c.sb.clearLocals(c.level, c.scope)
 		c.rAlloc -= 3
@@ -159,10 +157,10 @@ func (c *Compiler) compileStmt(node ast.Node) {
 		c.emitIForSet(0, idx, scope, ireg)
 		jump := len(c.currentFn.Code)
 		c.compileStmt(n.Block)
-		evalLoopAddr := len(c.currentFn.Code)
-		binary.NativeEndian.PutUint16(c.currentFn.Code[jump-2:], uint16(evalLoopAddr))
+		// evalLoop_ = len(c.currentFn.Code)
+		// binary.NativeEndian.PutUint16(c.currentFn.Code[jump-2:], uint16(evalLoopAddr))
 		c.emitIForLoop(ireg, jump)
-		c.cleanUpLoopScope(evalLoopAddr)
+		// c.cleanUpLoopScope(evalLoopAddr)
 
 		c.rAlloc -= c.sb.clearLocals(c.level, c.scope)
 		c.rAlloc--
@@ -189,11 +187,11 @@ func (c *Compiler) compileStmt(node ast.Node) {
 			c.emitJump(init)
 			c.cleanUpLoopScope(init)
 		} else {
-			addr := len(c.currentFn.Code) + 4
+			// _ = len(c.currentFn.Code) + 4
 			c.emitTestF(idx, scope, 0)
 			c.compileStmt(n.Block)
 			c.emitJump(init)
-			binary.NativeEndian.PutUint16(c.currentFn.Code[addr:], uint16(len(c.currentFn.Code)))
+			// binary.NativeEndian.PutUint16(c.currentFn.Code[addr:], uint16(len(c.currentFn.Code)))
 			c.cleanUpLoopScope(init)
 		}
 	case *ast.Break:
@@ -469,18 +467,18 @@ func (c *Compiler) compileConditional(n *ast.If, shouldJumpOutside bool) {
 		}
 		c.compileBlockAndCheckJump(n.Block, shouldJumpOutside)
 	} else {
-		addr := len(c.currentFn.Code) + 4
+		_ = len(c.currentFn.Code) + 4
 		c.emitTestF(idx, scope, 0)
 		c.compileBlockAndCheckJump(n.Block, shouldJumpOutside)
-		binary.NativeEndian.PutUint16(c.currentFn.Code[addr:], uint16(len(c.currentFn.Code)))
+		// binary.NativeEndian.PutUint16(c.currentFn.Code[addr:], uint16(len(c.currentFn.Code)))
 	}
 }
 
 func (c *Compiler) skipBlock(block ast.Node) {
-	addr := len(c.currentFn.Code) + 1
+	_ = len(c.currentFn.Code) + 1
 	c.emitJump(0)
 	c.compileStmt(block)
-	binary.NativeEndian.PutUint16(c.currentFn.Code[addr:], uint16(len(c.currentFn.Code)))
+	// binary.NativeEndian.PutUint16(c.currentFn.Code[addr:], uint16(len(c.currentFn.Code)))
 }
 
 func (c *Compiler) compileBlockAndCheckJump(block ast.Node, shouldJumpOutside bool) {
@@ -497,7 +495,7 @@ func (c *Compiler) cleanUpLoopScope(init int) {
 	count := c.breakCount[lastElem]
 	if hasBreaks > 0 {
 		for i := 1; i <= count; i++ {
-			binary.NativeEndian.PutUint16(c.currentFn.Code[c.breakJumps[hasBreaks-i]:], uint16(len(c.currentFn.Code)))
+			// binary.NativeEndian.PutUint16(c.currentFn.Code[c.breakJumps[hasBreaks-i]:], uint16(len(c.currentFn.Code)))
 		}
 		c.breakJumps = c.breakJumps[:hasBreaks-count]
 	}
@@ -507,7 +505,7 @@ func (c *Compiler) cleanUpLoopScope(init int) {
 	count = c.continueCount[lastElem]
 	if hasContinues > 0 {
 		for i := 1; i <= count; i++ {
-			binary.NativeEndian.PutUint16(c.currentFn.Code[c.continueJumps[hasContinues-i]:], uint16(init))
+			// binary.NativeEndian.PutUint16(c.currentFn.Code[c.continueJumps[hasContinues-i]:], uint16(init))
 		}
 		c.continueJumps = c.continueJumps[:hasContinues-count]
 	}
