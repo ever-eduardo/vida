@@ -8,18 +8,30 @@ import (
 
 var NilValue = Nil{}
 
-func loadCoreLib() map[string]Value {
-	p := make(map[string]Value)
-	p["print"] = GFn(gfnPrint)
-	p["len"] = GFn(gfnLen)
-	p["append"] = GFn(gfnAppend)
-	p["make"] = GFn(gfnMakeArray)
-	p["load"] = NilValue
-	p["type"] = GFn(gfnType)
-	p["assert"] = GFn(gfnAssert)
-	p["fmt"] = GFn(gfnFormat)
-	p["str"] = GFn(gfnString)
-	return p
+var coreLibNames = []string{
+	"print",
+	"len",
+	"append",
+	"makelst",
+	"load",
+	"type",
+	"assert",
+	"fmt",
+	"str",
+}
+
+func loadCoreLib() []Value {
+	clib := make([]Value, 0)
+	clib = append(clib, GFn(gfnPrint))
+	clib = append(clib, GFn(gfnLen))
+	clib = append(clib, GFn(gfnAppend))
+	clib = append(clib, GFn(gfnMakeList))
+	clib = append(clib, NilValue)
+	clib = append(clib, GFn(gfnType))
+	clib = append(clib, GFn(gfnAssert))
+	clib = append(clib, GFn(gfnFormat))
+	clib = append(clib, GFn(gfnString))
+	return clib
 }
 
 func gfnPrint(args ...Value) (Value, error) {
@@ -88,7 +100,7 @@ func gfnAppend(args ...Value) (Value, error) {
 	return NilValue, nil
 }
 
-func gfnMakeArray(args ...Value) (Value, error) {
+func gfnMakeList(args ...Value) (Value, error) {
 	largs := len(args)
 	if largs > 0 {
 		switch v := args[0].(type) {

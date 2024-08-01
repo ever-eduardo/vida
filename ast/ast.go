@@ -20,7 +20,7 @@ type Set struct {
 	Expr        Node
 }
 
-type Let struct {
+type Var struct {
 	Indentifier string
 	Expr        Node
 }
@@ -194,7 +194,7 @@ type MethodCallExpr struct {
 func (ast *Ast) _node()           {}
 func (loc *Loc) _node()           {}
 func (mut *Set) _node()           {}
-func (mut *Let) _node()           {}
+func (mut *Var) _node()           {}
 func (ref *Reference) _node()     {}
 func (ref *ReferenceStmt) _node() {}
 func (id *Identifier) _node()     {}

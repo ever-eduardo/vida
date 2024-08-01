@@ -701,14 +701,15 @@ func (o *Object) Type() string {
 
 type Module struct {
 	Konstants    []Value
+	Store        []Value
 	Name         string
-	Store        map[string]Value
 	MainFunction *Function
 }
 
 func newModule(name string) *Module {
 	m := Module{
-		Konstants:    make([]Value, 0, 32),
+		Konstants:    make([]Value, 0),
+		Store:        loadCoreLib(),
 		MainFunction: &Function{CoreFn: &CoreFunction{}},
 		Name:         name,
 	}
@@ -726,7 +727,7 @@ type freeInfo struct {
 }
 
 type CoreFunction struct {
-	Code  []uint32
+	Code  []uint64
 	Info  []freeInfo
 	Free  int
 	Arity int

@@ -10,7 +10,11 @@ import (
 func (vm *VM) Inspect(ip int) {
 	clear()
 	fmt.Println("Running", vm.Module.Name)
-	fmt.Printf("Store => %v\n", vm.Module.Store)
+	fmt.Printf("Store => ")
+	for i, v := range vm.Module.Store {
+		fmt.Printf("[%v -> %v], ", i, v)
+	}
+	fmt.Println()
 	fmt.Print("Konst => ")
 	for i, v := range vm.Module.Konstants {
 		fmt.Printf("[%v -> %v], ", i, v)
@@ -18,7 +22,7 @@ func (vm *VM) Inspect(ip int) {
 	fmt.Println()
 	fmt.Printf("Frame => %v\n", vm.fp)
 	fmt.Printf("Ip    => %v\n", ip)
-	s, _, _ := printInstr(ip, vm.Frame.code, 0, true)
+	s := printInstr(vm.Frame.code[ip], uint64(ip), true)
 	fmt.Printf("Instr => %v\n", s)
 	fmt.Println("Stack =>")
 	for i, v := range vm.Stack {
@@ -39,42 +43,33 @@ func (vm *VM) Debug() (Result, error) {
 	vm.Frame.code = vm.Module.MainFunction.CoreFn.Code
 	vm.Frame.lambda = vm.Module.MainFunction
 	vm.Frame.stack = vm.Stack[:]
-	ip := 8
+	ip := 1
+	var i, op, A, B, P uint64
 	for {
 		vm.Inspect(ip)
-		op := vm.Frame.code[ip]
+		i = vm.Frame.code[ip]
+		op = i >> shift56
+		A = i >> shift16 & clean16
+		B = i & clean16
+		P = i >> shift32 & clean24
 		ip++
 		switch op {
-		// case setG:
-		// 	scope := vm.Frame.code[ip]
-		// 	ip++
-		// 	from := uint16(vm.Frame.code[ip]) | uint16(vm.Frame.code[ip+1])<<8
-		// 	ip += 2
-		// 	to := uint16(vm.Frame.code[ip]) | uint16(vm.Frame.code[ip+1])<<8
-		// 	ip += 2
-		// 	vm.Module.Store[vm.Module.Konstants[to].(String).Value] = vm.valueFrom(scope, from)
-		// case setL:
-		// 	scope := vm.Frame.code[ip]
-		// 	ip++
-		// 	from := uint16(vm.Frame.code[ip]) | uint16(vm.Frame.code[ip+1])<<8
-		// 	ip += 2
-		// 	to := vm.Frame.code[ip]
-		// 	ip++
-		// 	vm.Frame.stack[to] = vm.valueFrom(scope, from)
-		// case move:
-		// 	from := vm.Frame.code[ip]
-		// 	ip++
-		// 	to := vm.Frame.code[ip]
-		// 	ip++
-		// 	vm.Frame.stack[to] = vm.Frame.stack[from]
-		// case setF:
-		// 	scope := vm.Frame.code[ip]
-		// 	ip++
-		// 	from := uint16(vm.Frame.code[ip]) | uint16(vm.Frame.code[ip+1])<<8
-		// 	ip += 2
-		// 	to := uint16(vm.Frame.code[ip]) | uint16(vm.Frame.code[ip+1])<<8
-		// 	ip += 2
-		// 	vm.Frame.lambda.Free[to] = vm.valueFrom(scope, from)
+		case storeG:
+			if P == 1 {
+				vm.Module.Store[B] = vm.Module.Konstants[A]
+			} else {
+				vm.Module.Store[B] = vm.Frame.stack[A]
+			}
+		case loadG:
+			vm.Frame.stack[B] = vm.Module.Store[A]
+		case loadF:
+			vm.Frame.stack[B] = vm.Frame.lambda.Free[A]
+		case loadK:
+			vm.Frame.stack[B] = vm.Module.Konstants[A]
+		case move:
+			vm.Frame.stack[B] = vm.Frame.stack[A]
+		case storeF:
+			vm.Frame.lambda.Free[B] = vm.Frame.stack[A]
 		// case checkF:
 		// 	scope := vm.Frame.code[ip]
 		// 	ip++

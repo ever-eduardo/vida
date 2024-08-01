@@ -7,24 +7,20 @@ import (
 
 func PrintBytecode(m *Module, moduleName string) string {
 	clear()
-	fmt.Println("Bytecode for module", moduleName)
+	fmt.Println("Machine Code for", moduleName)
 	var sb strings.Builder
 	sb.WriteString(printHeader(m))
-	var counter int
-	var ip int = 8
 	var s string
-	for ip < len(m.MainFunction.CoreFn.Code) {
-		s, ip, counter = printInstr(ip, m.MainFunction.CoreFn.Code, counter, false)
+	for i := 1; i < len(m.MainFunction.CoreFn.Code); i++ {
+		s = printInstr(m.MainFunction.CoreFn.Code[i], uint64(i), false)
 		sb.WriteString(s)
 	}
 	for idx, v := range m.Konstants {
-
 		if f, ok := v.(*CoreFunction); ok {
-			ip = 0
-			counter = 0
 			sb.WriteString(fmt.Sprintf("\n\nFunction %v/%v/%v", idx, f.Arity, f.Free))
-			for ip < len(f.Code) {
-				s, ip, counter = printInstr(ip, f.Code, counter, false)
+			var s string
+			for i := 1; i < len(f.Code); i++ {
+				s = printInstr(f.Code[i], uint64(i), false)
 				sb.WriteString(s)
 			}
 		}
@@ -35,8 +31,11 @@ func PrintBytecode(m *Module, moduleName string) string {
 
 func printHeader(m *Module) string {
 	var sb strings.Builder
-	sb.WriteRune(32)
-	sb.WriteString(fmt.Sprintf("version %v.%v.%v", int(m.MainFunction.CoreFn.Code[4]), int(m.MainFunction.CoreFn.Code[5]), int(m.MainFunction.CoreFn.Code[6])))
+	var major, minor, patch uint64
+	major = m.MainFunction.CoreFn.Code[0] >> 24 & 255
+	minor = m.MainFunction.CoreFn.Code[0] >> 16 & 255
+	patch = m.MainFunction.CoreFn.Code[0] >> 8 & 255
+	sb.WriteString(fmt.Sprintf("Version %v.%v.%v", major, minor, patch))
 	sb.WriteRune(10)
 	sb.WriteRune(10)
 	sb.WriteString("Main\n")
@@ -52,23 +51,27 @@ func printKonstants(konst []Value) string {
 	return sb.String()
 }
 
-func printInstr(ip int, code []uint32, counter int, isRunningDebug bool) (string, int, int) {
+func printInstr(instr, ip uint64, isRunningDebug bool) string {
 	var sb strings.Builder
-	var op uint32
+	var op, A, B, P uint64
+	op = instr >> shift56
+	A = instr >> shift16 & clean16
+	B = instr & clean16
+	P = instr >> shift32 & clean24
 	if !isRunningDebug {
-		counter++
-		op = code[ip]
 		sb.WriteRune(10)
-		sb.WriteString(fmt.Sprintf("  %4v  [%4v]  ", counter, ip))
+		sb.WriteString(fmt.Sprintf("  [%3v]  ", ip))
 		sb.WriteString(fmt.Sprintf("%7v", opcodes[op]))
 	} else {
-		op = code[ip]
 		sb.WriteString(opcodes[op])
 	}
-	ip++
 	switch op {
 	case end:
-		return sb.String(), ip, counter
+		return sb.String()
+	case storeG:
+		sb.WriteString(fmt.Sprintf(" %3v %3v %3v", P, A, B))
+	case loadG, loadF, loadK, move, storeF:
+		sb.WriteString(fmt.Sprintf(" %3v %3v", A, B))
 	}
-	return sb.String(), ip, counter
+	return sb.String()
 }

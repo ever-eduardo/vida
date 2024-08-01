@@ -1,12 +1,15 @@
 package vida
 
 const (
+	// Refactoring
 	end = iota
-	setG
-	setL
-	setF
+	storeG
+	loadG
+	loadF
+	loadK
 	move
-	getR
+	storeF
+	// --
 	prefix
 	binop
 	equals
@@ -28,11 +31,12 @@ const (
 
 var opcodes = [...]string{
 	end:      "End",
-	setG:     "SetG",
-	setL:     "SetL",
-	setF:     "SetF",
+	storeG:   "StoreG",
+	storeF:   "SetF",
 	move:     "Move",
-	getR:     "GetR",
+	loadG:    "LoadG",
+	loadF:    "LoadF",
+	loadK:    "LoadK",
 	prefix:   "Prefix",
 	binop:    "Binop",
 	equals:   "Eq",

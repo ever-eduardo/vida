@@ -11,13 +11,18 @@ type lKey struct {
 
 type symbolBuilder struct {
 	History   []lKey
-	GlobalSet map[string]struct{}
+	GlobalSet map[string]int
+	index     int
 }
 
 func newSymbolBuilder() *symbolBuilder {
-	return &symbolBuilder{
-		GlobalSet: make(map[string]struct{}),
+	sb := &symbolBuilder{
+		GlobalSet: make(map[string]int),
 	}
+	for _, v := range coreLibNames {
+		sb.addGlobal(v)
+	}
+	return sb
 }
 
 func (sb *symbolBuilder) isLocal(id string) (int, bool, lKey) {
@@ -31,8 +36,8 @@ func (sb *symbolBuilder) isLocal(id string) (int, bool, lKey) {
 	return 0, false, k
 }
 
-func (sb *symbolBuilder) isGlobal(id string) (isGlobal bool) {
-	_, isGlobal = sb.GlobalSet[id]
+func (sb *symbolBuilder) isGlobal(id string) (idx int, isGlobal bool) {
+	idx, isGlobal = sb.GlobalSet[id]
 	return
 }
 
@@ -46,8 +51,15 @@ func (sb *symbolBuilder) addLocal(id string, level int, scope int, reg int) {
 		})
 }
 
-func (sb *symbolBuilder) addGlobal(id string) {
-	sb.GlobalSet[id] = dummy
+func (sb *symbolBuilder) addGlobal(id string) int {
+	idx, isPresent := sb.GlobalSet[id]
+	if isPresent {
+		return idx
+	}
+	i := sb.index
+	sb.GlobalSet[id] = i
+	sb.index++
+	return i
 }
 
 func (sb *symbolBuilder) clearLocals(compilerLevel int, scopeLevel int) int {

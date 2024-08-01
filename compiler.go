@@ -52,36 +52,85 @@ func (c *Compiler) CompileModule() (*Module, error) {
 func (c *Compiler) compileStmt(node ast.Node) {
 	switch n := node.(type) {
 	case *ast.Set:
-		from, se := c.compileExpr(n.Expr)
-		to, si := c.refScope(n.Indentifier)
-		if si == rFree {
-			c.emitSetF(from, to, se)
-		} else if si == rLoc {
-			if from == to {
-				return
+		from, sexpr := c.compileExpr(n.Expr)
+		to, sIdent := c.refScope(n.Indentifier)
+		switch sIdent {
+		case rFree:
+			switch sexpr {
+			case rGlob:
+				c.emitLoadG(from, c.rAlloc)
+				c.emitStoreF(c.rAlloc, to)
+			case rKonst:
+				c.emitLoadK(from, c.rAlloc)
+				c.emitStoreF(c.rAlloc, to)
+			case rFree:
+				if from != to {
+					c.emitLoadF(from, c.rAlloc)
+					c.emitStoreF(c.rAlloc, to)
+				}
+			case rLoc:
+				c.emitStoreF(from, to)
 			}
-			if se == rLoc {
-				c.emitMove(from, to)
-			} else {
-				c.emitLoc(from, to, se)
+		case rLoc:
+			switch sexpr {
+			case rGlob:
+				c.emitLoadG(from, to)
+			case rLoc:
+				if from != to {
+					c.emitMove(from, to)
+				}
+			case rKonst:
+				c.emitLoadK(from, to)
+			case rFree:
+				c.emitLoadF(from, to)
 			}
-		} else if isGlobal := c.sb.isGlobal(n.Indentifier); isGlobal {
-			to := c.kb.StringIndex(n.Indentifier)
-			c.emitSetG(from, to, se)
-		} else {
-			c.hadError = true
+		case rGlob:
+			switch sexpr {
+			case rGlob:
+				if from != to {
+					c.emitLoadG(from, c.rAlloc)
+					c.emitStoreG(c.rAlloc, to, 0)
+				}
+			case rKonst:
+				c.emitStoreG(from, to, 1)
+			case rFree:
+				c.emitLoadF(from, c.rAlloc)
+				c.emitStoreG(c.rAlloc, to, 0)
+			case rLoc:
+				c.emitStoreG(from, to, 0)
+			}
 		}
-	case *ast.Let:
-		to := c.kb.StringIndex(n.Indentifier)
-		c.sb.addGlobal(n.Indentifier)
+	case *ast.Var:
+		to := c.sb.addGlobal(n.Indentifier)
+		c.module.Store = append(c.module.Store, NilValue)
 		from, scope := c.compileExpr(n.Expr)
-		c.emitSetG(from, to, scope)
+		switch scope {
+		case rKonst:
+			c.emitStoreG(from, to, 1)
+		case rGlob:
+			c.emitLoadG(from, c.rAlloc)
+			c.emitStoreG(c.rAlloc, to, 0)
+		case rFree:
+			c.emitLoadF(from, c.rAlloc)
+			c.emitStoreG(c.rAlloc, to, 0)
+		case rLoc:
+			c.emitStoreG(from, to, 0)
+		}
 	case *ast.Loc:
 		to := c.rAlloc
-		from, scope := c.compileExpr(n.Expr)
 		c.rAlloc++
+		from, scope := c.compileExpr(n.Expr)
 		c.sb.addLocal(n.Identifier, c.level, c.scope, to)
-		c.emitLoc(from, to, scope)
+		switch scope {
+		case rKonst:
+			c.emitLoadK(from, to)
+		case rGlob:
+			c.emitLoadG(from, to)
+		case rFree:
+			c.emitLoadF(from, to)
+		case rLoc:
+			c.emitMove(from, to)
+		}
 	case *ast.Branch:
 		elifCount := len(n.Elifs)
 		hasElif := elifCount != 0
@@ -265,7 +314,7 @@ func (c *Compiler) compileStmt(node ast.Node) {
 	}
 }
 
-func (c *Compiler) compileExpr(node ast.Node) (int, byte) {
+func (c *Compiler) compileExpr(node ast.Node) (int, int) {
 	switch n := node.(type) {
 	case *ast.Integer:
 		return c.kb.IntegerIndex(n.Value), rKonst
@@ -311,8 +360,11 @@ func (c *Compiler) compileExpr(node ast.Node) (int, byte) {
 	case *ast.Nil:
 		return c.kb.NilIndex(), rKonst
 	case *ast.Reference:
-		i, b := c.refScope(n.Value)
-		return i, b
+		i, s := c.refScope(n.Value)
+		if s == rNotDefined {
+			c.hadError = true
+		}
+		return i, s
 	case *ast.List:
 		if len(n.ExprList) == 0 {
 			c.emitList(0, c.rAlloc, c.rAlloc)
@@ -378,7 +430,7 @@ func (c *Compiler) compileExpr(node ast.Node) (int, byte) {
 		return int(resultReg), rLoc
 	case *ast.Slice:
 		resultReg := c.rAlloc
-		var scopeV, scopeL, scopeR byte
+		var scopeV, scopeL, scopeR int
 		var fromV, fromL, fromR int
 		c.rAlloc++
 		fromV, scopeV = c.compileExpr(n.Value)
@@ -398,7 +450,7 @@ func (c *Compiler) compileExpr(node ast.Node) (int, byte) {
 			fromR, scopeR = c.compileExpr(n.Last)
 		}
 		c.rAlloc = resultReg
-		c.emitSlice(byte(n.Mode), fromV, fromL, fromR, scopeV, scopeL, scopeR, resultReg)
+		c.emitSlice(n.Mode, fromV, fromL, fromR, scopeV, scopeL, scopeR, resultReg)
 		return int(resultReg), rLoc
 	case *ast.Fun:
 		fn := &CoreFunction{}
@@ -531,7 +583,7 @@ func (c *Compiler) leaveFuncScope() {
 	c.currentFn = c.fn[c.level]
 }
 
-func (c *Compiler) integrateKonst(val Value) (int, byte) {
+func (c *Compiler) integrateKonst(val Value) (int, int) {
 	switch e := val.(type) {
 	case Integer:
 		return c.kb.IntegerIndex(int64(e)), rKonst
