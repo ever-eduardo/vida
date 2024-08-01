@@ -35,11 +35,11 @@ func (it *ListIterator) Boolean() Bool {
 	return true
 }
 
-func (it *ListIterator) Prefix(byte) (Value, error) {
+func (it *ListIterator) Prefix(uint64) (Value, error) {
 	return NilValue, verror.RuntimeError
 }
 
-func (it *ListIterator) Binop(byte, Value) (Value, error) {
+func (it *ListIterator) Binop(uint64, Value) (Value, error) {
 	return NilValue, verror.RuntimeError
 }
 
@@ -99,11 +99,11 @@ func (it *ObjectIterator) Boolean() Bool {
 	return true
 }
 
-func (it *ObjectIterator) Prefix(byte) (Value, error) {
+func (it *ObjectIterator) Prefix(uint64) (Value, error) {
 	return NilValue, verror.RuntimeError
 }
 
-func (it *ObjectIterator) Binop(byte, Value) (Value, error) {
+func (it *ObjectIterator) Binop(uint64, Value) (Value, error) {
 	return NilValue, verror.RuntimeError
 }
 
@@ -162,11 +162,11 @@ func (it *StringIterator) Boolean() Bool {
 	return true
 }
 
-func (it *StringIterator) Prefix(byte) (Value, error) {
+func (it *StringIterator) Prefix(uint64) (Value, error) {
 	return NilValue, verror.RuntimeError
 }
 
-func (it *StringIterator) Binop(byte, Value) (Value, error) {
+func (it *StringIterator) Binop(uint64, Value) (Value, error) {
 	return NilValue, verror.RuntimeError
 }
 

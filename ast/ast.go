@@ -15,7 +15,7 @@ type Loc struct {
 	Expr       Node
 }
 
-type Set struct {
+type Mut struct {
 	Indentifier string
 	Expr        Node
 }
@@ -193,7 +193,7 @@ type MethodCallExpr struct {
 
 func (ast *Ast) _node()           {}
 func (loc *Loc) _node()           {}
-func (mut *Set) _node()           {}
+func (mut *Mut) _node()           {}
 func (mut *Var) _node()           {}
 func (ref *Reference) _node()     {}
 func (ref *ReferenceStmt) _node() {}

@@ -3,6 +3,8 @@ package vida
 import (
 	"fmt"
 	"strings"
+
+	"github.com/ever-eduardo/vida/token"
 )
 
 func PrintBytecode(m *Module, moduleName string) string {
@@ -72,6 +74,8 @@ func printInstr(instr, ip uint64, isRunningDebug bool) string {
 		sb.WriteString(fmt.Sprintf(" %3v %3v %3v", P, A, B))
 	case loadG, loadF, loadK, move, storeF:
 		sb.WriteString(fmt.Sprintf(" %3v %3v", A, B))
+	case prefix:
+		sb.WriteString(fmt.Sprintf(" %3v %3v", token.Token(A).String(), B))
 	}
 	return sb.String()
 }

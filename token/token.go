@@ -2,7 +2,7 @@ package token
 
 import "unicode"
 
-type Token byte
+type Token uint64
 
 const (
 	UNEXPECTED Token = iota

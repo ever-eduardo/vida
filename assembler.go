@@ -1,5 +1,7 @@
 package vida
 
+import "github.com/ever-eduardo/vida/token"
+
 const (
 	rKonst = iota
 	rLoc
@@ -82,12 +84,11 @@ func (c *Compiler) emitLoc(from, to int, scope int) {
 	// c.currentFn.Code = append(c.currentFn.Code, to)
 }
 
-func (c *Compiler) emitPrefix(from, to, scope int, operator byte) {
-	// c.currentFn.Code = append(c.currentFn.Code, prefix)
-	// c.currentFn.Code = append(c.currentFn.Code, operator)
-	// c.currentFn.Code = append(c.currentFn.Code, scope)
-	// c.currentFn.Code = append(c.currentFn.Code, (from), (from>>8))
-	// c.currentFn.Code = append(c.currentFn.Code, to)
+func (c *Compiler) emitPrefix(from int, operator token.Token) {
+	var i uint64 = uint64(from)
+	i |= uint64(operator) << shift16
+	i |= prefix << shift56
+	c.currentFn.Code = append(c.currentFn.Code, i)
 }
 
 func (c *Compiler) emitBinary(fromLHS, fromRHS, scopeLHS, scopeRHS, to int, operator byte) {
@@ -195,7 +196,7 @@ func (c *Compiler) emitTestF(from, scope, jump int) {
 
 func (c *Compiler) emitFun(from, to int) {
 	// c.currentFn.Code = append(c.currentFn.Code, fun)
-	// c.currentFn.Code = append(c.currentFn.Code, (from), (from>>8))
+	// c.currentFn.Code = append(c.currentFn.Code, (from), (fromtoken
 	// c.currentFn.Code = append(c.currentFn.Code, to)
 }
 
@@ -243,5 +244,6 @@ func (c *Compiler) refScope(id string) (int, int) {
 	if idx, isGlobal := c.sb.isGlobal(id); isGlobal {
 		return idx, rGlob
 	}
+	c.hadError = true
 	return 0, rNotDefined
 }

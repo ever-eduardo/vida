@@ -118,20 +118,12 @@ func (vm *VM) Debug() (Result, error) {
 		// 		val = !val
 		// 	}
 		// 	vm.Frame.stack[to] = val
-		// case prefix:
-		// 	op := vm.Frame.code[ip]
-		// 	ip++
-		// 	scope := vm.Frame.code[ip]
-		// 	ip++
-		// 	from := uint16(vm.Frame.code[ip]) | uint16(vm.Frame.code[ip+1])<<8
-		// 	ip += 2
-		// 	to := vm.Frame.code[ip]
-		// 	ip++
-		// 	val, err := vm.valueFrom(scope, from).Prefix(op)
-		// 	if err != nil {
-		// 		return Failure, verror.New(vm.Module.Name, "Runtime error", verror.RunTimeErrMsg, math.MaxUint16)
-		// 	}
-		// 	vm.Frame.stack[to] = val
+		case prefix:
+			val, err := vm.Frame.stack[B].Prefix(A)
+			if err != nil {
+				return Failure, verror.New(vm.Module.Name, "Runtime error", verror.RunTimeErrMsg, math.MaxUint16)
+			}
+			vm.Frame.stack[B] = val
 		// case iGet:
 		// 	scopeIndexable := vm.Frame.code[ip]
 		// 	ip++

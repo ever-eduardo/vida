@@ -51,7 +51,7 @@ func (c *Compiler) CompileModule() (*Module, error) {
 
 func (c *Compiler) compileStmt(node ast.Node) {
 	switch n := node.(type) {
-	case *ast.Set:
+	case *ast.Mut:
 		from, sexpr := c.compileExpr(n.Expr)
 		to, sIdent := c.refScope(n.Indentifier)
 		switch sIdent {
@@ -259,13 +259,13 @@ func (c *Compiler) compileStmt(node ast.Node) {
 		c.rAlloc++
 		j, t := c.compileExpr(n.Index)
 		c.rAlloc = resultReg
-		c.emitIGet(int(resultReg), j, rLoc, t, resultReg)
+		c.emitIGet(resultReg, j, rLoc, t, resultReg)
 	case *ast.SelectStmt:
 		resultReg := c.rAlloc
 		c.rAlloc++
 		j, t := c.compileExpr(n.Selector)
 		c.rAlloc = resultReg
-		c.emitIGet(int(resultReg), j, rLoc, t, resultReg)
+		c.emitIGet(resultReg, j, rLoc, t, resultReg)
 	case *ast.ISet:
 		mutableReg := c.rAlloc
 		c.rAlloc++
@@ -303,7 +303,7 @@ func (c *Compiler) compileStmt(node ast.Node) {
 		c.emitMove(reg, c.rAlloc)
 		c.rAlloc++
 		j, t := c.compileExpr(n.Prop)
-		c.emitIGet(int(reg), j, rLoc, t, reg)
+		c.emitIGet(reg, j, rLoc, t, reg)
 		for _, v := range n.Args {
 			i, s := c.compileExpr(v)
 			c.emitLoc(i, c.rAlloc, s)
@@ -334,7 +334,7 @@ func (c *Compiler) compileExpr(node ast.Node) (int, int) {
 			case token.EQ, token.NEQ:
 				return c.integrateKonst(c.kb.Konstants[lidx].Equals(c.kb.Konstants[ridx]))
 			default:
-				if val, err := c.kb.Konstants[lidx].Binop(byte(n.Op), c.kb.Konstants[ridx]); err == nil {
+				if val, err := c.kb.Konstants[lidx].Binop(uint64(n.Op), c.kb.Konstants[ridx]); err == nil {
 					return c.integrateKonst(val)
 				}
 			}
@@ -345,37 +345,44 @@ func (c *Compiler) compileExpr(node ast.Node) (int, int) {
 		default:
 			c.emitBinary(lidx, ridx, lscope, rscope, opReg, byte(n.Op))
 		}
-		return int(opReg), rLoc
+		return opReg, rLoc
 	case *ast.PrefixExpr:
-		idx, scope := c.compileExpr(n.Expr)
+		from, scope := c.compileExpr(n.Expr)
 		if scope == rKonst {
-			if val, err := c.kb.Konstants[idx].Prefix(byte(n.Op)); err == nil {
+			if val, err := c.kb.Konstants[from].Prefix(uint64(n.Op)); err == nil {
 				return c.integrateKonst(val)
 			}
 		}
-		c.emitPrefix(idx, c.rAlloc, scope, byte(n.Op))
-		return int(c.rAlloc), rLoc
+		switch scope {
+		case rGlob:
+			c.emitLoadG(from, c.rAlloc)
+		case rLoc:
+			c.emitMove(from, c.rAlloc)
+		case rKonst:
+			c.emitLoadK(from, c.rAlloc)
+		case rFree:
+			c.emitLoadF(from, c.rAlloc)
+		}
+		c.emitPrefix(c.rAlloc, n.Op)
+		return c.rAlloc, rLoc
 	case *ast.Boolean:
 		return c.kb.BooleanIndex(n.Value), rKonst
 	case *ast.Nil:
 		return c.kb.NilIndex(), rKonst
 	case *ast.Reference:
 		i, s := c.refScope(n.Value)
-		if s == rNotDefined {
-			c.hadError = true
-		}
 		return i, s
 	case *ast.List:
 		if len(n.ExprList) == 0 {
 			c.emitList(0, c.rAlloc, c.rAlloc)
-			return int(c.rAlloc), rLoc
+			return c.rAlloc, rLoc
 		}
 		var count int
 		for _, v := range n.ExprList {
 			idx, scope := c.compileExpr(v)
 			if scope != rLoc {
 				c.emitLoc(idx, c.rAlloc, scope)
-			} else if idx != int(c.rAlloc) {
+			} else if idx != c.rAlloc {
 				c.emitMove(idx, c.rAlloc)
 			}
 			c.rAlloc++
@@ -383,11 +390,11 @@ func (c *Compiler) compileExpr(node ast.Node) (int, int) {
 		}
 		c.rAlloc -= count
 		c.emitList(count, c.rAlloc, c.rAlloc)
-		return int(c.rAlloc), rLoc
+		return c.rAlloc, rLoc
 	case *ast.Object:
 		if len(n.Pairs) == 0 {
 			c.emitObject(0, c.rAlloc, c.rAlloc)
-			return int(c.rAlloc), rLoc
+			return c.rAlloc, rLoc
 		}
 		var count int
 		for _, v := range n.Pairs {
@@ -397,7 +404,7 @@ func (c *Compiler) compileExpr(node ast.Node) (int, int) {
 			iv, scopeV := c.compileExpr(v.Value)
 			if scopeV != rLoc {
 				c.emitLoc(iv, c.rAlloc, scopeV)
-			} else if iv != int(c.rAlloc) {
+			} else if iv != c.rAlloc {
 				c.emitMove(iv, c.rAlloc)
 			}
 			c.rAlloc++
@@ -405,7 +412,7 @@ func (c *Compiler) compileExpr(node ast.Node) (int, int) {
 		}
 		c.rAlloc -= count
 		c.emitObject(count, c.rAlloc, c.rAlloc)
-		return int(c.rAlloc), rLoc
+		return c.rAlloc, rLoc
 	case *ast.Property:
 		return c.kb.StringIndex(n.Value), rKonst
 	case *ast.ForState:
@@ -418,7 +425,7 @@ func (c *Compiler) compileExpr(node ast.Node) (int, int) {
 		j, t := c.compileExpr(n.Index)
 		c.rAlloc = resultReg
 		c.emitIGet(i, j, s, t, resultReg)
-		return int(resultReg), rLoc
+		return resultReg, rLoc
 	case *ast.Select:
 		resultReg := c.rAlloc
 		c.rAlloc++
@@ -427,7 +434,7 @@ func (c *Compiler) compileExpr(node ast.Node) (int, int) {
 		j, t := c.compileExpr(n.Selector)
 		c.rAlloc = resultReg
 		c.emitIGet(i, j, s, t, resultReg)
-		return int(resultReg), rLoc
+		return resultReg, rLoc
 	case *ast.Slice:
 		resultReg := c.rAlloc
 		var scopeV, scopeL, scopeR int
@@ -451,7 +458,7 @@ func (c *Compiler) compileExpr(node ast.Node) (int, int) {
 		}
 		c.rAlloc = resultReg
 		c.emitSlice(n.Mode, fromV, fromL, fromR, scopeV, scopeL, scopeR, resultReg)
-		return int(resultReg), rLoc
+		return resultReg, rLoc
 	case *ast.Fun:
 		fn := &CoreFunction{}
 		c.fn = append(c.fn, fn)
@@ -466,7 +473,7 @@ func (c *Compiler) compileExpr(node ast.Node) (int, int) {
 		c.compileStmt(n.Body)
 		c.leaveFuncScope()
 		c.rAlloc = reg
-		return int(c.rAlloc), rLoc
+		return c.rAlloc, rLoc
 	case *ast.CallExpr:
 		reg := c.rAlloc
 		idx, s := c.compileExpr(n.Fun)
@@ -478,7 +485,7 @@ func (c *Compiler) compileExpr(node ast.Node) (int, int) {
 		}
 		c.rAlloc = reg
 		c.emitCall(reg, len(n.Args))
-		return int(reg), rLoc
+		return reg, rLoc
 	case *ast.MethodCallExpr:
 		reg := c.rAlloc
 		c.rAlloc++
@@ -498,7 +505,7 @@ func (c *Compiler) compileExpr(node ast.Node) (int, int) {
 		}
 		c.rAlloc = reg
 		c.emitCall(reg, len(n.Args)+1)
-		return int(reg), rLoc
+		return reg, rLoc
 	default:
 		return 0, rKonst
 	}

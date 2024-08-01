@@ -9,8 +9,8 @@ const (
 	loadK
 	move
 	storeF
-	// --
 	prefix
+	// --
 	binop
 	equals
 	list

@@ -73,7 +73,7 @@ func (p *Parser) mutOrCall(statements *[]ast.Node) ast.Node {
 	p.advance()
 	e := p.expression(token.LowestPrec)
 	p.advance()
-	return &ast.Set{Indentifier: i, Expr: e}
+	return &ast.Mut{Indentifier: i, Expr: e}
 }
 
 func (p *Parser) localStmt() ast.Node {

@@ -12,8 +12,8 @@ import (
 
 type Value interface {
 	Boolean() Bool
-	Prefix(byte) (Value, error)
-	Binop(byte, Value) (Value, error)
+	Prefix(uint64) (Value, error)
+	Binop(uint64, Value) (Value, error)
 	IGet(Value) (Value, error)
 	ISet(Value, Value) error
 	Equals(Value) Bool
@@ -30,20 +30,20 @@ func (n Nil) Boolean() Bool {
 	return Bool(false)
 }
 
-func (n Nil) Prefix(op byte) (Value, error) {
+func (n Nil) Prefix(op uint64) (Value, error) {
 	switch op {
-	case byte(token.NOT):
+	case uint64(token.NOT):
 		return Bool(true), nil
 	default:
 		return NilValue, verror.RuntimeError
 	}
 }
 
-func (n Nil) Binop(op byte, rhs Value) (Value, error) {
+func (n Nil) Binop(op uint64, rhs Value) (Value, error) {
 	switch op {
-	case byte(token.AND):
+	case uint64(token.AND):
 		return NilValue, nil
-	case byte(token.OR):
+	case uint64(token.OR):
 		return rhs, nil
 	default:
 		return NilValue, verror.RuntimeError
@@ -89,23 +89,23 @@ func (b Bool) Boolean() Bool {
 	return b
 }
 
-func (b Bool) Prefix(op byte) (Value, error) {
+func (b Bool) Prefix(op uint64) (Value, error) {
 	switch op {
-	case byte(token.NOT):
+	case uint64(token.NOT):
 		return !b, nil
 	default:
 		return NilValue, verror.RuntimeError
 	}
 }
 
-func (b Bool) Binop(op byte, rhs Value) (Value, error) {
+func (b Bool) Binop(op uint64, rhs Value) (Value, error) {
 	switch op {
-	case byte(token.AND):
+	case uint64(token.AND):
 		if b {
 			return rhs, nil
 		}
 		return b, nil
-	case byte(token.OR):
+	case uint64(token.OR):
 		if b {
 			return b, nil
 		}
@@ -162,31 +162,31 @@ func (s String) Boolean() Bool {
 	return Bool(true)
 }
 
-func (s String) Binop(op byte, rhs Value) (Value, error) {
+func (s String) Binop(op uint64, rhs Value) (Value, error) {
 	switch r := rhs.(type) {
 	case String:
 		switch op {
-		case byte(token.ADD):
+		case uint64(token.ADD):
 			str := String{Value: s.Value + r.Value}
 			return str, nil
-		case byte(token.AND):
+		case uint64(token.AND):
 			return r, nil
-		case byte(token.OR):
+		case uint64(token.OR):
 			return s, nil
-		case byte(token.LT):
+		case uint64(token.LT):
 			return Bool(s.Value < r.Value), nil
-		case byte(token.LE):
+		case uint64(token.LE):
 			return Bool(s.Value <= r.Value), nil
-		case byte(token.GT):
+		case uint64(token.GT):
 			return Bool(s.Value > r.Value), nil
-		case byte(token.GE):
+		case uint64(token.GE):
 			return Bool(s.Value >= r.Value), nil
 		}
 	default:
 		switch op {
-		case byte(token.OR):
+		case uint64(token.OR):
 			return s, nil
-		case byte(token.AND):
+		case uint64(token.AND):
 			return r, nil
 		}
 	}
@@ -215,9 +215,9 @@ func (s String) ISet(index, val Value) error {
 	return verror.RuntimeError
 }
 
-func (s String) Prefix(op byte) (Value, error) {
+func (s String) Prefix(op uint64) (Value, error) {
 	switch op {
-	case byte(token.NOT):
+	case uint64(token.NOT):
 		return Bool(false), nil
 	default:
 		return NilValue, verror.RuntimeError
@@ -260,81 +260,81 @@ func (i Integer) Boolean() Bool {
 	return Bool(true)
 }
 
-func (i Integer) Prefix(op byte) (Value, error) {
+func (i Integer) Prefix(op uint64) (Value, error) {
 	switch op {
-	case byte(token.SUB):
+	case uint64(token.SUB):
 		return -i, nil
-	case byte(token.NOT):
+	case uint64(token.NOT):
 		return Bool(false), nil
-	case byte(token.ADD):
+	case uint64(token.ADD):
 		return i, nil
 	}
 	return NilValue, verror.RuntimeError
 }
 
-func (l Integer) Binop(op byte, rhs Value) (Value, error) {
+func (l Integer) Binop(op uint64, rhs Value) (Value, error) {
 	switch r := rhs.(type) {
 	case Integer:
 		switch op {
-		case byte(token.ADD):
+		case uint64(token.ADD):
 			return l + r, nil
-		case byte(token.SUB):
+		case uint64(token.SUB):
 			return l - r, nil
-		case byte(token.MUL):
+		case uint64(token.MUL):
 			return l * r, nil
-		case byte(token.DIV):
+		case uint64(token.DIV):
 			if r == 0 {
 				return NilValue, verror.RuntimeError
 			}
 			return l / r, nil
-		case byte(token.REM):
+		case uint64(token.REM):
 			if r == 0 {
 				return NilValue, verror.RuntimeError
 			}
 			return l % r, nil
-		case byte(token.AND):
+		case uint64(token.AND):
 			return r, nil
-		case byte(token.OR):
+		case uint64(token.OR):
 			return l, nil
-		case byte(token.LT):
+		case uint64(token.LT):
 			return Bool(l < r), nil
-		case byte(token.LE):
+		case uint64(token.LE):
 			return Bool(l <= r), nil
-		case byte(token.GT):
+		case uint64(token.GT):
 			return Bool(l > r), nil
-		case byte(token.GE):
+		case uint64(token.GE):
 			return Bool(l >= r), nil
 		}
 	case Float:
 		switch op {
-		case byte(token.ADD):
+		case uint64(token.ADD):
 			return Float(Float(l) + r), nil
-		case byte(token.SUB):
+		case uint64(token.SUB):
 			return Float(Float(l) - r), nil
-		case byte(token.MUL):
+		case uint64(token.MUL):
 			return Float(Float(l) * r), nil
-		case byte(token.DIV):
+		case uint64(token.DIV):
 			return Float(Float(l) / r), nil
-		case byte(token.REM):
+		case uint64(token.REM):
 			return Float(math.Remainder(float64(l), float64(r))), nil
-		case byte(token.AND):
+		case uint64(token.AND):
 			return r, nil
-		case byte(token.OR):
+		case uint64(token.OR):
 			return l, nil
-		case byte(token.LT):
+		case uint64(token.LT):
 			return Bool(Float(l) < r), nil
-		case byte(token.LE):
+		case uint64(token.LE):
 			return Bool(Float(l) <= r), nil
-		case byte(token.GT):
+		case uint64(token.GT):
 			return Bool(Float(l) > r), nil
-		case byte(token.GE):
+		case uint64(token.GE):
 			return Bool(Float(l) >= r), nil
 		}
 	default:
 		switch op {
-		case byte(token.AND):
+		case uint64(token.AND):
 			return r, nil
-		case byte(token.OR):
+		case uint64(token.OR):
 			return l, nil
 		}
 	}
@@ -382,75 +382,75 @@ func (f Float) Boolean() Bool {
 	return Bool(true)
 }
 
-func (f Float) Prefix(op byte) (Value, error) {
+func (f Float) Prefix(op uint64) (Value, error) {
 	switch op {
-	case byte(token.SUB):
+	case uint64(token.SUB):
 		return -f, nil
-	case byte(token.NOT):
+	case uint64(token.NOT):
 		return Bool(false), nil
-	case byte(token.ADD):
+	case uint64(token.ADD):
 		return f, nil
 	}
 	return NilValue, verror.RuntimeError
 }
 
-func (f Float) Binop(op byte, rhs Value) (Value, error) {
+func (f Float) Binop(op uint64, rhs Value) (Value, error) {
 	switch r := rhs.(type) {
 	case Float:
 		switch op {
-		case byte(token.ADD):
+		case uint64(token.ADD):
 			return f + r, nil
-		case byte(token.SUB):
+		case uint64(token.SUB):
 			return f - r, nil
-		case byte(token.MUL):
+		case uint64(token.MUL):
 			return f * r, nil
-		case byte(token.DIV):
+		case uint64(token.DIV):
 			return f / r, nil
-		case byte(token.REM):
+		case uint64(token.REM):
 			return Float(math.Remainder(float64(f), float64(r))), nil
-		case byte(token.AND):
+		case uint64(token.AND):
 			return r, nil
-		case byte(token.OR):
+		case uint64(token.OR):
 			return f, nil
-		case byte(token.LT):
+		case uint64(token.LT):
 			return Bool(f < r), nil
-		case byte(token.LE):
+		case uint64(token.LE):
 			return Bool(f <= r), nil
-		case byte(token.GT):
+		case uint64(token.GT):
 			return Bool(f > r), nil
-		case byte(token.GE):
+		case uint64(token.GE):
 			return Bool(f >= r), nil
 		}
 	case Integer:
 		switch op {
-		case byte(token.ADD):
+		case uint64(token.ADD):
 			return f + Float(r), nil
-		case byte(token.SUB):
+		case uint64(token.SUB):
 			return f - Float(r), nil
-		case byte(token.MUL):
+		case uint64(token.MUL):
 			return f * Float(r), nil
-		case byte(token.DIV):
+		case uint64(token.DIV):
 			return f / Float(r), nil
-		case byte(token.REM):
+		case uint64(token.REM):
 			return Float(math.Remainder(float64(f), float64(r))), nil
-		case byte(token.AND):
+		case uint64(token.AND):
 			return r, nil
-		case byte(token.OR):
+		case uint64(token.OR):
 			return f, nil
-		case byte(token.LT):
+		case uint64(token.LT):
 			return Bool(f < Float(r)), nil
-		case byte(token.LE):
+		case uint64(token.LE):
 			return Bool(f <= Float(r)), nil
-		case byte(token.GT):
+		case uint64(token.GT):
 			return Bool(f > Float(r)), nil
-		case byte(token.GE):
+		case uint64(token.GE):
 			return Bool(f >= Float(r)), nil
 		}
 	default:
 		switch op {
-		case byte(token.AND):
+		case uint64(token.AND):
 			return r, nil
-		case byte(token.OR):
+		case uint64(token.OR):
 			return f, nil
 		}
 	}
@@ -500,20 +500,20 @@ func (xs *List) Boolean() Bool {
 	return Bool(true)
 }
 
-func (xs *List) Prefix(op byte) (Value, error) {
+func (xs *List) Prefix(op uint64) (Value, error) {
 	switch op {
-	case byte(token.NOT):
+	case uint64(token.NOT):
 		return Bool(false), nil
 	default:
 		return NilValue, verror.RuntimeError
 	}
 }
 
-func (xs *List) Binop(op byte, rhs Value) (Value, error) {
+func (xs *List) Binop(op uint64, rhs Value) (Value, error) {
 	switch r := rhs.(type) {
 	case *List:
 		switch op {
-		case byte(token.ADD):
+		case uint64(token.ADD):
 			rLen := len(r.Value)
 			if rLen == 0 {
 				return xs, nil
@@ -523,16 +523,16 @@ func (xs *List) Binop(op byte, rhs Value) (Value, error) {
 			copy(values[:lLen], xs.Value)
 			copy(values[lLen:], r.Value)
 			return &List{Value: values}, nil
-		case byte(token.AND):
+		case uint64(token.AND):
 			return r, nil
-		case byte(token.OR):
+		case uint64(token.OR):
 			return xs, nil
 		}
 	default:
 		switch op {
-		case byte(token.OR):
+		case uint64(token.OR):
 			return xs, nil
-		case byte(token.AND):
+		case uint64(token.AND):
 			return r, nil
 		}
 	}
@@ -610,20 +610,20 @@ func (o *Object) Boolean() Bool {
 	return true
 }
 
-func (o *Object) Prefix(op byte) (Value, error) {
+func (o *Object) Prefix(op uint64) (Value, error) {
 	switch op {
-	case byte(token.NOT):
+	case uint64(token.NOT):
 		return Bool(false), nil
 	default:
 		return NilValue, verror.RuntimeError
 	}
 }
 
-func (o *Object) Binop(op byte, rhs Value) (Value, error) {
+func (o *Object) Binop(op uint64, rhs Value) (Value, error) {
 	switch r := rhs.(type) {
 	case *Object:
 		switch op {
-		case byte(token.ADD):
+		case uint64(token.ADD):
 			pairs := make(map[string]Value)
 			for k, v := range o.Value {
 				pairs[k] = v
@@ -632,16 +632,16 @@ func (o *Object) Binop(op byte, rhs Value) (Value, error) {
 				pairs[k] = v
 			}
 			return &Object{Value: pairs}, nil
-		case byte(token.AND):
+		case uint64(token.AND):
 			return r, nil
-		case byte(token.OR):
+		case uint64(token.OR):
 			return o, nil
 		}
 	default:
 		switch op {
-		case byte(token.OR):
+		case uint64(token.OR):
 			return o, nil
-		case byte(token.AND):
+		case uint64(token.AND):
 			return r, nil
 		}
 	}
@@ -737,11 +737,11 @@ func (c *CoreFunction) Boolean() Bool {
 	return true
 }
 
-func (c *CoreFunction) Prefix(byte) (Value, error) {
+func (c *CoreFunction) Prefix(uint64) (Value, error) {
 	return NilValue, verror.RuntimeError
 }
 
-func (c *CoreFunction) Binop(byte, Value) (Value, error) {
+func (c *CoreFunction) Binop(uint64, Value) (Value, error) {
 	return NilValue, verror.RuntimeError
 }
 
@@ -789,11 +789,11 @@ func (f *Function) Boolean() Bool {
 	return true
 }
 
-func (f *Function) Prefix(byte) (Value, error) {
+func (f *Function) Prefix(uint64) (Value, error) {
 	return NilValue, verror.RuntimeError
 }
 
-func (f *Function) Binop(byte, Value) (Value, error) {
+func (f *Function) Binop(uint64, Value) (Value, error) {
 	return NilValue, verror.RuntimeError
 }
 
@@ -838,11 +838,11 @@ func (gfn GFn) Boolean() Bool {
 	return Bool(true)
 }
 
-func (gfn GFn) Prefix(op byte) (Value, error) {
+func (gfn GFn) Prefix(op uint64) (Value, error) {
 	return NilValue, verror.RuntimeError
 }
 
-func (gfn GFn) Binop(op byte, rhs Value) (Value, error) {
+func (gfn GFn) Binop(op uint64, rhs Value) (Value, error) {
 	return NilValue, verror.RuntimeError
 }
 
