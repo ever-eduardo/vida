@@ -13,9 +13,9 @@ const (
 	binop
 	binopG
 	binopK
+	list
 	// --
 	equals
-	list
 	obj
 	iGet
 	iSet

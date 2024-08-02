@@ -128,11 +128,11 @@ func (c *Compiler) emitEq(from, to int, operator token.Token) {
 	c.currentFn.Code = append(c.currentFn.Code, i)
 }
 
-func (c *Compiler) emitList(length, from, to int) {
-	// c.currentFn.Code = append(c.currentFn.Code, list)
-	// c.currentFn.Code = append(c.currentFn.Code, length)
-	// c.currentFn.Code = append(c.currentFn.Code, from)
-	// c.currentFn.Code = append(c.currentFn.Code, to)
+func (c *Compiler) emitList(length, root int) {
+	var i uint64 = uint64(root)
+	i |= uint64(length) << shift16
+	i |= list << shift56
+	c.currentFn.Code = append(c.currentFn.Code, i)
 }
 
 func (c *Compiler) emitObject(length, from, to int) {

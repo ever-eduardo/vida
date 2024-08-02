@@ -107,7 +107,7 @@ func (c *Compiler) compileStmt(node ast.Node) {
 				c.emitStoreG(from, to, 0)
 			}
 		}
-	case *ast.Var:
+	case *ast.Let:
 		to := c.sb.addGlobal(n.Indentifier)
 		c.module.Store = append(c.module.Store, NilValue)
 		from, scope := c.compileExpr(n.Expr)
@@ -445,10 +445,6 @@ func (c *Compiler) compileExpr(node ast.Node) (int, int) {
 				c.rAlloc--
 			}
 		}
-		switch n.Op {
-		case token.EQ, token.NEQ:
-			c.emitEq(lidx, ridx, n.Op)
-		}
 		return lreg, rLoc
 	case *ast.PrefixExpr:
 		from, scope := c.compileExpr(n.Expr)
@@ -485,22 +481,29 @@ func (c *Compiler) compileExpr(node ast.Node) (int, int) {
 		return i, s
 	case *ast.List:
 		if len(n.ExprList) == 0 {
-			c.emitList(0, c.rAlloc, c.rAlloc)
+			c.emitList(0, c.rAlloc)
 			return c.rAlloc, rLoc
 		}
 		var count int
 		for _, v := range n.ExprList {
-			idx, scope := c.compileExpr(v)
-			if scope != rLoc {
-				c.emitLoc(idx, c.rAlloc, scope)
-			} else if idx != c.rAlloc {
-				c.emitMove(idx, c.rAlloc)
+			i, s := c.compileExpr(v)
+			switch s {
+			case rLoc:
+				if i != c.rAlloc {
+					c.emitMove(i, c.rAlloc)
+				}
+			case rKonst:
+				c.emitLoadK(i, c.rAlloc)
+			case rGlob:
+				c.emitLoadG(i, c.rAlloc)
+			case rFree:
+				c.emitLoadF(i, c.rAlloc)
 			}
 			c.rAlloc++
 			count++
 		}
 		c.rAlloc -= count
-		c.emitList(count, c.rAlloc, c.rAlloc)
+		c.emitList(count, c.rAlloc)
 		return c.rAlloc, rLoc
 	case *ast.Object:
 		if len(n.Pairs) == 0 {

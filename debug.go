@@ -177,19 +177,14 @@ func (vm *VM) Debug() (Result, error) {
 		// 		return Failure, verror.New(vm.Module.Name, "Runtime error", verror.RunTimeErrMsg, math.MaxUint16)
 		// 	}
 		// 	vm.Frame.stack[to] = val
-		// case list:
-		// 	length := vm.Frame.code[ip]
-		// 	ip++
-		// 	from := vm.Frame.code[ip]
-		// 	ip++
-		// 	to := vm.Frame.code[ip]
-		// 	ip++
-		// 	xs := make([]Value, length)
-		// 	for i := 0; i < int(length); i++ {
-		// 		xs[i] = vm.Frame.stack[from]
-		// 		from++
-		// 	}
-		// 	vm.Frame.stack[to] = &List{Value: xs}
+		case list:
+			xs := make([]Value, A)
+			F := B
+			for i := 0; i < int(A); i++ {
+				xs[i] = vm.Frame.stack[F]
+				F++
+			}
+			vm.Frame.stack[B] = &List{Value: xs}
 		// case obj:
 		// 	length := vm.Frame.code[ip]
 		// 	ip++
