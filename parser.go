@@ -35,7 +35,7 @@ func (p *Parser) Parse() (*ast.Ast, error) {
 		switch p.current.Token {
 		case token.IDENTIFIER:
 			p.ast.Statement = append(p.ast.Statement, p.mutOrCall(&p.ast.Statement))
-		case token.VAR:
+		case token.LET:
 			p.ast.Statement = append(p.ast.Statement, p.global())
 		case token.LOC:
 			p.ast.Statement = append(p.ast.Statement, p.localStmt())
@@ -97,7 +97,7 @@ func (p *Parser) global() ast.Node {
 	p.advance()
 	e := p.expression(token.LowestPrec)
 	p.advance()
-	return &ast.Var{Indentifier: i, Expr: e}
+	return &ast.Let{Indentifier: i, Expr: e}
 }
 
 func (p *Parser) block(isInsideLoop bool) ast.Node {
@@ -107,7 +107,7 @@ func (p *Parser) block(isInsideLoop bool) ast.Node {
 		switch p.current.Token {
 		case token.IDENTIFIER:
 			block.Statement = append(block.Statement, p.mutOrCall(&block.Statement))
-		case token.VAR:
+		case token.LET:
 			block.Statement = append(block.Statement, p.global())
 		case token.LOC:
 			block.Statement = append(block.Statement, p.localStmt())

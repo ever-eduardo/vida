@@ -9,7 +9,7 @@ statement	:= 	global
 			|	ifor
 			|	if
 			|	while
-global		:=	'var' ident '=' expr
+global		:=	'let' ident '=' expr
 local		:=	'loc' ident '=' expr
 mut			:=	iden '=' expr
 datamut		:=	ident select select* '=' expr
