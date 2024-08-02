@@ -334,18 +334,15 @@ func (c *Compiler) compileExpr(node ast.Node) (int, int) {
 	case *ast.BinaryExpr:
 		lidx, lscope := c.compileExpr(n.Lhs)
 		lreg := c.rAlloc
-		c.rAlloc++
-		ridx, rscope := c.compileExpr(n.Rhs)
 		switch lscope {
 		case rKonst:
+			ridx, rscope := c.compileExpr(n.Rhs)
 			switch rscope {
 			case rKonst:
 				switch n.Op {
 				case token.EQ, token.NEQ:
-					c.rAlloc--
 					return c.integrateKonst(c.kb.Konstants[lidx].Equals(c.kb.Konstants[ridx]))
 				default:
-					c.rAlloc--
 					if val, err := c.kb.Konstants[lidx].Binop(uint64(n.Op), c.kb.Konstants[ridx]); err == nil {
 						return c.integrateKonst(val)
 					} else {
@@ -353,41 +350,40 @@ func (c *Compiler) compileExpr(node ast.Node) (int, int) {
 					}
 				}
 			case rGlob:
-				c.rAlloc--
 				c.emitLoadG(ridx, lreg)
 				c.emitBinopK(lidx, lreg, lreg, n.Op)
 			case rLoc:
-				c.rAlloc--
 				c.emitBinopK(lidx, ridx, lreg, n.Op)
 			case rFree:
-				c.rAlloc--
 				c.emitLoadF(ridx, lreg)
 				c.emitBinopK(lidx, lreg, lreg, n.Op)
 			}
 		case rGlob:
+			ridx, rscope := c.compileExpr(n.Rhs)
 			switch rscope {
 			case rGlob:
-				c.rAlloc--
 				c.emitBinopG(lidx, ridx, lreg, n.Op)
 			case rKonst:
-				c.rAlloc--
 				c.emitLoadG(lidx, lreg)
 				c.emitBinopK(ridx, lreg, lreg, n.Op)
 			case rLoc:
-				c.rAlloc--
 				c.emitLoadG(lidx, lreg)
 				c.emitBinop(lreg, ridx, lreg, n.Op)
 			case rFree:
-				c.rAlloc--
+				c.rAlloc++
 				c.emitLoadG(ridx, lreg)
 				c.emitLoadF(ridx, c.rAlloc)
 				c.emitBinop(lreg, c.rAlloc, lreg, n.Op)
+				c.rAlloc--
 			}
 		case rLoc:
+			c.rAlloc++
+			ridx, rscope := c.compileExpr(n.Rhs)
 			switch rscope {
 			case rLoc:
 				if c.mutLoc && (c.rDest == lidx || c.rDest == ridx) {
 					c.emitBinop(lidx, ridx, c.rDest, n.Op)
+					c.rAlloc--
 					return c.rDest, rLoc
 				} else {
 					c.emitBinop(lidx, ridx, lreg, n.Op)
@@ -396,6 +392,7 @@ func (c *Compiler) compileExpr(node ast.Node) (int, int) {
 				if c.mutLoc && (c.rDest == lidx) {
 					c.emitLoadG(ridx, c.rAlloc)
 					c.emitBinop(lidx, c.rAlloc, c.rDest, n.Op)
+					c.rAlloc--
 					return c.rDest, rLoc
 				} else {
 					c.emitLoadG(ridx, c.rAlloc)
@@ -404,6 +401,7 @@ func (c *Compiler) compileExpr(node ast.Node) (int, int) {
 			case rKonst:
 				if c.mutLoc && (c.rDest == lidx) {
 					c.emitBinopK(ridx, lidx, c.rDest, n.Op)
+					c.rAlloc--
 					return c.rDest, rLoc
 				} else {
 					c.emitBinopK(lidx, ridx, lreg, n.Op)
@@ -412,13 +410,16 @@ func (c *Compiler) compileExpr(node ast.Node) (int, int) {
 				if c.mutLoc && (c.rDest == lidx) {
 					c.emitLoadF(ridx, c.rAlloc)
 					c.emitBinop(lidx, c.rAlloc, c.rDest, n.Op)
+					c.rAlloc--
 					return c.rDest, rLoc
 				} else {
 					c.emitLoadF(ridx, c.rAlloc)
 					c.emitBinop(lidx, c.rAlloc, lreg, n.Op)
 				}
 			}
+			c.rAlloc--
 		case rFree:
+			ridx, rscope := c.compileExpr(n.Rhs)
 			switch rscope {
 			case rLoc:
 				if c.mutLoc && (c.rDest == ridx) {
@@ -427,9 +428,10 @@ func (c *Compiler) compileExpr(node ast.Node) (int, int) {
 					return c.rDest, rLoc
 				} else {
 					c.emitLoadF(ridx, lreg)
-					c.emitBinop(lreg, ridx, c.rAlloc, n.Op)
+					c.emitBinop(lreg, ridx, lreg, n.Op)
 				}
 			case rGlob:
+				c.rAlloc++
 				c.emitLoadF(lidx, lreg)
 				c.emitLoadG(lreg, c.rAlloc)
 				c.emitBinop(lreg, c.rAlloc, lreg, n.Op)
@@ -437,8 +439,8 @@ func (c *Compiler) compileExpr(node ast.Node) (int, int) {
 			case rKonst:
 				c.emitLoadF(lidx, lreg)
 				c.emitBinopK(ridx, lreg, lreg, n.Op)
-				c.rAlloc--
 			case rFree:
+				c.rAlloc++
 				c.emitLoadF(lidx, lreg)
 				c.emitLoadF(ridx, c.rAlloc)
 				c.emitBinop(lreg, c.rAlloc, lreg, n.Op)
@@ -477,8 +479,7 @@ func (c *Compiler) compileExpr(node ast.Node) (int, int) {
 	case *ast.Nil:
 		return c.kb.NilIndex(), rKonst
 	case *ast.Reference:
-		i, s := c.refScope(n.Value)
-		return i, s
+		return c.refScope(n.Value)
 	case *ast.List:
 		if len(n.ExprList) == 0 {
 			c.emitList(0, c.rAlloc)
