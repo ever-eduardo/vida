@@ -386,9 +386,64 @@ func (c *Compiler) compileExpr(node ast.Node) (int, int) {
 		case rLoc:
 			switch rscope {
 			case rLoc:
-				c.emitBinop(lidx, ridx, lreg, n.Op)
+				if c.mutLoc && (c.rDest == lidx || c.rDest == ridx) {
+					c.emitBinop(lidx, ridx, c.rDest, n.Op)
+					return c.rDest, rLoc
+				} else {
+					c.emitBinop(lidx, ridx, lreg, n.Op)
+				}
+			case rGlob:
+				if c.mutLoc && (c.rDest == lidx) {
+					c.emitLoadG(ridx, c.rAlloc)
+					c.emitBinop(lidx, c.rAlloc, c.rDest, n.Op)
+					return c.rDest, rLoc
+				} else {
+					c.emitLoadG(ridx, c.rAlloc)
+					c.emitBinop(lidx, c.rAlloc, lreg, n.Op)
+				}
+			case rKonst:
+				if c.mutLoc && (c.rDest == lidx) {
+					c.emitBinopK(ridx, lidx, c.rDest, n.Op)
+					return c.rDest, rLoc
+				} else {
+					c.emitBinopK(lidx, ridx, lreg, n.Op)
+				}
+			case rFree:
+				if c.mutLoc && (c.rDest == lidx) {
+					c.emitLoadF(ridx, c.rAlloc)
+					c.emitBinop(lidx, c.rAlloc, c.rDest, n.Op)
+					return c.rDest, rLoc
+				} else {
+					c.emitLoadF(ridx, c.rAlloc)
+					c.emitBinop(lidx, c.rAlloc, lreg, n.Op)
+				}
 			}
 		case rFree:
+			switch rscope {
+			case rLoc:
+				if c.mutLoc && (c.rDest == ridx) {
+					c.emitLoadF(ridx, lreg)
+					c.emitBinop(lreg, ridx, c.rDest, n.Op)
+					return c.rDest, rLoc
+				} else {
+					c.emitLoadF(ridx, lreg)
+					c.emitBinop(lreg, ridx, c.rAlloc, n.Op)
+				}
+			case rGlob:
+				c.emitLoadF(lidx, lreg)
+				c.emitLoadG(lreg, c.rAlloc)
+				c.emitBinop(lreg, c.rAlloc, lreg, n.Op)
+				c.rAlloc--
+			case rKonst:
+				c.emitLoadF(lidx, lreg)
+				c.emitBinopK(ridx, lreg, lreg, n.Op)
+				c.rAlloc--
+			case rFree:
+				c.emitLoadF(lidx, lreg)
+				c.emitLoadF(ridx, c.rAlloc)
+				c.emitBinop(lreg, c.rAlloc, lreg, n.Op)
+				c.rAlloc--
+			}
 		}
 		switch n.Op {
 		case token.EQ, token.NEQ:
