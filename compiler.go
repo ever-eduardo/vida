@@ -507,25 +507,32 @@ func (c *Compiler) compileExpr(node ast.Node) (int, int) {
 		return c.rAlloc, rLoc
 	case *ast.Object:
 		if len(n.Pairs) == 0 {
-			c.emitObject(0, c.rAlloc, c.rAlloc)
+			c.emitObject(0, c.rAlloc)
 			return c.rAlloc, rLoc
 		}
 		var count int
 		for _, v := range n.Pairs {
-			ik, scopeK := c.compileExpr(v.Key)
-			c.emitLoc(ik, c.rAlloc, scopeK)
+			ik, _ := c.compileExpr(v.Key)
+			c.emitLoadK(ik, c.rAlloc)
 			c.rAlloc++
-			iv, scopeV := c.compileExpr(v.Value)
-			if scopeV != rLoc {
-				c.emitLoc(iv, c.rAlloc, scopeV)
-			} else if iv != c.rAlloc {
-				c.emitMove(iv, c.rAlloc)
+			i, s := c.compileExpr(v.Value)
+			switch s {
+			case rLoc:
+				if i != c.rAlloc {
+					c.emitMove(i, c.rAlloc)
+				}
+			case rKonst:
+				c.emitLoadK(i, c.rAlloc)
+			case rGlob:
+				c.emitLoadG(i, c.rAlloc)
+			case rFree:
+				c.emitLoadF(i, c.rAlloc)
 			}
 			c.rAlloc++
 			count += 2
 		}
 		c.rAlloc -= count
-		c.emitObject(count, c.rAlloc, c.rAlloc)
+		c.emitObject(count, c.rAlloc)
 		return c.rAlloc, rLoc
 	case *ast.Property:
 		return c.kb.StringIndex(n.Value), rKonst

@@ -14,9 +14,9 @@ const (
 	binopG
 	binopK
 	list
+	object
 	// --
 	equals
-	obj
 	iGet
 	iSet
 	slice
@@ -46,7 +46,7 @@ var opcodes = [...]string{
 	// --
 	equals:   "Eq",
 	list:     "List",
-	obj:      "Obj",
+	object:   "Obj",
 	iGet:     "IGet",
 	iSet:     "ISet",
 	slice:    "Slice",

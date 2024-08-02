@@ -185,22 +185,17 @@ func (vm *VM) Debug() (Result, error) {
 				F++
 			}
 			vm.Frame.stack[B] = &List{Value: xs}
-		// case obj:
-		// 	length := vm.Frame.code[ip]
-		// 	ip++
-		// 	from := vm.Frame.code[ip]
-		// 	ip++
-		// 	to := vm.Frame.code[ip]
-		// 	ip++
-		// 	rec := make(map[string]Value)
-		// 	for i := 0; i < int(length); i += 2 {
-		// 		k := vm.Frame.stack[from].(String).Value
-		// 		from++
-		// 		v := vm.Frame.stack[from]
-		// 		from++
-		// 		rec[k] = v
-		// 	}
-		// 	vm.Frame.stack[to] = &Object{Value: rec}
+		case object:
+			m := make(map[string]Value)
+			F := B
+			for i := 0; i < int(A); i += 2 {
+				k := vm.Frame.stack[F].(String).Value
+				F++
+				v := vm.Frame.stack[F]
+				F++
+				m[k] = v
+			}
+			vm.Frame.stack[B] = &Object{Value: m}
 		// case forSet:
 		// 	i := vm.Frame.code[ip]
 		// 	ip++

@@ -135,11 +135,11 @@ func (c *Compiler) emitList(length, root int) {
 	c.currentFn.Code = append(c.currentFn.Code, i)
 }
 
-func (c *Compiler) emitObject(length, from, to int) {
-	// c.currentFn.Code = append(c.currentFn.Code, obj)
-	// c.currentFn.Code = append(c.currentFn.Code, length)
-	// c.currentFn.Code = append(c.currentFn.Code, from)
-	// c.currentFn.Code = append(c.currentFn.Code, to)
+func (c *Compiler) emitObject(length, root int) {
+	var i uint64 = uint64(root)
+	i |= uint64(length) << shift16
+	i |= object << shift56
+	c.currentFn.Code = append(c.currentFn.Code, i)
 }
 
 func (c *Compiler) emitIGet(fromIndexable, fromIndex, scopeIndexable, scopeIndex, to int) {
