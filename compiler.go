@@ -21,6 +21,8 @@ type Compiler struct {
 	scope         int
 	level         int
 	rAlloc        int
+	rDest         int
+	mutLoc        bool
 	hadError      bool
 }
 
@@ -52,10 +54,10 @@ func (c *Compiler) CompileModule() (*Module, error) {
 func (c *Compiler) compileStmt(node ast.Node) {
 	switch n := node.(type) {
 	case *ast.Mut:
-		from, sexpr := c.compileExpr(n.Expr)
 		to, sIdent := c.refScope(n.Indentifier)
 		switch sIdent {
 		case rFree:
+			from, sexpr := c.compileExpr(n.Expr)
 			switch sexpr {
 			case rGlob:
 				c.emitLoadG(from, c.rAlloc)
@@ -72,6 +74,9 @@ func (c *Compiler) compileStmt(node ast.Node) {
 				c.emitStoreF(from, to)
 			}
 		case rLoc:
+			c.mutLoc = true
+			c.rDest = to
+			from, sexpr := c.compileExpr(n.Expr)
 			switch sexpr {
 			case rGlob:
 				c.emitLoadG(from, to)
@@ -84,7 +89,9 @@ func (c *Compiler) compileStmt(node ast.Node) {
 			case rFree:
 				c.emitLoadF(from, to)
 			}
+			c.mutLoc = false
 		case rGlob:
+			from, sexpr := c.compileExpr(n.Expr)
 			switch sexpr {
 			case rGlob:
 				if from != to {
@@ -118,7 +125,6 @@ func (c *Compiler) compileStmt(node ast.Node) {
 		}
 	case *ast.Loc:
 		to := c.rAlloc
-		c.rAlloc++
 		from, scope := c.compileExpr(n.Expr)
 		c.sb.addLocal(n.Identifier, c.level, c.scope, to)
 		switch scope {
@@ -129,8 +135,11 @@ func (c *Compiler) compileStmt(node ast.Node) {
 		case rFree:
 			c.emitLoadF(from, to)
 		case rLoc:
-			c.emitMove(from, to)
+			if from != to {
+				c.emitMove(from, to)
+			}
 		}
+		c.rAlloc++
 	case *ast.Branch:
 		elifCount := len(n.Elifs)
 		hasElif := elifCount != 0
@@ -356,14 +365,21 @@ func (c *Compiler) compileExpr(node ast.Node) (int, int) {
 		switch scope {
 		case rGlob:
 			c.emitLoadG(from, c.rAlloc)
+			c.emitPrefix(c.rAlloc, c.rAlloc, n.Op)
 		case rLoc:
-			c.emitMove(from, c.rAlloc)
+			if c.mutLoc && c.rDest == from {
+				c.emitPrefix(from, from, n.Op)
+				return from, rLoc
+			} else {
+				c.emitPrefix(from, c.rAlloc, n.Op)
+			}
 		case rKonst:
 			c.emitLoadK(from, c.rAlloc)
+			c.emitPrefix(c.rAlloc, c.rAlloc, n.Op)
 		case rFree:
 			c.emitLoadF(from, c.rAlloc)
+			c.emitPrefix(c.rAlloc, c.rAlloc, n.Op)
 		}
-		c.emitPrefix(c.rAlloc, n.Op)
 		return c.rAlloc, rLoc
 	case *ast.Boolean:
 		return c.kb.BooleanIndex(n.Value), rKonst

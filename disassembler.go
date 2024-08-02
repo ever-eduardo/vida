@@ -75,7 +75,7 @@ func printInstr(instr, ip uint64, isRunningDebug bool) string {
 	case loadG, loadF, loadK, move, storeF:
 		sb.WriteString(fmt.Sprintf(" %3v %3v", A, B))
 	case prefix:
-		sb.WriteString(fmt.Sprintf(" %3v %3v", token.Token(A).String(), B))
+		sb.WriteString(fmt.Sprintf(" %3v %3v %3v", token.Token(P).String(), A, B))
 	}
 	return sb.String()
 }

@@ -84,9 +84,10 @@ func (c *Compiler) emitLoc(from, to int, scope int) {
 	// c.currentFn.Code = append(c.currentFn.Code, to)
 }
 
-func (c *Compiler) emitPrefix(from int, operator token.Token) {
-	var i uint64 = uint64(from)
-	i |= uint64(operator) << shift16
+func (c *Compiler) emitPrefix(from, to int, operator token.Token) {
+	var i uint64 = uint64(to)
+	i |= uint64(from) << shift16
+	i |= uint64(operator) << shift32
 	i |= prefix << shift56
 	c.currentFn.Code = append(c.currentFn.Code, i)
 }
@@ -239,7 +240,7 @@ func (c *Compiler) refScope(id string) (int, int) {
 			}
 			return len(fn.Info) - 1, rFree
 		}
-		return int(to), rLoc
+		return to, rLoc
 	}
 	if idx, isGlobal := c.sb.isGlobal(id); isGlobal {
 		return idx, rGlob

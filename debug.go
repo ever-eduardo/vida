@@ -11,8 +11,8 @@ func (vm *VM) Inspect(ip int) {
 	clear()
 	fmt.Println("Running", vm.Module.Name)
 	fmt.Printf("Store => ")
-	for i, v := range vm.Module.Store {
-		fmt.Printf("[%v -> %v], ", i, v)
+	for i := len(coreLibNames); i < len(vm.Module.Store); i++ {
+		fmt.Printf("[%v -> %v], ", i, vm.Module.Store[i])
 	}
 	fmt.Println()
 	fmt.Print("Konst => ")
@@ -119,7 +119,7 @@ func (vm *VM) Debug() (Result, error) {
 		// 	}
 		// 	vm.Frame.stack[to] = val
 		case prefix:
-			val, err := vm.Frame.stack[B].Prefix(A)
+			val, err := vm.Frame.stack[A].Prefix(P)
 			if err != nil {
 				return Failure, verror.New(vm.Module.Name, "Runtime error", verror.RunTimeErrMsg, math.MaxUint16)
 			}
