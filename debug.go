@@ -82,24 +82,24 @@ func (vm *VM) Debug() (Result, error) {
 		// 	}
 		// case jump:
 		// 	ip = int(uint16(vm.Frame.code[ip]) | uint16(vm.Frame.code[ip+1])<<8)
-		// case binop:
-		// 	op := vm.Frame.code[ip]
-		// 	ip++
-		// 	scopeLHS := vm.Frame.code[ip]
-		// 	ip++
-		// 	scopeRHS := vm.Frame.code[ip]
-		// 	ip++
-		// 	fromLHS := uint16(vm.Frame.code[ip]) | uint16(vm.Frame.code[ip+1])<<8
-		// 	ip += 2
-		// 	fromRHS := uint16(vm.Frame.code[ip]) | uint16(vm.Frame.code[ip+1])<<8
-		// 	ip += 2
-		// 	to := vm.Frame.code[ip]
-		// 	ip++
-		// 	val, err := vm.valueFrom(scopeLHS, fromLHS).Binop(op, vm.valueFrom(scopeRHS, fromRHS))
-		// 	if err != nil {
-		// 		return Failure, verror.New(vm.Module.Name, "Runtime error", verror.RunTimeErrMsg, math.MaxUint16)
-		// 	}
-		// 	vm.Frame.stack[to] = val
+		case binopG:
+			val, err := vm.Module.Store[A].Binop(P>>shift16, vm.Module.Store[P&clean16])
+			if err != nil {
+				return Failure, verror.New(vm.Module.Name, "Runtime error", verror.RunTimeErrMsg, math.MaxUint16)
+			}
+			vm.Frame.stack[B] = val
+		case binop:
+			val, err := vm.Frame.stack[A].Binop(P>>shift16, vm.Frame.stack[P&clean16])
+			if err != nil {
+				return Failure, verror.New(vm.Module.Name, "Runtime error", verror.RunTimeErrMsg, math.MaxUint16)
+			}
+			vm.Frame.stack[B] = val
+		case binopK:
+			val, err := vm.Module.Konstants[A].Binop(P>>shift16, vm.Frame.stack[P&clean16])
+			if err != nil {
+				return Failure, verror.New(vm.Module.Name, "Runtime error", verror.RunTimeErrMsg, math.MaxUint16)
+			}
+			vm.Frame.stack[B] = val
 		// case equals:
 		// 	op := vm.Frame.code[ip]
 		// 	ip++

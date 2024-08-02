@@ -21,6 +21,7 @@ const (
 	shift16 = 16
 	shift24 = 24
 	shift32 = 32
+	shift48 = 48
 	shift56 = 56
 	clean16 = 0x000000000000FFFF
 	clean24 = 0x0000000000FFFFFF
@@ -92,24 +93,39 @@ func (c *Compiler) emitPrefix(from, to int, operator token.Token) {
 	c.currentFn.Code = append(c.currentFn.Code, i)
 }
 
-func (c *Compiler) emitBinary(fromLHS, fromRHS, scopeLHS, scopeRHS, to int, operator byte) {
-	// c.currentFn.Code = append(c.currentFn.Code, binop)
-	// c.currentFn.Code = append(c.currentFn.Code, operator)
-	// c.currentFn.Code = append(c.currentFn.Code, scopeLHS)
-	// c.currentFn.Code = append(c.currentFn.Code, scopeRHS)
-	// c.currentFn.Code = append(c.currentFn.Code, (fromLHS), (fromLHS>>8))
-	// c.currentFn.Code = append(c.currentFn.Code, (fromRHS), (fromRHS>>8))
-	// c.currentFn.Code = append(c.currentFn.Code, to)
+func (c *Compiler) emitBinop(lidx, ridx, to int, operator token.Token) {
+	var i uint64 = uint64(to)
+	i |= uint64(lidx) << shift16
+	i |= uint64(ridx) << shift32
+	i |= uint64(operator) << 48
+	i |= binop << shift56
+	c.currentFn.Code = append(c.currentFn.Code, i)
 }
 
-func (c *Compiler) emitEq(fromLHS, fromRHS, scopeLHS, scopeRHS, to int, operator byte) {
-	// c.currentFn.Code = append(c.currentFn.Code, equals)
-	// c.currentFn.Code = append(c.currentFn.Code, operator)
-	// c.currentFn.Code = append(c.currentFn.Code, scopeLHS)
-	// c.currentFn.Code = append(c.currentFn.Code, scopeRHS)
-	// c.currentFn.Code = append(c.currentFn.Code, (fromLHS), (fromLHS>>8))
-	// c.currentFn.Code = append(c.currentFn.Code, (fromRHS), (fromRHS>>8))
-	// c.currentFn.Code = append(c.currentFn.Code, to)
+func (c *Compiler) emitBinopG(lidx, ridx, to int, operator token.Token) {
+	var i uint64 = uint64(to)
+	i |= uint64(lidx) << shift16
+	i |= uint64(ridx) << shift32
+	i |= uint64(operator) << 48
+	i |= binopG << shift56
+	c.currentFn.Code = append(c.currentFn.Code, i)
+}
+
+func (c *Compiler) emitBinopK(kidx, ridx, to int, operator token.Token) {
+	var i uint64 = uint64(to)
+	i |= uint64(kidx) << shift16
+	i |= uint64(ridx) << shift32
+	i |= uint64(operator) << 48
+	i |= binopK << shift56
+	c.currentFn.Code = append(c.currentFn.Code, i)
+}
+
+func (c *Compiler) emitEq(from, to int, operator token.Token) {
+	var i uint64 = uint64(to)
+	i |= uint64(from) << shift16
+	i |= uint64(operator) << shift32
+	i |= equals << shift56
+	c.currentFn.Code = append(c.currentFn.Code, i)
 }
 
 func (c *Compiler) emitList(length, from, to int) {

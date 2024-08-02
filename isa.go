@@ -10,8 +10,10 @@ const (
 	move
 	storeF
 	prefix
-	// --
 	binop
+	binopG
+	binopK
+	// --
 	equals
 	list
 	obj
@@ -30,15 +32,18 @@ const (
 )
 
 var opcodes = [...]string{
-	end:      "End",
-	storeG:   "StoreG",
-	storeF:   "SetF",
-	move:     "Move",
-	loadG:    "LoadG",
-	loadF:    "LoadF",
-	loadK:    "LoadK",
-	prefix:   "Prefix",
-	binop:    "Binop",
+	end:    "End",
+	storeG: "StoreG",
+	loadG:  "LoadG",
+	loadF:  "LoadF",
+	loadK:  "LoadK",
+	move:   "Move",
+	storeF: "SetF",
+	prefix: "Prefix",
+	binop:  "Binop",
+	binopG: "BinopG",
+	binopK: "BinopK",
+	// --
 	equals:   "Eq",
 	list:     "List",
 	obj:      "Obj",

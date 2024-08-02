@@ -74,8 +74,10 @@ func printInstr(instr, ip uint64, isRunningDebug bool) string {
 		sb.WriteString(fmt.Sprintf(" %3v %3v %3v", P, A, B))
 	case loadG, loadF, loadK, move, storeF:
 		sb.WriteString(fmt.Sprintf(" %3v %3v", A, B))
-	case prefix:
+	case prefix, equals:
 		sb.WriteString(fmt.Sprintf(" %3v %3v %3v", token.Token(P).String(), A, B))
+	case binopG, binopK, binop:
+		sb.WriteString(fmt.Sprintf(" %3v %3v %3v %3v", token.Token(P>>shift16).String(), P&clean16, A, B))
 	}
 	return sb.String()
 }

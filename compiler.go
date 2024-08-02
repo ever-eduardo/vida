@@ -332,29 +332,69 @@ func (c *Compiler) compileExpr(node ast.Node) (int, int) {
 	case *ast.String:
 		return c.kb.StringIndex(n.Value), rKonst
 	case *ast.BinaryExpr:
-		opReg := c.rAlloc
-		c.rAlloc++
 		lidx, lscope := c.compileExpr(n.Lhs)
+		lreg := c.rAlloc
 		c.rAlloc++
 		ridx, rscope := c.compileExpr(n.Rhs)
-		c.rAlloc = opReg
-		if lscope == rKonst && rscope == rKonst {
-			switch n.Op {
-			case token.EQ, token.NEQ:
-				return c.integrateKonst(c.kb.Konstants[lidx].Equals(c.kb.Konstants[ridx]))
-			default:
-				if val, err := c.kb.Konstants[lidx].Binop(uint64(n.Op), c.kb.Konstants[ridx]); err == nil {
-					return c.integrateKonst(val)
+		switch lscope {
+		case rKonst:
+			switch rscope {
+			case rKonst:
+				switch n.Op {
+				case token.EQ, token.NEQ:
+					c.rAlloc--
+					return c.integrateKonst(c.kb.Konstants[lidx].Equals(c.kb.Konstants[ridx]))
+				default:
+					c.rAlloc--
+					if val, err := c.kb.Konstants[lidx].Binop(uint64(n.Op), c.kb.Konstants[ridx]); err == nil {
+						return c.integrateKonst(val)
+					} else {
+						c.hadError = true
+					}
 				}
+			case rGlob:
+				c.rAlloc--
+				c.emitLoadG(ridx, lreg)
+				c.emitBinopK(lidx, lreg, lreg, n.Op)
+			case rLoc:
+				c.rAlloc--
+				c.emitBinopK(lidx, ridx, lreg, n.Op)
+			case rFree:
+				c.rAlloc--
+				c.emitLoadF(ridx, lreg)
+				c.emitBinopK(lidx, lreg, lreg, n.Op)
 			}
+		case rGlob:
+			switch rscope {
+			case rGlob:
+				c.rAlloc--
+				c.emitBinopG(lidx, ridx, lreg, n.Op)
+			case rKonst:
+				c.rAlloc--
+				c.emitLoadG(lidx, lreg)
+				c.emitBinopK(ridx, lreg, lreg, n.Op)
+			case rLoc:
+				c.rAlloc--
+				c.emitLoadG(lidx, lreg)
+				c.emitBinop(lreg, ridx, lreg, n.Op)
+			case rFree:
+				c.rAlloc--
+				c.emitLoadG(ridx, lreg)
+				c.emitLoadF(ridx, c.rAlloc)
+				c.emitBinop(lreg, c.rAlloc, lreg, n.Op)
+			}
+		case rLoc:
+			switch rscope {
+			case rLoc:
+				c.emitBinop(lidx, ridx, lreg, n.Op)
+			}
+		case rFree:
 		}
 		switch n.Op {
 		case token.EQ, token.NEQ:
-			c.emitEq(lidx, ridx, lscope, rscope, opReg, byte(n.Op))
-		default:
-			c.emitBinary(lidx, ridx, lscope, rscope, opReg, byte(n.Op))
+			c.emitEq(lidx, ridx, n.Op)
 		}
-		return opReg, rLoc
+		return lreg, rLoc
 	case *ast.PrefixExpr:
 		from, scope := c.compileExpr(n.Expr)
 		if scope == rKonst {
