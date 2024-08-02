@@ -142,13 +142,11 @@ func (c *Compiler) emitObject(length, root int) {
 	c.currentFn.Code = append(c.currentFn.Code, i)
 }
 
-func (c *Compiler) emitIGet(fromIndexable, fromIndex, scopeIndexable, scopeIndex, to int) {
-	// c.currentFn.Code = append(c.currentFn.Code, iGet)
-	// c.currentFn.Code = append(c.currentFn.Code, scopeIndexable)
-	// c.currentFn.Code = append(c.currentFn.Code, scopeIndex)
-	// c.currentFn.Code = append(c.currentFn.Code, (fromIndexable), (fromIndexable>>8))
-	// c.currentFn.Code = append(c.currentFn.Code, (fromIndex), (fromIndex>>8))
-	// c.currentFn.Code = append(c.currentFn.Code, to)
+func (c *Compiler) emitIGet(indexable, index int) {
+	var i uint64 = uint64(indexable)
+	i |= uint64(index) << shift16
+	i |= iGet << shift56
+	c.currentFn.Code = append(c.currentFn.Code, i)
 }
 
 func (c *Compiler) emitISet(fromIndex, fromExpr, scopeIndex, scopeExpr, from, to int) {

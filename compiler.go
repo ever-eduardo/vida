@@ -264,17 +264,17 @@ func (c *Compiler) compileStmt(node ast.Node) {
 		idx, scope := c.refScope(n.Value)
 		c.emitLoc(idx, c.rAlloc, scope)
 	case *ast.IGetStmt:
-		resultReg := c.rAlloc
-		c.rAlloc++
-		j, t := c.compileExpr(n.Index)
-		c.rAlloc = resultReg
-		c.emitIGet(resultReg, j, rLoc, t, resultReg)
+		// resultReg := c.rAlloc
+		// c.rAlloc++
+		// j, t := c.compileExpr(n.Index)
+		// c.rAlloc = resultReg
+		// c.emitIGet(resultReg, j, rLoc, t, resultReg)
 	case *ast.SelectStmt:
-		resultReg := c.rAlloc
-		c.rAlloc++
-		j, t := c.compileExpr(n.Selector)
-		c.rAlloc = resultReg
-		c.emitIGet(resultReg, j, rLoc, t, resultReg)
+		// resultReg := c.rAlloc
+		// c.rAlloc++
+		// j, t := c.compileExpr(n.Selector)
+		// c.rAlloc = resultReg
+		// c.emitIGet(resultReg, j, rLoc, t, resultReg)
 	case *ast.ISet:
 		mutableReg := c.rAlloc
 		c.rAlloc++
@@ -307,19 +307,19 @@ func (c *Compiler) compileStmt(node ast.Node) {
 		c.rAlloc = reg
 		c.emitCall(reg, len(n.Args))
 	case *ast.MethodCallStmt:
-		reg := c.rAlloc
-		c.rAlloc++
-		c.emitMove(reg, c.rAlloc)
-		c.rAlloc++
-		j, t := c.compileExpr(n.Prop)
-		c.emitIGet(reg, j, rLoc, t, reg)
-		for _, v := range n.Args {
-			i, s := c.compileExpr(v)
-			c.emitLoc(i, c.rAlloc, s)
-			c.rAlloc++
-		}
-		c.rAlloc = reg
-		c.emitCall(reg, len(n.Args)+1)
+		// reg := c.rAlloc
+		// c.rAlloc++
+		// c.emitMove(reg, c.rAlloc)
+		// c.rAlloc++
+		// j, t := c.compileExpr(n.Prop)
+		// c.emitIGet(reg, j, rLoc, t, reg)
+		// for _, v := range n.Args {
+		// 	i, s := c.compileExpr(v)
+		// 	c.emitLoc(i, c.rAlloc, s)
+		// 	c.rAlloc++
+		// }
+		// c.rAlloc = reg
+		// c.emitCall(reg, len(n.Args)+1)
 	}
 }
 
@@ -539,23 +539,67 @@ func (c *Compiler) compileExpr(node ast.Node) (int, int) {
 	case *ast.ForState:
 		return c.kb.IntegerIndex(0), rKonst
 	case *ast.IGet:
-		resultReg := c.rAlloc
-		c.rAlloc++
 		i, s := c.compileExpr(n.Indexable)
+		switch s {
+		case rLoc:
+			if i != c.rAlloc {
+				c.emitMove(i, c.rAlloc)
+			}
+		case rKonst:
+			c.emitLoadK(i, c.rAlloc)
+		case rGlob:
+			c.emitLoadG(i, c.rAlloc)
+		case rFree:
+			c.emitLoadF(i, c.rAlloc)
+		}
 		c.rAlloc++
 		j, t := c.compileExpr(n.Index)
-		c.rAlloc = resultReg
-		c.emitIGet(i, j, s, t, resultReg)
-		return resultReg, rLoc
+		switch t {
+		case rLoc:
+			if j != c.rAlloc {
+				c.emitMove(j, c.rAlloc)
+			}
+		case rKonst:
+			c.emitLoadK(j, c.rAlloc)
+		case rGlob:
+			c.emitLoadG(j, c.rAlloc)
+		case rFree:
+			c.emitLoadF(j, c.rAlloc)
+		}
+		c.rAlloc--
+		c.emitIGet(c.rAlloc, c.rAlloc+1)
+		return c.rAlloc, rLoc
 	case *ast.Select:
-		resultReg := c.rAlloc
-		c.rAlloc++
 		i, s := c.compileExpr(n.Selectable)
+		switch s {
+		case rLoc:
+			if i != c.rAlloc {
+				c.emitMove(i, c.rAlloc)
+			}
+		case rKonst:
+			c.emitLoadK(i, c.rAlloc)
+		case rGlob:
+			c.emitLoadG(i, c.rAlloc)
+		case rFree:
+			c.emitLoadF(i, c.rAlloc)
+		}
 		c.rAlloc++
 		j, t := c.compileExpr(n.Selector)
-		c.rAlloc = resultReg
-		c.emitIGet(i, j, s, t, resultReg)
-		return resultReg, rLoc
+		switch t {
+		case rLoc:
+			if j != c.rAlloc {
+				c.emitMove(j, c.rAlloc)
+			}
+		case rKonst:
+			c.emitLoadK(j, c.rAlloc)
+		case rGlob:
+			c.emitLoadG(j, c.rAlloc)
+		case rFree:
+			c.emitLoadF(j, c.rAlloc)
+		}
+		c.rAlloc--
+		c.emitIGet(c.rAlloc, c.rAlloc+1)
+		return c.rAlloc, rLoc
 	case *ast.Slice:
 		resultReg := c.rAlloc
 		var scopeV, scopeL, scopeR int
@@ -608,25 +652,25 @@ func (c *Compiler) compileExpr(node ast.Node) (int, int) {
 		c.emitCall(reg, len(n.Args))
 		return reg, rLoc
 	case *ast.MethodCallExpr:
-		reg := c.rAlloc
-		c.rAlloc++
-		i, s := c.compileExpr(n.Obj)
-		c.rAlloc++
-		j, t := c.compileExpr(n.Prop)
-		c.rAlloc = reg
-		c.emitIGet(i, j, s, t, reg)
-		c.rAlloc++
-		i, s = c.compileExpr(n.Obj)
-		c.emitLoc(i, c.rAlloc, s)
-		c.rAlloc++
-		for _, v := range n.Args {
-			i, s := c.compileExpr(v)
-			c.emitLoc(i, c.rAlloc, s)
-			c.rAlloc++
-		}
-		c.rAlloc = reg
-		c.emitCall(reg, len(n.Args)+1)
-		return reg, rLoc
+		// reg := c.rAlloc
+		// c.rAlloc++
+		// i, s := c.compileExpr(n.Obj)
+		// c.rAlloc++
+		// j, t := c.compileExpr(n.Prop)
+		// c.rAlloc = reg
+		// c.emitIGet(i, j, s, t, reg)
+		// c.rAlloc++
+		// i, s = c.compileExpr(n.Obj)
+		// c.emitLoc(i, c.rAlloc, s)
+		// c.rAlloc++
+		// for _, v := range n.Args {
+		// 	i, s := c.compileExpr(v)
+		// 	c.emitLoc(i, c.rAlloc, s)
+		// 	c.rAlloc++
+		// }
+		// c.rAlloc = reg
+		// c.emitCall(reg, len(n.Args)+1)
+		return 0, rLoc
 	default:
 		return 0, rKonst
 	}

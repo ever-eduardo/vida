@@ -15,9 +15,9 @@ const (
 	binopK
 	list
 	object
+	iGet
 	// --
 	equals
-	iGet
 	iSet
 	slice
 	forSet

@@ -124,22 +124,12 @@ func (vm *VM) Debug() (Result, error) {
 				return Failure, verror.New(vm.Module.Name, "Runtime error", verror.RunTimeErrMsg, math.MaxUint16)
 			}
 			vm.Frame.stack[B] = val
-		// case iGet:
-		// 	scopeIndexable := vm.Frame.code[ip]
-		// 	ip++
-		// 	scopeIndex := vm.Frame.code[ip]
-		// 	ip++
-		// 	fromIndexable := uint16(vm.Frame.code[ip]) | uint16(vm.Frame.code[ip+1])<<8
-		// 	ip += 2
-		// 	fromIndex := uint16(vm.Frame.code[ip]) | uint16(vm.Frame.code[ip+1])<<8
-		// 	ip += 2
-		// 	to := vm.Frame.code[ip]
-		// 	ip++
-		// 	val, err := vm.valueFrom(scopeIndexable, fromIndexable).IGet(vm.valueFrom(scopeIndex, fromIndex))
-		// 	if err != nil {
-		// 		return Failure, verror.New(vm.Module.Name, "Runtime error", verror.RunTimeErrMsg, math.MaxUint16)
-		// 	}
-		// 	vm.Frame.stack[to] = val
+		case iGet:
+			val, err := vm.Frame.stack[B].IGet(vm.Frame.stack[A])
+			if err != nil {
+				return Failure, verror.New(vm.Module.Name, "Runtime error", verror.RunTimeErrMsg, math.MaxUint16)
+			}
+			vm.Frame.stack[B] = val
 		// case iSet:
 		// 	scopeIndex := vm.Frame.code[ip]
 		// 	ip++
