@@ -638,32 +638,90 @@ func (c *Compiler) compileExpr(node ast.Node) (int, int) {
 		i, s := c.compileExpr(n.Selectable)
 		switch s {
 		case rLoc:
-			if i != c.rAlloc {
-				c.emitMove(i, c.rAlloc)
+			j, t := c.compileExpr(n.Selector)
+			switch t {
+			case rLoc:
+				if c.mutLoc && (i == c.rDest || j == c.rDest) {
+					c.emitIGet(i, j, c.rDest, 0)
+					return c.rDest, rLoc
+				} else {
+					c.emitIGet(i, j, c.rAlloc, 0)
+				}
+			case rGlob:
+				if c.mutLoc && (i == c.rDest || j == c.rDest) {
+					c.emitLoadG(j, c.rAlloc)
+					c.emitIGet(i, c.rAlloc, c.rDest, 0)
+					return c.rDest, rLoc
+				} else {
+					c.emitLoadG(j, c.rAlloc)
+					c.emitIGet(i, c.rAlloc, c.rAlloc, 0)
+				}
+			case rKonst:
+				if c.mutLoc && (i == c.rDest) {
+					c.emitIGet(i, j, c.rDest, 1)
+					return c.rDest, rLoc
+				} else {
+					c.emitIGet(i, j, c.rAlloc, 1)
+				}
+			case rFree:
+				if c.mutLoc && (i == c.rDest || j == c.rDest) {
+					c.emitLoadF(j, c.rAlloc)
+					c.emitIGet(i, c.rAlloc, c.rDest, 0)
+					return c.rDest, rLoc
+				} else {
+					c.emitLoadF(j, c.rAlloc)
+					c.emitIGet(i, c.rAlloc, c.rAlloc, 0)
+				}
 			}
-		case rKonst:
-			c.emitLoadK(i, c.rAlloc)
 		case rGlob:
-			c.emitLoadG(i, c.rAlloc)
-		case rFree:
-			c.emitLoadF(i, c.rAlloc)
-		}
-		c.rAlloc++
-		j, t := c.compileExpr(n.Selector)
-		switch t {
-		case rLoc:
-			if j != c.rAlloc {
-				c.emitMove(j, c.rAlloc)
+			j, t := c.compileExpr(n.Selector)
+			switch t {
+			case rLoc:
+				if c.mutLoc && j == c.rDest {
+					c.emitLoadG(i, c.rAlloc)
+					c.emitIGet(c.rAlloc, j, c.rDest, 0)
+					return c.rDest, rLoc
+				} else {
+					c.emitLoadG(i, c.rAlloc)
+					c.emitIGet(c.rAlloc, j, c.rAlloc, 0)
+				}
+			case rGlob:
+				c.emitLoadG(i, c.rAlloc)
+				c.emitLoadG(j, c.rAlloc+1)
+				c.emitIGet(c.rAlloc, c.rAlloc+1, c.rAlloc, 0)
+			case rKonst:
+				c.emitLoadG(i, c.rAlloc)
+				c.emitIGet(c.rAlloc, j, c.rAlloc, 1)
+			case rFree:
+				c.emitLoadG(i, c.rAlloc)
+				c.emitLoadF(j, c.rAlloc+1)
+				c.emitIGet(c.rAlloc, c.rAlloc+1, c.rAlloc, 0)
 			}
-		case rKonst:
-			c.emitLoadK(j, c.rAlloc)
-		case rGlob:
-			c.emitLoadG(j, c.rAlloc)
 		case rFree:
-			c.emitLoadF(j, c.rAlloc)
+			j, t := c.compileExpr(n.Selector)
+			switch t {
+			case rLoc:
+				if c.mutLoc && j == c.rDest {
+					c.emitLoadF(i, c.rAlloc)
+					c.emitIGet(c.rAlloc, j, c.rDest, 0)
+					return c.rDest, rLoc
+				} else {
+					c.emitLoadF(i, c.rAlloc)
+					c.emitIGet(c.rAlloc, j, c.rAlloc, 0)
+				}
+			case rGlob:
+				c.emitLoadF(i, c.rAlloc)
+				c.emitLoadG(j, c.rAlloc+1)
+				c.emitIGet(c.rAlloc, c.rAlloc+1, c.rAlloc, 0)
+			case rKonst:
+				c.emitLoadG(i, c.rAlloc)
+				c.emitIGet(c.rAlloc, j, c.rAlloc, 1)
+			case rFree:
+				c.emitLoadF(i, c.rAlloc)
+				c.emitLoadG(j, c.rAlloc+1)
+				c.emitIGet(c.rAlloc, c.rAlloc+1, c.rAlloc, 0)
+			}
 		}
-		c.rAlloc--
-		c.emitIGet(c.rAlloc, c.rAlloc, c.rAlloc, 0)
 		return c.rAlloc, rLoc
 	case *ast.Slice:
 		resultReg := c.rAlloc
