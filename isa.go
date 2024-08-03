@@ -16,9 +16,10 @@ const (
 	list
 	object
 	iGet
+	iSet
+	iSetK
 	// --
 	equals
-	iSet
 	slice
 	forSet
 	forLoop
@@ -46,9 +47,10 @@ var opcodes = [...]string{
 	list:   "List",
 	object: "Object",
 	iGet:   "IGet",
+	iSet:   "ISet",
+	iSetK:  "ISetK",
 	// --
 	equals:   "Eq",
-	iSet:     "ISet",
 	slice:    "Slice",
 	forSet:   "For",
 	forLoop:  "Loop",

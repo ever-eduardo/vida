@@ -136,21 +136,26 @@ func (vm *VM) Debug() (Result, error) {
 				return Failure, verror.New(vm.Module.Name, "Runtime error", verror.RunTimeErrMsg, math.MaxUint16)
 			}
 			vm.Frame.stack[B] = val
-		// case iSet:
-		// 	scopeIndex := vm.Frame.code[ip]
-		// 	ip++
-		// 	scopeExpr := vm.Frame.code[ip]
-		// 	ip++
-		// 	fromIndex := uint16(vm.Frame.code[ip]) | uint16(vm.Frame.code[ip+1])<<8
-		// 	ip += 2
-		// 	fromExpr := uint16(vm.Frame.code[ip]) | uint16(vm.Frame.code[ip+1])<<8
-		// 	ip += 2
-		// 	from := vm.Frame.code[ip]
-		// 	ip += 2
-		// 	err := vm.valueFrom(rLoc, uint16(from)).ISet(vm.valueFrom(scopeIndex, fromIndex), vm.valueFrom(scopeExpr, fromExpr))
-		// 	if err != nil {
-		// 		return Failure, verror.New(vm.Module.Name, "Runtime error", verror.RunTimeErrMsg, math.MaxUint16)
-		// 	}
+		case iSet:
+			var err error
+			if P>>shift16 == 0 {
+				err = vm.Frame.stack[P].ISet(vm.Frame.stack[A], vm.Frame.stack[B])
+			} else {
+				err = vm.Frame.stack[P&clean16].ISet(vm.Frame.stack[A], vm.Module.Konstants[B])
+			}
+			if err != nil {
+				return Failure, verror.New(vm.Module.Name, "Runtime error", verror.RunTimeErrMsg, math.MaxUint16)
+			}
+		case iSetK:
+			var err error
+			if P>>shift16 == 0 {
+				err = vm.Frame.stack[P].ISet(vm.Module.Konstants[A], vm.Frame.stack[B])
+			} else {
+				err = vm.Frame.stack[P&clean16].ISet(vm.Module.Konstants[A], vm.Module.Konstants[B])
+			}
+			if err != nil {
+				return Failure, verror.New(vm.Module.Name, "Runtime error", verror.RunTimeErrMsg, math.MaxUint16)
+			}
 		// case slice:
 		// 	mode := vm.Frame.code[ip]
 		// 	ip++

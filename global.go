@@ -12,7 +12,7 @@ var coreLibNames = []string{
 	"print",
 	"len",
 	"append",
-	"makelst",
+	"mkls",
 	"load",
 	"type",
 	"assert",

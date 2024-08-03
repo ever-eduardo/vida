@@ -151,8 +151,22 @@ func (c *Compiler) emitIGet(indexable, index, to, isKonst int) {
 	c.currentFn.Code = append(c.currentFn.Code, i)
 }
 
-func (c *Compiler) emitISet(indexable, index, expr, to, isKonst int) {
+func (c *Compiler) emitISet(indexable, index, expr, isKonst int) {
+	var i uint64 = uint64(expr)
+	i |= uint64(index) << shift16
+	i |= uint64(indexable) << shift32
+	i |= uint64(isKonst) << 48
+	i |= iSet << shift56
+	c.currentFn.Code = append(c.currentFn.Code, i)
+}
 
+func (c *Compiler) emitISetK(indexable, index, expr, isKonst int) {
+	var i uint64 = uint64(expr)
+	i |= uint64(index) << shift16
+	i |= uint64(indexable) << shift32
+	i |= uint64(isKonst) << 48
+	i |= iSetK << shift56
+	c.currentFn.Code = append(c.currentFn.Code, i)
 }
 
 func (c *Compiler) emitSlice(mode, fromV, fromL, fromR, scopeV, scopeL, scopeR, to int) {

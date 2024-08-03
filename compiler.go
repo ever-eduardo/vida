@@ -263,8 +263,9 @@ func (c *Compiler) compileStmt(node ast.Node) {
 		c.emitJump(0)
 	case *ast.ReferenceStmt:
 		i, s := c.refScope(n.Value)
-		c.refStmtIsLoc[0], c.refStmtIsLoc[1] = 1, i
 		switch s {
+		case rLoc:
+			c.refStmtIsLoc[0], c.refStmtIsLoc[1] = 1, i
 		case rGlob:
 			c.emitLoadG(i, c.rAlloc)
 		case rFree:
@@ -335,48 +336,150 @@ func (c *Compiler) compileStmt(node ast.Node) {
 			}
 		}
 	case *ast.ISet:
-		// if c.refStmtIsLoc[0] == 1 {
-		// 	c.refStmtIsLoc[0] = 0
-		// 	i := c.refStmtIsLoc[1]
-		// 	j, t := c.compileExpr(n.Index)
-		// 	switch t {
-		// 	case rLoc:
-		// 		c.emitIGet(i, j, c.rAlloc, 0)
-		// 	case rGlob:
-		// 		c.emitLoadG(j, c.rAlloc)
-		// 		c.emitIGet(i, c.rAlloc, c.rAlloc, 0)
-		// 	case rKonst:
-		// 		c.emitIGet(i, j, c.rAlloc, 1)
-		// 	case rFree:
-		// 		c.emitLoadF(j, c.rAlloc)
-		// 		c.emitIGet(i, c.rAlloc, c.rAlloc, 0)
-		// 	}
-		// } else {
-		// 	j, t := c.compileExpr(n.Index)
-		// 	c.rAlloc++
-		// 	k, u := c.compileExpr(n.Expr)
-		// 	switch t {
-		// 	case rKonst:
-		// 		c.emitISet(c.rAlloc, j, c.rAlloc, 1)
-		// 	case rLoc:
-		// 		c.emitISet(c.rAlloc, j, c.rAlloc, 0)
-		// 	case rGlob:
-		// 		c.emitLoadG(j, c.rAlloc+1)
-		// 		c.emitISet(c.rAlloc, c.rAlloc+1, c.rAlloc, 0)
-		// 	case rFree:
-		// 		c.emitLoadF(j, c.rAlloc+1)
-		// 		c.emitISet(c.rAlloc, c.rAlloc+1, c.rAlloc, 0)
-		// 	}
-		// 	c.rAlloc--
-		// }
-		// // -------------
-		// mutableReg := c.rAlloc
-		// c.rAlloc++
-		// ii, scopeI := c.compileExpr(n.Index)
-		// c.rAlloc++
-		// ie, scopeE := c.compileExpr(n.Expr)
-		// c.rAlloc = mutableReg
-		// c.emitISet(ii, ie, scopeI, scopeE, mutableReg, mutableReg)
+		if c.refStmtIsLoc[0] == 1 {
+			c.refStmtIsLoc[0] = 0
+			i := c.refStmtIsLoc[1]
+			j, t := c.compileExpr(n.Index)
+			switch t {
+			case rLoc:
+				c.rAlloc++
+				k, u := c.compileExpr(n.Expr)
+				switch u {
+				case rLoc:
+					c.emitISet(i, j, k, 0)
+				case rKonst:
+					c.emitISet(i, j, k, 1)
+				case rGlob:
+					c.emitLoadG(k, c.rAlloc)
+					c.emitISet(i, j, c.rAlloc, 0)
+				case rFree:
+					c.emitLoadF(k, c.rAlloc)
+					c.emitISet(i, j, c.rAlloc, 0)
+				}
+				c.rAlloc--
+			case rGlob:
+				k, u := c.compileExpr(n.Expr)
+				switch u {
+				case rLoc:
+					c.emitLoadG(j, c.rAlloc)
+					c.emitISet(i, c.rAlloc, k, 0)
+				case rKonst:
+					c.emitLoadG(j, c.rAlloc)
+					c.emitISet(i, c.rAlloc, k, 1)
+				case rGlob:
+					c.emitLoadG(j, c.rAlloc)
+					c.emitLoadG(k, c.rAlloc+1)
+					c.emitISet(i, c.rAlloc, c.rAlloc+1, 0)
+				case rFree:
+					c.emitLoadG(j, c.rAlloc)
+					c.emitLoadF(k, c.rAlloc+1)
+					c.emitISet(i, c.rAlloc, c.rAlloc+1, 0)
+				}
+			case rKonst:
+				k, u := c.compileExpr(n.Expr)
+				switch u {
+				case rLoc:
+					c.emitISetK(i, j, k, 0)
+				case rKonst:
+					c.emitISetK(i, j, k, 1)
+				case rGlob:
+					c.emitLoadG(k, c.rAlloc)
+					c.emitISetK(i, j, c.rAlloc, 0)
+				case rFree:
+					c.emitLoadF(k, c.rAlloc)
+					c.emitISetK(i, j, c.rAlloc, 0)
+				}
+			case rFree:
+				k, u := c.compileExpr(n.Expr)
+				switch u {
+				case rLoc:
+					c.emitLoadF(j, c.rAlloc)
+					c.emitISet(i, c.rAlloc, k, 0)
+				case rKonst:
+					c.emitLoadF(j, c.rAlloc)
+					c.emitISet(i, c.rAlloc, k, 1)
+				case rGlob:
+					c.emitLoadF(j, c.rAlloc)
+					c.emitLoadG(k, c.rAlloc+1)
+					c.emitISet(i, c.rAlloc, c.rAlloc+1, 0)
+				case rFree:
+					c.emitLoadF(j, c.rAlloc)
+					c.emitLoadF(k, c.rAlloc+1)
+					c.emitISet(i, c.rAlloc, c.rAlloc+1, 0)
+				}
+			}
+		} else {
+			i := c.rAlloc
+			j, t := c.compileExpr(n.Index)
+			switch t {
+			case rLoc:
+				c.rAlloc++
+				k, u := c.compileExpr(n.Expr)
+				switch u {
+				case rLoc:
+					c.emitISet(i, j, k, 0)
+				case rKonst:
+					c.emitISet(i, j, k, 1)
+				case rGlob:
+					c.emitLoadG(k, c.rAlloc)
+					c.emitISet(i, j, c.rAlloc, 0)
+				case rFree:
+					c.emitLoadF(k, c.rAlloc)
+					c.emitISet(i, j, c.rAlloc, 0)
+				}
+				c.rAlloc--
+			case rGlob:
+				k, u := c.compileExpr(n.Expr)
+				switch u {
+				case rLoc:
+					c.emitLoadG(j, c.rAlloc)
+					c.emitISet(i, c.rAlloc, k, 0)
+				case rKonst:
+					c.emitLoadG(j, c.rAlloc)
+					c.emitISet(i, c.rAlloc, k, 1)
+				case rGlob:
+					c.emitLoadG(j, c.rAlloc)
+					c.emitLoadG(k, c.rAlloc+1)
+					c.emitISet(i, c.rAlloc, c.rAlloc+1, 0)
+				case rFree:
+					c.emitLoadG(j, c.rAlloc)
+					c.emitLoadF(k, c.rAlloc+1)
+					c.emitISet(i, c.rAlloc, c.rAlloc+1, 0)
+				}
+			case rKonst:
+				k, u := c.compileExpr(n.Expr)
+				switch u {
+				case rLoc:
+					c.emitISetK(i, j, k, 0)
+				case rKonst:
+					c.emitISetK(i, j, k, 1)
+				case rGlob:
+					c.emitLoadG(k, c.rAlloc)
+					c.emitISetK(i, j, c.rAlloc, 0)
+				case rFree:
+					c.emitLoadF(k, c.rAlloc)
+					c.emitISetK(i, j, c.rAlloc, 0)
+				}
+			case rFree:
+				k, u := c.compileExpr(n.Expr)
+				switch u {
+				case rLoc:
+					c.emitLoadF(j, c.rAlloc)
+					c.emitISet(i, c.rAlloc, k, 0)
+				case rKonst:
+					c.emitLoadF(j, c.rAlloc)
+					c.emitISet(i, c.rAlloc, k, 1)
+				case rGlob:
+					c.emitLoadF(j, c.rAlloc)
+					c.emitLoadG(k, c.rAlloc+1)
+					c.emitISet(i, c.rAlloc, c.rAlloc+1, 0)
+				case rFree:
+					c.emitLoadF(j, c.rAlloc)
+					c.emitLoadF(k, c.rAlloc+1)
+					c.emitISet(i, c.rAlloc, c.rAlloc+1, 0)
+				}
+			}
+		}
 	case *ast.Block:
 		c.scope++
 		for i := range len(n.Statement) {
