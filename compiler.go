@@ -367,11 +367,17 @@ func (c *Compiler) compileExpr(node ast.Node) (int, int) {
 				c.emitLoadG(lidx, lreg)
 				c.emitBinopK(ridx, lreg, lreg, n.Op)
 			case rLoc:
-				c.emitLoadG(lidx, lreg)
-				c.emitBinop(lreg, ridx, lreg, n.Op)
+				if c.mutLoc && c.rDest == ridx {
+					c.emitLoadG(lidx, lreg)
+					c.emitBinop(lreg, ridx, c.rDest, n.Op)
+					return c.rDest, rLoc
+				} else {
+					c.emitLoadG(lidx, lreg)
+					c.emitBinop(lreg, ridx, lreg, n.Op)
+				}
 			case rFree:
 				c.rAlloc++
-				c.emitLoadG(ridx, lreg)
+				c.emitLoadG(lidx, lreg)
 				c.emitLoadF(ridx, c.rAlloc)
 				c.emitBinop(lreg, c.rAlloc, lreg, n.Op)
 				c.rAlloc--
@@ -423,17 +429,17 @@ func (c *Compiler) compileExpr(node ast.Node) (int, int) {
 			switch rscope {
 			case rLoc:
 				if c.mutLoc && (c.rDest == ridx) {
-					c.emitLoadF(ridx, lreg)
+					c.emitLoadF(lidx, lreg)
 					c.emitBinop(lreg, ridx, c.rDest, n.Op)
 					return c.rDest, rLoc
 				} else {
-					c.emitLoadF(ridx, lreg)
+					c.emitLoadF(lidx, lreg)
 					c.emitBinop(lreg, ridx, lreg, n.Op)
 				}
 			case rGlob:
 				c.rAlloc++
 				c.emitLoadF(lidx, lreg)
-				c.emitLoadG(lreg, c.rAlloc)
+				c.emitLoadG(ridx, c.rAlloc)
 				c.emitBinop(lreg, c.rAlloc, lreg, n.Op)
 				c.rAlloc--
 			case rKonst:
@@ -582,8 +588,14 @@ func (c *Compiler) compileExpr(node ast.Node) (int, int) {
 			j, t := c.compileExpr(n.Index)
 			switch t {
 			case rLoc:
-				c.emitLoadG(i, c.rAlloc)
-				c.emitIGet(c.rAlloc, j, c.rAlloc, 0)
+				if c.mutLoc && j == c.rDest {
+					c.emitLoadG(i, c.rAlloc)
+					c.emitIGet(c.rAlloc, j, c.rDest, 0)
+					return c.rDest, rLoc
+				} else {
+					c.emitLoadG(i, c.rAlloc)
+					c.emitIGet(c.rAlloc, j, c.rAlloc, 0)
+				}
 			case rGlob:
 				c.emitLoadG(i, c.rAlloc)
 				c.emitLoadG(j, c.rAlloc+1)
@@ -600,8 +612,14 @@ func (c *Compiler) compileExpr(node ast.Node) (int, int) {
 			j, t := c.compileExpr(n.Index)
 			switch t {
 			case rLoc:
-				c.emitLoadF(i, c.rAlloc)
-				c.emitIGet(c.rAlloc, j, c.rAlloc, 0)
+				if c.mutLoc && j == c.rDest {
+					c.emitLoadF(i, c.rAlloc)
+					c.emitIGet(c.rAlloc, j, c.rDest, 0)
+					return c.rDest, rLoc
+				} else {
+					c.emitLoadF(i, c.rAlloc)
+					c.emitIGet(c.rAlloc, j, c.rAlloc, 0)
+				}
 			case rGlob:
 				c.emitLoadF(i, c.rAlloc)
 				c.emitLoadG(j, c.rAlloc+1)
