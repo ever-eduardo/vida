@@ -125,7 +125,13 @@ func (vm *VM) Debug() (Result, error) {
 			}
 			vm.Frame.stack[B] = val
 		case iGet:
-			val, err := vm.Frame.stack[B].IGet(vm.Frame.stack[A])
+			var val Value
+			var err error
+			if P>>shift16 == 0 {
+				val, err = vm.Frame.stack[P].IGet(vm.Frame.stack[A])
+			} else {
+				val, err = vm.Frame.stack[P&clean16].IGet(vm.Module.Konstants[A])
+			}
 			if err != nil {
 				return Failure, verror.New(vm.Module.Name, "Runtime error", verror.RunTimeErrMsg, math.MaxUint16)
 			}
