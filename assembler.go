@@ -151,14 +151,8 @@ func (c *Compiler) emitIGet(indexable, index, to, isKonst int) {
 	c.currentFn.Code = append(c.currentFn.Code, i)
 }
 
-func (c *Compiler) emitISet(fromIndex, fromExpr, scopeIndex, scopeExpr, from, to int) {
-	// c.currentFn.Code = append(c.currentFn.Code, iSet)
-	// c.currentFn.Code = append(c.currentFn.Code, scopeIndex)
-	// c.currentFn.Code = append(c.currentFn.Code, scopeExpr)
-	// c.currentFn.Code = append(c.currentFn.Code, (fromIndex), (fromIndex>>8))
-	// c.currentFn.Code = append(c.currentFn.Code, (fromExpr), (fromExpr>>8))
-	// c.currentFn.Code = append(c.currentFn.Code, from)
-	// c.currentFn.Code = append(c.currentFn.Code, to)
+func (c *Compiler) emitISet(indexable, index, expr, to, isKonst int) {
+
 }
 
 func (c *Compiler) emitSlice(mode, fromV, fromL, fromR, scopeV, scopeL, scopeR, to int) {

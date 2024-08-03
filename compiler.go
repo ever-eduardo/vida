@@ -12,6 +12,7 @@ type Compiler struct {
 	breakCount    []int
 	continueJumps []int
 	continueCount []int
+	refStmtIsLoc  [2]int
 	fn            []*CoreFunction
 	currentFn     *CoreFunction
 	ast           *ast.Ast
@@ -261,28 +262,121 @@ func (c *Compiler) compileStmt(node ast.Node) {
 		c.continueCount[len(c.continueCount)-1]++
 		c.emitJump(0)
 	case *ast.ReferenceStmt:
-		idx, scope := c.refScope(n.Value)
-		c.emitLoc(idx, c.rAlloc, scope)
+		i, s := c.refScope(n.Value)
+		c.refStmtIsLoc[0], c.refStmtIsLoc[1] = 1, i
+		switch s {
+		case rGlob:
+			c.emitLoadG(i, c.rAlloc)
+		case rFree:
+			c.emitLoadF(i, c.rAlloc)
+		}
 	case *ast.IGetStmt:
-		// resultReg := c.rAlloc
-		// c.rAlloc++
-		// j, t := c.compileExpr(n.Index)
-		// c.rAlloc = resultReg
-		// c.emitIGet(resultReg, j, rLoc, t, resultReg)
+		if c.refStmtIsLoc[0] == 1 {
+			c.refStmtIsLoc[0] = 0
+			i := c.refStmtIsLoc[1]
+			j, t := c.compileExpr(n.Index)
+			switch t {
+			case rLoc:
+				c.emitIGet(i, j, c.rAlloc, 0)
+			case rGlob:
+				c.emitLoadG(j, c.rAlloc)
+				c.emitIGet(i, c.rAlloc, c.rAlloc, 0)
+			case rKonst:
+				c.emitIGet(i, j, c.rAlloc, 1)
+			case rFree:
+				c.emitLoadF(j, c.rAlloc)
+				c.emitIGet(i, c.rAlloc, c.rAlloc, 0)
+			}
+		} else {
+			j, t := c.compileExpr(n.Index)
+			switch t {
+			case rKonst:
+				c.emitIGet(c.rAlloc, j, c.rAlloc, 1)
+			case rLoc:
+				c.emitIGet(c.rAlloc, j, c.rAlloc, 0)
+			case rGlob:
+				c.emitLoadG(j, c.rAlloc+1)
+				c.emitIGet(c.rAlloc, c.rAlloc+1, c.rAlloc, 0)
+			case rFree:
+				c.emitLoadF(j, c.rAlloc+1)
+				c.emitIGet(c.rAlloc, c.rAlloc+1, c.rAlloc, 0)
+			}
+		}
 	case *ast.SelectStmt:
-		// resultReg := c.rAlloc
-		// c.rAlloc++
-		// j, t := c.compileExpr(n.Selector)
-		// c.rAlloc = resultReg
-		// c.emitIGet(resultReg, j, rLoc, t, resultReg)
+		if c.refStmtIsLoc[0] == 1 {
+			c.refStmtIsLoc[0] = 0
+			i := c.refStmtIsLoc[1]
+			j, t := c.compileExpr(n.Selector)
+			switch t {
+			case rLoc:
+				c.emitIGet(i, j, c.rAlloc, 0)
+			case rGlob:
+				c.emitLoadG(j, c.rAlloc)
+				c.emitIGet(i, c.rAlloc, c.rAlloc, 0)
+			case rKonst:
+				c.emitIGet(i, j, c.rAlloc, 1)
+			case rFree:
+				c.emitLoadF(j, c.rAlloc)
+				c.emitIGet(i, c.rAlloc, c.rAlloc, 0)
+			}
+		} else {
+			j, t := c.compileExpr(n.Selector)
+			switch t {
+			case rKonst:
+				c.emitIGet(c.rAlloc, j, c.rAlloc, 1)
+			case rLoc:
+				c.emitIGet(c.rAlloc, j, c.rAlloc, 0)
+			case rGlob:
+				c.emitLoadG(j, c.rAlloc+1)
+				c.emitIGet(c.rAlloc, c.rAlloc+1, c.rAlloc, 0)
+			case rFree:
+				c.emitLoadF(j, c.rAlloc+1)
+				c.emitIGet(c.rAlloc, c.rAlloc+1, c.rAlloc, 0)
+			}
+		}
 	case *ast.ISet:
-		mutableReg := c.rAlloc
-		c.rAlloc++
-		ii, scopeI := c.compileExpr(n.Index)
-		c.rAlloc++
-		ie, scopeE := c.compileExpr(n.Expr)
-		c.rAlloc = mutableReg
-		c.emitISet(ii, ie, scopeI, scopeE, mutableReg, mutableReg)
+		// if c.refStmtIsLoc[0] == 1 {
+		// 	c.refStmtIsLoc[0] = 0
+		// 	i := c.refStmtIsLoc[1]
+		// 	j, t := c.compileExpr(n.Index)
+		// 	switch t {
+		// 	case rLoc:
+		// 		c.emitIGet(i, j, c.rAlloc, 0)
+		// 	case rGlob:
+		// 		c.emitLoadG(j, c.rAlloc)
+		// 		c.emitIGet(i, c.rAlloc, c.rAlloc, 0)
+		// 	case rKonst:
+		// 		c.emitIGet(i, j, c.rAlloc, 1)
+		// 	case rFree:
+		// 		c.emitLoadF(j, c.rAlloc)
+		// 		c.emitIGet(i, c.rAlloc, c.rAlloc, 0)
+		// 	}
+		// } else {
+		// 	j, t := c.compileExpr(n.Index)
+		// 	c.rAlloc++
+		// 	k, u := c.compileExpr(n.Expr)
+		// 	switch t {
+		// 	case rKonst:
+		// 		c.emitISet(c.rAlloc, j, c.rAlloc, 1)
+		// 	case rLoc:
+		// 		c.emitISet(c.rAlloc, j, c.rAlloc, 0)
+		// 	case rGlob:
+		// 		c.emitLoadG(j, c.rAlloc+1)
+		// 		c.emitISet(c.rAlloc, c.rAlloc+1, c.rAlloc, 0)
+		// 	case rFree:
+		// 		c.emitLoadF(j, c.rAlloc+1)
+		// 		c.emitISet(c.rAlloc, c.rAlloc+1, c.rAlloc, 0)
+		// 	}
+		// 	c.rAlloc--
+		// }
+		// // -------------
+		// mutableReg := c.rAlloc
+		// c.rAlloc++
+		// ii, scopeI := c.compileExpr(n.Index)
+		// c.rAlloc++
+		// ie, scopeE := c.compileExpr(n.Expr)
+		// c.rAlloc = mutableReg
+		// c.emitISet(ii, ie, scopeI, scopeE, mutableReg, mutableReg)
 	case *ast.Block:
 		c.scope++
 		for i := range len(n.Statement) {
