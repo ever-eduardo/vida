@@ -710,33 +710,27 @@ func (c *Compiler) compileExpr(node ast.Node) (int, int) {
 		c.emitList(count, c.rAlloc)
 		return c.rAlloc, rLoc
 	case *ast.Object:
-		if len(n.Pairs) == 0 {
-			c.emitObject(0, c.rAlloc)
-			return c.rAlloc, rLoc
-		}
-		var count int
+		c.emitObject(c.rAlloc)
 		for _, v := range n.Pairs {
-			ik, _ := c.compileExpr(v.Key)
-			c.emitLoadK(ik, c.rAlloc)
-			c.rAlloc++
-			i, s := c.compileExpr(v.Value)
-			switch s {
-			case rLoc:
-				if i != c.rAlloc {
-					c.emitMove(i, c.rAlloc)
-				}
+			k, _ := c.compileExpr(v.Key)
+			v, sv := c.compileExpr(v.Value)
+			switch sv {
 			case rKonst:
-				c.emitLoadK(i, c.rAlloc)
+				c.emitISetK(c.rAlloc, k, v, 1)
+			case rLoc:
+				c.emitISetK(c.rAlloc, k, v, 0)
 			case rGlob:
-				c.emitLoadG(i, c.rAlloc)
+				c.rAlloc++
+				c.emitLoadG(v, c.rAlloc)
+				c.emitISetK(c.rAlloc-1, k, c.rAlloc, 0)
+				c.rAlloc--
 			case rFree:
-				c.emitLoadF(i, c.rAlloc)
+				c.rAlloc++
+				c.emitLoadF(v, c.rAlloc)
+				c.emitISetK(c.rAlloc-1, k, c.rAlloc, 0)
+				c.rAlloc--
 			}
-			c.rAlloc++
-			count += 2
 		}
-		c.rAlloc -= count
-		c.emitObject(count, c.rAlloc)
 		return c.rAlloc, rLoc
 	case *ast.Property:
 		return c.kb.StringIndex(n.Value), rKonst

@@ -187,16 +187,7 @@ func (vm *VM) Debug() (Result, error) {
 			}
 			vm.Frame.stack[B] = &List{Value: xs}
 		case object:
-			m := make(map[string]Value)
-			F := B
-			for i := 0; i < int(A); i += 2 {
-				k := vm.Frame.stack[F].(String).Value
-				F++
-				v := vm.Frame.stack[F]
-				F++
-				m[k] = v
-			}
-			vm.Frame.stack[B] = &Object{Value: m}
+			vm.Frame.stack[B] = &Object{Value: make(map[string]Value)}
 		// case forSet:
 		// 	i := vm.Frame.code[ip]
 		// 	ip++
