@@ -76,7 +76,7 @@ func printInstr(instr, ip uint64, isRunningDebug bool) string {
 		sb.WriteString(fmt.Sprintf(" %3v %3v", A, B))
 	case prefix, equals:
 		sb.WriteString(fmt.Sprintf(" %3v %3v %3v", token.Token(P).String(), A, B))
-	case binopG, binopK, binop:
+	case binopG, binop, binopK, binopQ:
 		sb.WriteString(fmt.Sprintf(" %3v %3v %3v %3v", token.Token(P>>shift16).String(), P&clean16, A, B))
 	case iGet, iSet, iSetK:
 		sb.WriteString(fmt.Sprintf(" %3v %3v %3v %3v", P&clean16, A, B, P>>shift16))

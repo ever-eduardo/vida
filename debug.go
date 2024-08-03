@@ -95,6 +95,12 @@ func (vm *VM) Debug() (Result, error) {
 			}
 			vm.Frame.stack[B] = val
 		case binopK:
+			val, err := vm.Frame.stack[P&clean16].Binop(P>>shift16, vm.Module.Konstants[A])
+			if err != nil {
+				return Failure, verror.New(vm.Module.Name, "Runtime error", verror.RunTimeErrMsg, math.MaxUint16)
+			}
+			vm.Frame.stack[B] = val
+		case binopQ:
 			val, err := vm.Module.Konstants[A].Binop(P>>shift16, vm.Frame.stack[P&clean16])
 			if err != nil {
 				return Failure, verror.New(vm.Module.Name, "Runtime error", verror.RunTimeErrMsg, math.MaxUint16)

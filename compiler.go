@@ -548,12 +548,12 @@ func (c *Compiler) compileExpr(node ast.Node) (int, int) {
 				}
 			case rGlob:
 				c.emitLoadG(ridx, lreg)
-				c.emitBinopK(lidx, lreg, lreg, n.Op)
+				c.emitBinopQ(lidx, lreg, lreg, n.Op)
 			case rLoc:
-				c.emitBinopK(lidx, ridx, lreg, n.Op)
+				c.emitBinopQ(lidx, ridx, lreg, n.Op)
 			case rFree:
 				c.emitLoadF(ridx, lreg)
-				c.emitBinopK(lidx, lreg, lreg, n.Op)
+				c.emitBinopQ(lidx, lreg, lreg, n.Op)
 			}
 		case rGlob:
 			ridx, rscope := c.compileExpr(n.Rhs)
@@ -607,7 +607,7 @@ func (c *Compiler) compileExpr(node ast.Node) (int, int) {
 					c.rAlloc--
 					return c.rDest, rLoc
 				} else {
-					c.emitBinopK(lidx, ridx, lreg, n.Op)
+					c.emitBinopK(ridx, lidx, lreg, n.Op)
 				}
 			case rFree:
 				if c.mutLoc && (c.rDest == lidx) {

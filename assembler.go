@@ -111,12 +111,21 @@ func (c *Compiler) emitBinopG(lidx, ridx, to int, operator token.Token) {
 	c.currentFn.Code = append(c.currentFn.Code, i)
 }
 
-func (c *Compiler) emitBinopK(kidx, ridx, to int, operator token.Token) {
+func (c *Compiler) emitBinopK(kidx, regAddr, to int, operator token.Token) {
 	var i uint64 = uint64(to)
 	i |= uint64(kidx) << shift16
-	i |= uint64(ridx) << shift32
+	i |= uint64(regAddr) << shift32
 	i |= uint64(operator) << 48
 	i |= binopK << shift56
+	c.currentFn.Code = append(c.currentFn.Code, i)
+}
+
+func (c *Compiler) emitBinopQ(kidx, regAddr, to int, operator token.Token) {
+	var i uint64 = uint64(to)
+	i |= uint64(kidx) << shift16
+	i |= uint64(regAddr) << shift32
+	i |= uint64(operator) << 48
+	i |= binopQ << shift56
 	c.currentFn.Code = append(c.currentFn.Code, i)
 }
 

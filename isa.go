@@ -13,6 +13,7 @@ const (
 	binop
 	binopG
 	binopK
+	binopQ
 	list
 	object
 	iGet
@@ -44,6 +45,7 @@ var opcodes = [...]string{
 	binop:  "Binop",
 	binopG: "BinopG",
 	binopK: "BinopK",
+	binopQ: "BinopQ",
 	list:   "List",
 	object: "Object",
 	iGet:   "IGet",
