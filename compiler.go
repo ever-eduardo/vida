@@ -58,7 +58,7 @@ func (c *Compiler) compileStmt(node ast.Node) {
 		to, sIdent := c.refScope(n.Indentifier)
 		switch sIdent {
 		case rFree:
-			from, sexpr := c.compileExpr(n.Expr)
+			from, sexpr := c.compileExpr(n.Expr, true)
 			switch sexpr {
 			case rGlob:
 				c.emitLoadG(from, c.rAlloc)
@@ -77,7 +77,7 @@ func (c *Compiler) compileStmt(node ast.Node) {
 		case rLoc:
 			c.mutLoc = true
 			c.rDest = to
-			from, sexpr := c.compileExpr(n.Expr)
+			from, sexpr := c.compileExpr(n.Expr, true)
 			switch sexpr {
 			case rGlob:
 				c.emitLoadG(from, to)
@@ -92,7 +92,7 @@ func (c *Compiler) compileStmt(node ast.Node) {
 			}
 			c.mutLoc = false
 		case rGlob:
-			from, sexpr := c.compileExpr(n.Expr)
+			from, sexpr := c.compileExpr(n.Expr, true)
 			switch sexpr {
 			case rGlob:
 				if from != to {
@@ -111,7 +111,7 @@ func (c *Compiler) compileStmt(node ast.Node) {
 	case *ast.Let:
 		to := c.sb.addGlobal(n.Indentifier)
 		c.module.Store = append(c.module.Store, NilValue)
-		from, scope := c.compileExpr(n.Expr)
+		from, scope := c.compileExpr(n.Expr, true)
 		switch scope {
 		case rKonst:
 			c.emitStoreG(from, to, 1)
@@ -126,7 +126,7 @@ func (c *Compiler) compileStmt(node ast.Node) {
 		}
 	case *ast.Loc:
 		to := c.rAlloc
-		from, scope := c.compileExpr(n.Expr)
+		from, scope := c.compileExpr(n.Expr, true)
 		c.sb.addLocal(n.Identifier, c.level, c.scope, to)
 		switch scope {
 		case rKonst:
@@ -169,15 +169,15 @@ func (c *Compiler) compileStmt(node ast.Node) {
 
 		ireg := c.rAlloc
 
-		initIdx, initScope := c.compileExpr(n.Init)
+		initIdx, initScope := c.compileExpr(n.Init, true)
 		c.emitLoc(initIdx, c.rAlloc, initScope)
 
 		c.rAlloc++
-		endIdx, endScope := c.compileExpr(n.End)
+		endIdx, endScope := c.compileExpr(n.End, true)
 		c.emitLoc(endIdx, c.rAlloc, endScope)
 
 		c.rAlloc++
-		stepIdx, stepScope := c.compileExpr(n.Step)
+		stepIdx, stepScope := c.compileExpr(n.Step, true)
 		c.emitLoc(stepIdx, c.rAlloc, stepScope)
 
 		c.rAlloc++
@@ -212,7 +212,7 @@ func (c *Compiler) compileStmt(node ast.Node) {
 		c.emitLoc(c.kb.IntegerIndex(0), c.rAlloc, rKonst)
 		c.rAlloc++
 
-		idx, scope := c.compileExpr(n.Expr)
+		idx, scope := c.compileExpr(n.Expr, true)
 		c.emitIForSet(0, idx, scope, ireg)
 		jump := len(c.currentFn.Code)
 		c.compileStmt(n.Block)
@@ -228,7 +228,7 @@ func (c *Compiler) compileStmt(node ast.Node) {
 		c.startLoopScope()
 
 		init := len(c.currentFn.Code)
-		idx, scope := c.compileExpr(n.Condition)
+		idx, scope := c.compileExpr(n.Condition, true)
 		if scope == rKonst {
 			switch v := c.kb.Konstants[idx].(type) {
 			case Nil:
@@ -275,7 +275,7 @@ func (c *Compiler) compileStmt(node ast.Node) {
 		if c.refStmtIsLoc[0] == 1 {
 			c.refStmtIsLoc[0] = 0
 			i := c.refStmtIsLoc[1]
-			j, t := c.compileExpr(n.Index)
+			j, t := c.compileExpr(n.Index, true)
 			switch t {
 			case rLoc:
 				c.emitIGet(i, j, c.rAlloc, 0)
@@ -289,7 +289,7 @@ func (c *Compiler) compileStmt(node ast.Node) {
 				c.emitIGet(i, c.rAlloc, c.rAlloc, 0)
 			}
 		} else {
-			j, t := c.compileExpr(n.Index)
+			j, t := c.compileExpr(n.Index, true)
 			switch t {
 			case rKonst:
 				c.emitIGet(c.rAlloc, j, c.rAlloc, 1)
@@ -307,7 +307,7 @@ func (c *Compiler) compileStmt(node ast.Node) {
 		if c.refStmtIsLoc[0] == 1 {
 			c.refStmtIsLoc[0] = 0
 			i := c.refStmtIsLoc[1]
-			j, t := c.compileExpr(n.Selector)
+			j, t := c.compileExpr(n.Selector, true)
 			switch t {
 			case rLoc:
 				c.emitIGet(i, j, c.rAlloc, 0)
@@ -321,7 +321,7 @@ func (c *Compiler) compileStmt(node ast.Node) {
 				c.emitIGet(i, c.rAlloc, c.rAlloc, 0)
 			}
 		} else {
-			j, t := c.compileExpr(n.Selector)
+			j, t := c.compileExpr(n.Selector, true)
 			switch t {
 			case rKonst:
 				c.emitIGet(c.rAlloc, j, c.rAlloc, 1)
@@ -339,11 +339,11 @@ func (c *Compiler) compileStmt(node ast.Node) {
 		if c.refStmtIsLoc[0] == 1 {
 			c.refStmtIsLoc[0] = 0
 			i := c.refStmtIsLoc[1]
-			j, t := c.compileExpr(n.Index)
+			j, t := c.compileExpr(n.Index, true)
 			switch t {
 			case rLoc:
 				c.rAlloc++
-				k, u := c.compileExpr(n.Expr)
+				k, u := c.compileExpr(n.Expr, true)
 				switch u {
 				case rLoc:
 					c.emitISet(i, j, k, 0)
@@ -358,7 +358,7 @@ func (c *Compiler) compileStmt(node ast.Node) {
 				}
 				c.rAlloc--
 			case rGlob:
-				k, u := c.compileExpr(n.Expr)
+				k, u := c.compileExpr(n.Expr, true)
 				switch u {
 				case rLoc:
 					c.emitLoadG(j, c.rAlloc)
@@ -376,7 +376,7 @@ func (c *Compiler) compileStmt(node ast.Node) {
 					c.emitISet(i, c.rAlloc, c.rAlloc+1, 0)
 				}
 			case rKonst:
-				k, u := c.compileExpr(n.Expr)
+				k, u := c.compileExpr(n.Expr, true)
 				switch u {
 				case rLoc:
 					c.emitISetK(i, j, k, 0)
@@ -390,7 +390,7 @@ func (c *Compiler) compileStmt(node ast.Node) {
 					c.emitISetK(i, j, c.rAlloc, 0)
 				}
 			case rFree:
-				k, u := c.compileExpr(n.Expr)
+				k, u := c.compileExpr(n.Expr, true)
 				switch u {
 				case rLoc:
 					c.emitLoadF(j, c.rAlloc)
@@ -410,11 +410,11 @@ func (c *Compiler) compileStmt(node ast.Node) {
 			}
 		} else {
 			i := c.rAlloc
-			j, t := c.compileExpr(n.Index)
+			j, t := c.compileExpr(n.Index, true)
 			switch t {
 			case rLoc:
 				c.rAlloc++
-				k, u := c.compileExpr(n.Expr)
+				k, u := c.compileExpr(n.Expr, true)
 				switch u {
 				case rLoc:
 					c.emitISet(i, j, k, 0)
@@ -429,7 +429,7 @@ func (c *Compiler) compileStmt(node ast.Node) {
 				}
 				c.rAlloc--
 			case rGlob:
-				k, u := c.compileExpr(n.Expr)
+				k, u := c.compileExpr(n.Expr, true)
 				switch u {
 				case rLoc:
 					c.emitLoadG(j, c.rAlloc)
@@ -447,7 +447,7 @@ func (c *Compiler) compileStmt(node ast.Node) {
 					c.emitISet(i, c.rAlloc, c.rAlloc+1, 0)
 				}
 			case rKonst:
-				k, u := c.compileExpr(n.Expr)
+				k, u := c.compileExpr(n.Expr, true)
 				switch u {
 				case rLoc:
 					c.emitISetK(i, j, k, 0)
@@ -461,7 +461,7 @@ func (c *Compiler) compileStmt(node ast.Node) {
 					c.emitISetK(i, j, c.rAlloc, 0)
 				}
 			case rFree:
-				k, u := c.compileExpr(n.Expr)
+				k, u := c.compileExpr(n.Expr, true)
 				switch u {
 				case rLoc:
 					c.emitLoadF(j, c.rAlloc)
@@ -492,13 +492,13 @@ func (c *Compiler) compileStmt(node ast.Node) {
 		if c.level == 0 {
 			c.hadError = true
 		}
-		i, s := c.compileExpr(n.Expr)
+		i, s := c.compileExpr(n.Expr, true)
 		c.emitRet(i, s)
 	case *ast.CallStmt:
 		reg := c.rAlloc
 		for _, v := range n.Args {
 			c.rAlloc++
-			i, s := c.compileExpr(v)
+			i, s := c.compileExpr(v, true)
 			c.emitLoc(i, c.rAlloc, s)
 		}
 		c.rAlloc = reg
@@ -520,7 +520,7 @@ func (c *Compiler) compileStmt(node ast.Node) {
 	}
 }
 
-func (c *Compiler) compileExpr(node ast.Node) (int, int) {
+func (c *Compiler) compileExpr(node ast.Node, isRoot bool) (int, int) {
 	switch n := node.(type) {
 	case *ast.Integer:
 		return c.kb.IntegerIndex(n.Value), rKonst
@@ -529,11 +529,11 @@ func (c *Compiler) compileExpr(node ast.Node) (int, int) {
 	case *ast.String:
 		return c.kb.StringIndex(n.Value), rKonst
 	case *ast.BinaryExpr:
-		lidx, lscope := c.compileExpr(n.Lhs)
+		lidx, lscope := c.compileExpr(n.Lhs, false)
 		lreg := c.rAlloc
 		switch lscope {
 		case rKonst:
-			ridx, rscope := c.compileExpr(n.Rhs)
+			ridx, rscope := c.compileExpr(n.Rhs, false)
 			switch rscope {
 			case rKonst:
 				switch n.Op {
@@ -556,7 +556,7 @@ func (c *Compiler) compileExpr(node ast.Node) (int, int) {
 				c.emitBinopQ(lidx, lreg, lreg, n.Op)
 			}
 		case rGlob:
-			ridx, rscope := c.compileExpr(n.Rhs)
+			ridx, rscope := c.compileExpr(n.Rhs, false)
 			switch rscope {
 			case rGlob:
 				c.emitBinopG(lidx, ridx, lreg, n.Op)
@@ -564,7 +564,7 @@ func (c *Compiler) compileExpr(node ast.Node) (int, int) {
 				c.emitLoadG(lidx, lreg)
 				c.emitBinopK(ridx, lreg, lreg, n.Op)
 			case rLoc:
-				if c.mutLoc {
+				if c.mutLoc && isRoot {
 					c.emitLoadG(lidx, lreg)
 					c.emitBinop(lreg, ridx, c.rDest, n.Op)
 					return c.rDest, rLoc
@@ -581,10 +581,10 @@ func (c *Compiler) compileExpr(node ast.Node) (int, int) {
 			}
 		case rLoc:
 			c.rAlloc++
-			ridx, rscope := c.compileExpr(n.Rhs)
+			ridx, rscope := c.compileExpr(n.Rhs, false)
 			switch rscope {
 			case rLoc:
-				if c.mutLoc {
+				if c.mutLoc && isRoot {
 					c.emitBinop(lidx, ridx, c.rDest, n.Op)
 					c.rAlloc--
 					return c.rDest, rLoc
@@ -592,7 +592,7 @@ func (c *Compiler) compileExpr(node ast.Node) (int, int) {
 					c.emitBinop(lidx, ridx, lreg, n.Op)
 				}
 			case rGlob:
-				if c.mutLoc {
+				if c.mutLoc && isRoot {
 					c.emitLoadG(ridx, c.rAlloc)
 					c.emitBinop(lidx, c.rAlloc, c.rDest, n.Op)
 					c.rAlloc--
@@ -602,7 +602,7 @@ func (c *Compiler) compileExpr(node ast.Node) (int, int) {
 					c.emitBinop(lidx, c.rAlloc, lreg, n.Op)
 				}
 			case rKonst:
-				if c.mutLoc {
+				if c.mutLoc && isRoot {
 					c.emitBinopK(ridx, lidx, c.rDest, n.Op)
 					c.rAlloc--
 					return c.rDest, rLoc
@@ -610,7 +610,7 @@ func (c *Compiler) compileExpr(node ast.Node) (int, int) {
 					c.emitBinopK(ridx, lidx, lreg, n.Op)
 				}
 			case rFree:
-				if c.mutLoc {
+				if c.mutLoc && isRoot {
 					c.emitLoadF(ridx, c.rAlloc)
 					c.emitBinop(lidx, c.rAlloc, c.rDest, n.Op)
 					c.rAlloc--
@@ -622,10 +622,10 @@ func (c *Compiler) compileExpr(node ast.Node) (int, int) {
 			}
 			c.rAlloc--
 		case rFree:
-			ridx, rscope := c.compileExpr(n.Rhs)
+			ridx, rscope := c.compileExpr(n.Rhs, false)
 			switch rscope {
 			case rLoc:
-				if c.mutLoc {
+				if c.mutLoc && isRoot {
 					c.emitLoadF(lidx, lreg)
 					c.emitBinop(lreg, ridx, c.rDest, n.Op)
 					return c.rDest, rLoc
@@ -652,7 +652,7 @@ func (c *Compiler) compileExpr(node ast.Node) (int, int) {
 		}
 		return lreg, rLoc
 	case *ast.PrefixExpr:
-		from, scope := c.compileExpr(n.Expr)
+		from, scope := c.compileExpr(n.Expr, false)
 		if scope == rKonst {
 			if val, err := c.kb.Konstants[from].Prefix(uint64(n.Op)); err == nil {
 				return c.integrateKonst(val)
@@ -663,9 +663,9 @@ func (c *Compiler) compileExpr(node ast.Node) (int, int) {
 			c.emitLoadG(from, c.rAlloc)
 			c.emitPrefix(c.rAlloc, c.rAlloc, n.Op)
 		case rLoc:
-			if c.mutLoc {
-				c.emitPrefix(from, from, n.Op)
-				return from, rLoc
+			if c.mutLoc && isRoot {
+				c.emitPrefix(from, c.rDest, n.Op)
+				return c.rDest, rLoc
 			} else {
 				c.emitPrefix(from, c.rAlloc, n.Op)
 			}
@@ -690,7 +690,7 @@ func (c *Compiler) compileExpr(node ast.Node) (int, int) {
 		}
 		var count int
 		for _, v := range n.ExprList {
-			i, s := c.compileExpr(v)
+			i, s := c.compileExpr(v, false)
 			switch s {
 			case rLoc:
 				if i != c.rAlloc {
@@ -712,8 +712,8 @@ func (c *Compiler) compileExpr(node ast.Node) (int, int) {
 	case *ast.Object:
 		c.emitObject(c.rAlloc)
 		for _, v := range n.Pairs {
-			k, _ := c.compileExpr(v.Key)
-			v, sv := c.compileExpr(v.Value)
+			k, _ := c.compileExpr(v.Key, false)
+			v, sv := c.compileExpr(v.Value, false)
 			switch sv {
 			case rKonst:
 				c.emitISetK(c.rAlloc, k, v, 1)
@@ -737,20 +737,20 @@ func (c *Compiler) compileExpr(node ast.Node) (int, int) {
 	case *ast.ForState:
 		return c.kb.IntegerIndex(0), rKonst
 	case *ast.IGet:
-		i, s := c.compileExpr(n.Indexable)
+		i, s := c.compileExpr(n.Indexable, false)
 		switch s {
 		case rLoc:
-			j, t := c.compileExpr(n.Index)
+			j, t := c.compileExpr(n.Index, false)
 			switch t {
 			case rLoc:
-				if c.mutLoc {
+				if c.mutLoc && isRoot {
 					c.emitIGet(i, j, c.rDest, 0)
 					return c.rDest, rLoc
 				} else {
 					c.emitIGet(i, j, c.rAlloc, 0)
 				}
 			case rGlob:
-				if c.mutLoc {
+				if c.mutLoc && isRoot {
 					c.emitLoadG(j, c.rAlloc)
 					c.emitIGet(i, c.rAlloc, c.rDest, 0)
 					return c.rDest, rLoc
@@ -759,14 +759,14 @@ func (c *Compiler) compileExpr(node ast.Node) (int, int) {
 					c.emitIGet(i, c.rAlloc, c.rAlloc, 0)
 				}
 			case rKonst:
-				if c.mutLoc {
+				if c.mutLoc && isRoot {
 					c.emitIGet(i, j, c.rDest, 1)
 					return c.rDest, rLoc
 				} else {
 					c.emitIGet(i, j, c.rAlloc, 1)
 				}
 			case rFree:
-				if c.mutLoc {
+				if c.mutLoc && isRoot {
 					c.emitLoadF(j, c.rAlloc)
 					c.emitIGet(i, c.rAlloc, c.rDest, 0)
 					return c.rDest, rLoc
@@ -776,10 +776,10 @@ func (c *Compiler) compileExpr(node ast.Node) (int, int) {
 				}
 			}
 		case rGlob:
-			j, t := c.compileExpr(n.Index)
+			j, t := c.compileExpr(n.Index, false)
 			switch t {
 			case rLoc:
-				if c.mutLoc {
+				if c.mutLoc && isRoot {
 					c.emitLoadG(i, c.rAlloc)
 					c.emitIGet(c.rAlloc, j, c.rDest, 0)
 					return c.rDest, rLoc
@@ -800,10 +800,10 @@ func (c *Compiler) compileExpr(node ast.Node) (int, int) {
 				c.emitIGet(c.rAlloc, c.rAlloc+1, c.rAlloc, 0)
 			}
 		case rFree:
-			j, t := c.compileExpr(n.Index)
+			j, t := c.compileExpr(n.Index, false)
 			switch t {
 			case rLoc:
-				if c.mutLoc {
+				if c.mutLoc && isRoot {
 					c.emitLoadF(i, c.rAlloc)
 					c.emitIGet(c.rAlloc, j, c.rDest, 0)
 					return c.rDest, rLoc
@@ -826,20 +826,20 @@ func (c *Compiler) compileExpr(node ast.Node) (int, int) {
 		}
 		return c.rAlloc, rLoc
 	case *ast.Select:
-		i, s := c.compileExpr(n.Selectable)
+		i, s := c.compileExpr(n.Selectable, false)
 		switch s {
 		case rLoc:
-			j, t := c.compileExpr(n.Selector)
+			j, t := c.compileExpr(n.Selector, false)
 			switch t {
 			case rLoc:
-				if c.mutLoc {
+				if c.mutLoc && isRoot {
 					c.emitIGet(i, j, c.rDest, 0)
 					return c.rDest, rLoc
 				} else {
 					c.emitIGet(i, j, c.rAlloc, 0)
 				}
 			case rGlob:
-				if c.mutLoc {
+				if c.mutLoc && isRoot {
 					c.emitLoadG(j, c.rAlloc)
 					c.emitIGet(i, c.rAlloc, c.rDest, 0)
 					return c.rDest, rLoc
@@ -848,14 +848,14 @@ func (c *Compiler) compileExpr(node ast.Node) (int, int) {
 					c.emitIGet(i, c.rAlloc, c.rAlloc, 0)
 				}
 			case rKonst:
-				if c.mutLoc {
+				if c.mutLoc && isRoot {
 					c.emitIGet(i, j, c.rDest, 1)
 					return c.rDest, rLoc
 				} else {
 					c.emitIGet(i, j, c.rAlloc, 1)
 				}
 			case rFree:
-				if c.mutLoc {
+				if c.mutLoc && isRoot {
 					c.emitLoadF(j, c.rAlloc)
 					c.emitIGet(i, c.rAlloc, c.rDest, 0)
 					return c.rDest, rLoc
@@ -865,10 +865,10 @@ func (c *Compiler) compileExpr(node ast.Node) (int, int) {
 				}
 			}
 		case rGlob:
-			j, t := c.compileExpr(n.Selector)
+			j, t := c.compileExpr(n.Selector, false)
 			switch t {
 			case rLoc:
-				if c.mutLoc {
+				if c.mutLoc && isRoot {
 					c.emitLoadG(i, c.rAlloc)
 					c.emitIGet(c.rAlloc, j, c.rDest, 0)
 					return c.rDest, rLoc
@@ -889,10 +889,10 @@ func (c *Compiler) compileExpr(node ast.Node) (int, int) {
 				c.emitIGet(c.rAlloc, c.rAlloc+1, c.rAlloc, 0)
 			}
 		case rFree:
-			j, t := c.compileExpr(n.Selector)
+			j, t := c.compileExpr(n.Selector, false)
 			switch t {
 			case rLoc:
-				if c.mutLoc {
+				if c.mutLoc && isRoot {
 					c.emitLoadF(i, c.rAlloc)
 					c.emitIGet(c.rAlloc, j, c.rDest, 0)
 					return c.rDest, rLoc
@@ -919,21 +919,21 @@ func (c *Compiler) compileExpr(node ast.Node) (int, int) {
 		var scopeV, scopeL, scopeR int
 		var fromV, fromL, fromR int
 		c.rAlloc++
-		fromV, scopeV = c.compileExpr(n.Value)
+		fromV, scopeV = c.compileExpr(n.Value, false)
 		switch n.Mode {
 		case vcv:
 			break
 		case vce:
 			c.rAlloc++
-			fromR, scopeR = c.compileExpr(n.Last)
+			fromR, scopeR = c.compileExpr(n.Last, false)
 		case ecv:
 			c.rAlloc++
-			fromL, scopeL = c.compileExpr(n.First)
+			fromL, scopeL = c.compileExpr(n.First, false)
 		case ece:
 			c.rAlloc++
-			fromL, scopeL = c.compileExpr(n.First)
+			fromL, scopeL = c.compileExpr(n.First, false)
 			c.rAlloc++
-			fromR, scopeR = c.compileExpr(n.Last)
+			fromR, scopeR = c.compileExpr(n.Last, false)
 		}
 		c.rAlloc = resultReg
 		c.emitSlice(n.Mode, fromV, fromL, fromR, scopeV, scopeL, scopeR, resultReg)
@@ -955,11 +955,11 @@ func (c *Compiler) compileExpr(node ast.Node) (int, int) {
 		return c.rAlloc, rLoc
 	case *ast.CallExpr:
 		reg := c.rAlloc
-		idx, s := c.compileExpr(n.Fun)
+		idx, s := c.compileExpr(n.Fun, false)
 		c.emitLoc(idx, reg, s)
 		for _, v := range n.Args {
 			c.rAlloc++
-			i, s := c.compileExpr(v)
+			i, s := c.compileExpr(v, false)
 			c.emitLoc(i, c.rAlloc, s)
 		}
 		c.rAlloc = reg
@@ -991,7 +991,7 @@ func (c *Compiler) compileExpr(node ast.Node) (int, int) {
 }
 
 func (c *Compiler) compileConditional(n *ast.If, shouldJumpOutside bool) {
-	idx, scope := c.compileExpr(n.Condition)
+	idx, scope := c.compileExpr(n.Condition, false)
 	if scope == rKonst {
 		switch v := c.kb.Konstants[idx].(type) {
 		case Nil:
