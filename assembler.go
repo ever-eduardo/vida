@@ -137,9 +137,10 @@ func (c *Compiler) emitEq(from, to int, operator token.Token) {
 	c.currentFn.Code = append(c.currentFn.Code, i)
 }
 
-func (c *Compiler) emitList(length, root int) {
-	var i uint64 = uint64(root)
-	i |= uint64(length) << shift16
+func (c *Compiler) emitList(length, root, to int) {
+	var i uint64 = uint64(to)
+	i |= uint64(root) << shift16
+	i |= uint64(length) << shift32
 	i |= list << shift56
 	c.currentFn.Code = append(c.currentFn.Code, i)
 }

@@ -684,10 +684,6 @@ func (c *Compiler) compileExpr(node ast.Node, isRoot bool) (int, int) {
 	case *ast.Reference:
 		return c.refScope(n.Value)
 	case *ast.List:
-		if len(n.ExprList) == 0 {
-			c.emitList(0, c.rAlloc)
-			return c.rAlloc, rLoc
-		}
 		var count int
 		for _, v := range n.ExprList {
 			i, s := c.compileExpr(v, false)
@@ -707,31 +703,39 @@ func (c *Compiler) compileExpr(node ast.Node, isRoot bool) (int, int) {
 			count++
 		}
 		c.rAlloc -= count
-		c.emitList(count, c.rAlloc)
+		if c.mutLoc && isRoot {
+			c.emitList(count, c.rAlloc, c.rDest)
+			return c.rDest, rLoc
+		}
+		c.emitList(count, c.rAlloc, c.rAlloc)
 		return c.rAlloc, rLoc
 	case *ast.Object:
-		c.emitObject(c.rAlloc)
+		objAddr := c.rAlloc
+		if c.mutLoc && isRoot {
+			objAddr = c.rDest
+		}
+		c.emitObject(objAddr)
 		for _, v := range n.Pairs {
 			k, _ := c.compileExpr(v.Key, false)
 			v, sv := c.compileExpr(v.Value, false)
 			switch sv {
 			case rKonst:
-				c.emitISetK(c.rAlloc, k, v, 1)
+				c.emitISetK(objAddr, k, v, 1)
 			case rLoc:
-				c.emitISetK(c.rAlloc, k, v, 0)
+				c.emitISetK(objAddr, k, v, 0)
 			case rGlob:
 				c.rAlloc++
 				c.emitLoadG(v, c.rAlloc)
-				c.emitISetK(c.rAlloc-1, k, c.rAlloc, 0)
+				c.emitISetK(objAddr, k, c.rAlloc, 0)
 				c.rAlloc--
 			case rFree:
 				c.rAlloc++
 				c.emitLoadF(v, c.rAlloc)
-				c.emitISetK(c.rAlloc-1, k, c.rAlloc, 0)
+				c.emitISetK(objAddr, k, c.rAlloc, 0)
 				c.rAlloc--
 			}
 		}
-		return c.rAlloc, rLoc
+		return objAddr, rLoc
 	case *ast.Property:
 		return c.kb.StringIndex(n.Value), rKonst
 	case *ast.ForState:

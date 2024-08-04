@@ -185,9 +185,9 @@ func (vm *VM) Debug() (Result, error) {
 		// 	}
 		// 	vm.Frame.stack[to] = val
 		case list:
-			xs := make([]Value, A)
-			F := B
-			for i := 0; i < int(A); i++ {
+			xs := make([]Value, P)
+			F := A
+			for i := 0; i < int(P); i++ {
 				xs[i] = vm.Frame.stack[F]
 				F++
 			}
