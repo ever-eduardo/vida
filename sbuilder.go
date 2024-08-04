@@ -51,15 +51,15 @@ func (sb *symbolBuilder) addLocal(id string, level int, scope int, reg int) {
 		})
 }
 
-func (sb *symbolBuilder) addGlobal(id string) int {
+func (sb *symbolBuilder) addGlobal(id string) (int, bool) {
 	idx, isPresent := sb.GlobalSet[id]
 	if isPresent {
-		return idx
+		return idx, isPresent
 	}
 	i := sb.index
 	sb.GlobalSet[id] = i
 	sb.index++
-	return i
+	return i, isPresent
 }
 
 func (sb *symbolBuilder) clearLocals(compilerLevel int, scopeLevel int) int {

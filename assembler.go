@@ -129,11 +129,39 @@ func (c *Compiler) emitBinopQ(kidx, regAddr, to int, operator token.Token) {
 	c.currentFn.Code = append(c.currentFn.Code, i)
 }
 
-func (c *Compiler) emitEq(from, to int, operator token.Token) {
+func (c *Compiler) emitEq(lidx, ridx, to int, operator token.Token) {
 	var i uint64 = uint64(to)
-	i |= uint64(from) << shift16
-	i |= uint64(operator) << shift32
-	i |= equals << shift56
+	i |= uint64(lidx) << shift16
+	i |= uint64(ridx) << shift32
+	i |= uint64(operator) << 48
+	i |= eq << shift56
+	c.currentFn.Code = append(c.currentFn.Code, i)
+}
+
+func (c *Compiler) emitEqG(lidx, ridx, to int, operator token.Token) {
+	var i uint64 = uint64(to)
+	i |= uint64(lidx) << shift16
+	i |= uint64(ridx) << shift32
+	i |= uint64(operator) << 48
+	i |= eqG << shift56
+	c.currentFn.Code = append(c.currentFn.Code, i)
+}
+
+func (c *Compiler) emitEqK(lidx, ridx, to int, operator token.Token) {
+	var i uint64 = uint64(to)
+	i |= uint64(lidx) << shift16
+	i |= uint64(ridx) << shift32
+	i |= uint64(operator) << 48
+	i |= eqK << shift56
+	c.currentFn.Code = append(c.currentFn.Code, i)
+}
+
+func (c *Compiler) emitEqQ(lidx, ridx, to int, operator token.Token) {
+	var i uint64 = uint64(to)
+	i |= uint64(lidx) << shift16
+	i |= uint64(ridx) << shift32
+	i |= uint64(operator) << 48
+	i |= eqQ << shift56
 	c.currentFn.Code = append(c.currentFn.Code, i)
 }
 

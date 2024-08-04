@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 
+	"github.com/ever-eduardo/vida/token"
 	"github.com/ever-eduardo/vida/verror"
 )
 
@@ -106,24 +107,30 @@ func (vm *VM) Debug() (Result, error) {
 				return Failure, verror.New(vm.Module.Name, "Runtime error", verror.RunTimeErrMsg, math.MaxUint16)
 			}
 			vm.Frame.stack[B] = val
-		// case equals:
-		// 	op := vm.Frame.code[ip]
-		// 	ip++
-		// 	scopeLHS := vm.Frame.code[ip]
-		// 	ip++
-		// 	scopeRHS := vm.Frame.code[ip]
-		// 	ip++
-		// 	fromLHS := uint16(vm.Frame.code[ip]) | uint16(vm.Frame.code[ip+1])<<8
-		// 	ip += 2
-		// 	fromRHS := uint16(vm.Frame.code[ip]) | uint16(vm.Frame.code[ip+1])<<8
-		// 	ip += 2
-		// 	to := vm.Frame.code[ip]
-		// 	ip++
-		// 	val := vm.valueFrom(scopeLHS, fromLHS).Equals(vm.valueFrom(scopeRHS, fromRHS))
-		// 	if op == byte(token.NEQ) {
-		// 		val = !val
-		// 	}
-		// 	vm.Frame.stack[to] = val
+		case eq:
+			val := vm.Frame.stack[A].Equals(vm.Frame.stack[P&clean16])
+			if P>>shift16 == uint64(token.NEQ) {
+				val = !val
+			}
+			vm.Frame.stack[B] = val
+		case eqG:
+			val := vm.Module.Store[A].Equals(vm.Module.Store[P&clean16])
+			if P>>shift16 == uint64(token.NEQ) {
+				val = !val
+			}
+			vm.Frame.stack[B] = val
+		case eqK:
+			val := vm.Frame.stack[P&clean16].Equals(vm.Module.Konstants[A])
+			if P>>shift16 == uint64(token.NEQ) {
+				val = !val
+			}
+			vm.Frame.stack[B] = val
+		case eqQ:
+			val := vm.Module.Konstants[A].Equals(vm.Frame.stack[P&clean16])
+			if P>>shift16 == uint64(token.NEQ) {
+				val = !val
+			}
+			vm.Frame.stack[B] = val
 		case prefix:
 			val, err := vm.Frame.stack[A].Prefix(P)
 			if err != nil {

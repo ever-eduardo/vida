@@ -19,8 +19,11 @@ const (
 	iGet
 	iSet
 	iSetK
+	eq
+	eqG
+	eqK
+	eqQ
 	// --
-	equals
 	slice
 	forSet
 	forLoop
@@ -51,8 +54,11 @@ var opcodes = [...]string{
 	iGet:   "IGet",
 	iSet:   "ISet",
 	iSetK:  "ISetK",
+	eq:     "Eq",
+	eqG:    "EqG",
+	eqK:    "EqK",
+	eqQ:    "EqQ",
 	// --
-	equals:   "Eq",
 	slice:    "Slice",
 	forSet:   "For",
 	forLoop:  "Loop",
