@@ -501,6 +501,11 @@ func (c *Compiler) compileStmt(node ast.Node) {
 		c.exprToReg(i, s)
 		c.emitRet(c.rAlloc)
 	case *ast.CallStmt:
+		if c.refStmtIsLoc[0] == 1 {
+			c.refStmtIsLoc[0] = 0
+			i := c.refStmtIsLoc[1]
+			c.emitMove(i, c.rAlloc)
+		}
 		reg := c.rAlloc
 		c.rAlloc++
 		for _, v := range n.Args {
