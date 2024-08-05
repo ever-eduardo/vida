@@ -498,13 +498,14 @@ func (c *Compiler) compileStmt(node ast.Node) {
 			c.hadError = true
 		}
 		i, s := c.compileExpr(n.Expr, true)
-		c.emitRet(i, s)
+		c.exprToReg(i, s)
+		c.emitRet(c.rAlloc)
 	case *ast.CallStmt:
 		reg := c.rAlloc
 		for _, v := range n.Args {
-			c.rAlloc++
 			i, s := c.compileExpr(v, true)
-			c.emitLoc(i, c.rAlloc, s)
+			c.exprToReg(i, s)
+			c.rAlloc++
 		}
 		c.rAlloc = reg
 		c.emitCall(reg, len(n.Args))
@@ -1102,11 +1103,11 @@ func (c *Compiler) compileExpr(node ast.Node, isRoot bool) (int, int) {
 	case *ast.CallExpr:
 		reg := c.rAlloc
 		idx, s := c.compileExpr(n.Fun, false)
-		c.emitLoc(idx, reg, s)
+		c.exprToReg(idx, s)
 		for _, v := range n.Args {
 			c.rAlloc++
 			i, s := c.compileExpr(v, false)
-			c.emitLoc(i, c.rAlloc, s)
+			c.exprToReg(i, s)
 		}
 		c.rAlloc = reg
 		c.emitCall(reg, len(n.Args))

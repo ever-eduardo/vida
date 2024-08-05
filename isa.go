@@ -1,7 +1,6 @@
 package vida
 
 const (
-	// Refactoring
 	end = iota
 	storeG
 	loadG
@@ -30,7 +29,6 @@ const (
 	iForSet
 	iForLoop
 	check
-	// --
 	fun
 	ret
 	call
@@ -65,8 +63,7 @@ var opcodes = [...]string{
 	iForSet:  "IFor",
 	iForLoop: "ILoop",
 	check:    "Check",
-	// --
-	fun:  "Fun",
-	ret:  "Ret",
-	call: "Call",
+	fun:      "Fun",
+	ret:      "Ret",
+	call:     "Call",
 }

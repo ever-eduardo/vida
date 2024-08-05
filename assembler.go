@@ -78,13 +78,6 @@ func (c *Compiler) emitStoreF(from, to int) {
 	c.currentFn.Code = append(c.currentFn.Code, i)
 }
 
-func (c *Compiler) emitLoc(from, to int, scope int) {
-	// c.currentFn.Code = append(c.currentFn.Code, setL)
-	// c.currentFn.Code = append(c.currentFn.Code, scope)
-	// c.currentFn.Code = append(c.currentFn.Code, (from), (from>>8))
-	// c.currentFn.Code = append(c.currentFn.Code, to)
-}
-
 func (c *Compiler) emitPrefix(from, to int, operator token.Token) {
 	var i uint64 = uint64(to)
 	i |= uint64(from) << shift16
@@ -258,21 +251,23 @@ func (c *Compiler) emitCheck(against, reg, jump int) {
 }
 
 func (c *Compiler) emitFun(from, to int) {
-	// c.currentFn.Code = append(c.currentFn.Code, fun)
-	// c.currentFn.Code = append(c.currentFn.Code, (from), (fromtoken
-	// c.currentFn.Code = append(c.currentFn.Code, to)
+	var i uint64 = uint64(to)
+	i |= uint64(from) << shift16
+	i |= fun << shift56
+	c.currentFn.Code = append(c.currentFn.Code, i)
 }
 
-func (c *Compiler) emitCall(from, argCount int) {
-	// c.currentFn.Code = append(c.currentFn.Code, call)
-	// c.currentFn.Code = append(c.currentFn.Code, from)
-	// c.currentFn.Code = append(c.currentFn.Code, argCount)
+func (c *Compiler) emitCall(callable, argCount int) {
+	var i uint64 = uint64(callable)
+	i |= uint64(argCount) << shift16
+	i |= call << shift56
+	c.currentFn.Code = append(c.currentFn.Code, i)
 }
 
-func (c *Compiler) emitRet(from int, scope int) {
-	// c.currentFn.Code = append(c.currentFn.Code, ret)
-	// c.currentFn.Code = append(c.currentFn.Code, scope)
-	// c.currentFn.Code = append(c.currentFn.Code, (from), (from>>8))
+func (c *Compiler) emitRet(retReg int) {
+	var i uint64 = uint64(retReg)
+	i |= ret << shift56
+	c.currentFn.Code = append(c.currentFn.Code, i)
 }
 
 func (c *Compiler) refScope(id string) (int, int) {

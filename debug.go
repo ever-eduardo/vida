@@ -230,75 +230,63 @@ func (vm *VM) Debug() (Result, error) {
 				ip = int(A)
 				continue
 			}
-		// case fun:
-		// 	from := uint16(vm.Frame.code[ip]) | uint16(vm.Frame.code[ip+1])<<8
-		// 	ip += 2
-		// 	to := vm.Frame.code[ip]
-		// 	ip++
-		// 	fn := &Function{CoreFn: vm.Module.Konstants[from].(*CoreFunction)}
-		// 	if fn.CoreFn.Free > 0 {
-		// 		var free []Value
-		// 		for i := 0; i < fn.CoreFn.Free; i++ {
-		// 			if fn.CoreFn.Info[i].IsLocal {
-		// 				free = append(free, vm.Frame.stack[fn.CoreFn.Info[i].Index])
-		// 			} else {
-		// 				free = append(free, vm.Frame.lambda.Free[fn.CoreFn.Info[i].Index])
-		// 			}
-		// 		}
-		// 		fn.Free = free
-		// 	}
-		// 	vm.Frame.stack[to] = fn
-		// case call:
-		// 	from := vm.Frame.code[ip]
-		// 	ip++
-		// 	args := vm.Frame.code[ip]
-		// 	ip++
-		// 	val := vm.Frame.stack[from]
-		// 	if !val.IsCallable() {
-		// 		return Failure, verror.RuntimeError
-		// 	}
-		// 	if fn, ok := val.(*Function); ok {
-		// 		if args != byte(fn.CoreFn.Arity) {
-		// 			return Failure, verror.RuntimeError
-		// 		}
-		// 		if vm.fp >= frameSize {
-		// 			return Failure, verror.RuntimeError
-		// 		}
-		// 		if fn == vm.Frame.lambda && vm.Frame.code[ip] == ret {
-		// 			for i := 0; i < int(args); i++ {
-		// 				vm.Frame.stack[i] = vm.Frame.stack[int(from)+1+i]
-		// 			}
-		// 			ip = 0
-		// 			continue
-		// 		}
-		// 		vm.Frame.ip = ip
-		// 		vm.Frame.ret = from
-		// 		bs := vm.Frame.bp
-		// 		vm.fp++
-		// 		vm.Frame = &vm.Frames[vm.fp]
-		// 		vm.Frame.lambda = fn
-		// 		vm.Frame.bp = bs + int(from) + 1
-		// 		vm.Frame.code = fn.CoreFn.Code
-		// 		vm.Frame.stack = vm.Stack[vm.Frame.bp:]
-		// 		ip = 0
-		// 	} else if fn, ok := val.(GFn); ok {
-		// 		v, err := fn(vm.Frame.stack[from+1 : from+args+1]...)
-		// 		if err != nil {
-		// 			return Failure, err
-		// 		}
-		// 		vm.Frame.stack[from] = v
-		// 	}
-		// case ret:
-		// 	scope := vm.Frame.code[ip]
-		// 	ip++
-		// 	from := uint16(vm.Frame.code[ip]) | uint16(vm.Frame.code[ip+1])<<8
-		// 	ip += 2
-		// 	val := vm.valueFrom(scope, from)
-		// 	vm.fp--
-		// 	vm.Frame = &vm.Frames[vm.fp]
-		// 	ip = vm.Frame.ip
-		// 	vm.Frame.stack = vm.Stack[vm.Frame.bp:]
-		// 	vm.Frame.stack[vm.Frame.ret] = val
+		case fun:
+			fn := &Function{CoreFn: vm.Module.Konstants[A].(*CoreFunction)}
+			if fn.CoreFn.Free > 0 {
+				var free []Value
+				for i := 0; i < fn.CoreFn.Free; i++ {
+					if fn.CoreFn.Info[i].IsLocal {
+						free = append(free, vm.Frame.stack[fn.CoreFn.Info[i].Index])
+					} else {
+						free = append(free, vm.Frame.lambda.Free[fn.CoreFn.Info[i].Index])
+					}
+				}
+				fn.Free = free
+			}
+			vm.Frame.stack[B] = fn
+		case call:
+			val := vm.Frame.stack[B]
+			if !val.IsCallable() {
+				return Failure, verror.RuntimeError
+			}
+			if fn, ok := val.(*Function); ok {
+				if int(A) != fn.CoreFn.Arity {
+					return Failure, verror.RuntimeError
+				}
+				if vm.fp >= frameSize {
+					return Failure, verror.RuntimeError
+				}
+				if fn == vm.Frame.lambda && vm.Frame.code[ip] == ret {
+					for i := 0; i < int(A); i++ {
+						vm.Frame.stack[i] = vm.Frame.stack[int(B)+1+i]
+					}
+					ip = 0
+					continue
+				}
+				vm.Frame.ip = ip
+				vm.Frame.ret = int(B)
+				bs := vm.Frame.bp
+				vm.fp++
+				vm.Frame = &vm.Frames[vm.fp]
+				vm.Frame.lambda = fn
+				vm.Frame.bp = bs + int(B) + 1
+				vm.Frame.code = fn.CoreFn.Code
+				vm.Frame.stack = vm.Stack[vm.Frame.bp:]
+				ip = 0
+			} else if fn, ok := val.(GFn); ok {
+				v, err := fn(vm.Frame.stack[B+1 : B+A+1]...)
+				if err != nil {
+					return Failure, err
+				}
+				vm.Frame.stack[B] = v
+			}
+		case ret:
+			val := vm.Frame.stack[B]
+			vm.fp--
+			vm.Frame = &vm.Frames[vm.fp]
+			ip = vm.Frame.ip
+			vm.Frame.stack = vm.Stack[vm.Frame.bp:]
+			vm.Frame.stack[vm.Frame.ret] = val
 		case end:
 			return Success, nil
 		default:
