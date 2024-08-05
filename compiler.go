@@ -638,16 +638,19 @@ func (c *Compiler) compileExpr(node ast.Node, isRoot bool) (int, int) {
 		return c.kb.IntegerIndex(0), rKonst
 	case *ast.IGet:
 		i, s := c.compileExpr(n.Indexable, false)
+		lreg := c.rAlloc
 		switch s {
 		case rLoc:
+			c.rAlloc++
 			j, t := c.compileExpr(n.Index, false)
 			switch t {
 			case rLoc:
 				if c.mutLoc && isRoot {
 					c.emitIGet(i, j, c.rDest, 0)
+					c.rAlloc--
 					return c.rDest, rLoc
 				} else {
-					c.emitIGet(i, j, c.rAlloc, 0)
+					c.emitIGet(i, j, lreg, 0)
 				}
 			case rGlob:
 				if c.mutLoc && isRoot {
@@ -1123,13 +1126,12 @@ func (c *Compiler) compileBinaryExpr(n *ast.BinaryExpr, isRoot bool) (int, int) 
 				c.emitBinop(lidx, ridx, lreg, n.Op)
 			}
 		case rGlob:
+			c.emitLoadG(ridx, c.rAlloc)
 			if c.mutLoc && isRoot {
-				c.emitLoadG(ridx, c.rAlloc)
 				c.emitBinop(lidx, c.rAlloc, c.rDest, n.Op)
 				c.rAlloc--
 				return c.rDest, rLoc
 			} else {
-				c.emitLoadG(ridx, c.rAlloc)
 				c.emitBinop(lidx, c.rAlloc, lreg, n.Op)
 			}
 		case rKonst:
@@ -1141,13 +1143,12 @@ func (c *Compiler) compileBinaryExpr(n *ast.BinaryExpr, isRoot bool) (int, int) 
 				c.emitBinopK(ridx, lidx, lreg, n.Op)
 			}
 		case rFree:
+			c.emitLoadF(ridx, c.rAlloc)
 			if c.mutLoc && isRoot {
-				c.emitLoadF(ridx, c.rAlloc)
 				c.emitBinop(lidx, c.rAlloc, c.rDest, n.Op)
 				c.rAlloc--
 				return c.rDest, rLoc
 			} else {
-				c.emitLoadF(ridx, c.rAlloc)
 				c.emitBinop(lidx, c.rAlloc, lreg, n.Op)
 			}
 		}
@@ -1290,8 +1291,8 @@ func (c *Compiler) compileBinaryEq(n *ast.BinaryExpr, isRoot bool) (int, int) {
 				c.emitEq(lidx, ridx, lreg, n.Op)
 			}
 		case rGlob:
+			c.emitLoadG(ridx, c.rAlloc)
 			if c.mutLoc && isRoot {
-				c.emitLoadG(ridx, c.rAlloc)
 				c.emitEq(lidx, c.rAlloc, c.rDest, n.Op)
 				c.rAlloc--
 				return c.rDest, rLoc
@@ -1308,13 +1309,12 @@ func (c *Compiler) compileBinaryEq(n *ast.BinaryExpr, isRoot bool) (int, int) {
 				c.emitEqK(ridx, lidx, lreg, n.Op)
 			}
 		case rFree:
+			c.emitLoadF(ridx, c.rAlloc)
 			if c.mutLoc && isRoot {
-				c.emitLoadF(ridx, c.rAlloc)
 				c.emitEq(lidx, c.rAlloc, c.rDest, n.Op)
 				c.rAlloc--
 				return c.rDest, rLoc
 			} else {
-				c.emitLoadF(ridx, c.rAlloc)
 				c.emitEq(lidx, c.rAlloc, lreg, n.Op)
 			}
 		}
