@@ -168,32 +168,33 @@ func (c *Compiler) compileStmt(node ast.Node) {
 	case *ast.For:
 		c.startLoopScope()
 		c.scope++
-
 		ireg := c.rAlloc
 
 		initIdx, initScope := c.compileExpr(n.Init, true)
-		c.emitLoc(initIdx, c.rAlloc, initScope)
+		c.exprToReg(initIdx, initScope)
 
 		c.rAlloc++
 		endIdx, endScope := c.compileExpr(n.End, true)
-		c.emitLoc(endIdx, c.rAlloc, endScope)
+		c.exprToReg(endIdx, endScope)
 
 		c.rAlloc++
 		stepIdx, stepScope := c.compileExpr(n.Step, true)
-		c.emitLoc(stepIdx, c.rAlloc, stepScope)
+		c.exprToReg(stepIdx, stepScope)
 
 		c.rAlloc++
 		c.sb.addLocal(n.Id, c.level, c.scope, c.rAlloc)
-		c.emitLoc(c.kb.IntegerIndex(0), c.rAlloc, rKonst)
+		c.emitLoadK(c.kb.IntegerIndex(0), c.rAlloc)
 
 		c.rAlloc++
 		c.emitForSet(ireg, 0)
-		jump := len(c.currentFn.Code)
+		loop := len(c.currentFn.Code)
+
 		c.compileStmt(n.Block)
-		// evalLoop_ = len(c.currentFn.Code)
-		// binary.NativeEndian.PutUint16(c.currentFn.Code[jump-2:], uint16(evalLoopAddr))
-		c.emitForLoop(ireg, jump)
-		// c.cleanUpLoopScope(evalLoopAddr)
+		checkLoop := len(c.currentFn.Code)
+
+		c.currentFn.Code[loop-1] |= uint64(checkLoop) << shift16
+		c.emitForLoop(ireg, loop)
+		c.cleanUpLoopScope(loop)
 
 		c.rAlloc -= c.sb.clearLocals(c.level, c.scope)
 		c.rAlloc -= 3
@@ -256,11 +257,11 @@ func (c *Compiler) compileStmt(node ast.Node) {
 			c.cleanUpLoopScope(init)
 		}
 	case *ast.Break:
-		c.breakJumps = append(c.breakJumps, len(c.currentFn.Code)+1)
+		c.breakJumps = append(c.breakJumps, len(c.currentFn.Code))
 		c.breakCount[len(c.breakCount)-1]++
 		c.emitJump(0)
 	case *ast.Continue:
-		c.continueJumps = append(c.continueJumps, len(c.currentFn.Code)+1)
+		c.continueJumps = append(c.continueJumps, len(c.currentFn.Code))
 		c.continueCount[len(c.continueCount)-1]++
 		c.emitJump(0)
 	case *ast.ReferenceStmt:
@@ -1034,18 +1035,7 @@ func (c *Compiler) compileExpr(node ast.Node, isRoot bool) (int, int) {
 		return c.rAlloc, rLoc
 	case *ast.Slice:
 		v, s := c.compileExpr(n.Value, false)
-		switch s {
-		case rLoc:
-			if v != c.rAlloc {
-				c.emitMove(v, c.rAlloc)
-			}
-		case rGlob:
-			c.emitLoadG(v, c.rAlloc)
-		case rKonst:
-			c.emitLoadK(v, c.rAlloc)
-		case rFree:
-			c.emitLoadF(v, c.rAlloc)
-		}
+		c.exprToReg(v, s)
 		switch n.Mode {
 		case vcv:
 			if c.mutLoc && isRoot {
@@ -1056,19 +1046,8 @@ func (c *Compiler) compileExpr(node ast.Node, isRoot bool) (int, int) {
 			}
 		case vce:
 			c.rAlloc++
-			i, s := c.compileExpr(n.Last, false)
-			switch s {
-			case rLoc:
-				if v != c.rAlloc {
-					c.emitMove(i, c.rAlloc)
-				}
-			case rGlob:
-				c.emitLoadG(i, c.rAlloc)
-			case rKonst:
-				c.emitLoadK(i, c.rAlloc)
-			case rFree:
-				c.emitLoadF(i, c.rAlloc)
-			}
+			v, s := c.compileExpr(n.Last, false)
+			c.exprToReg(v, s)
 			c.rAlloc--
 			if c.mutLoc && isRoot {
 				c.emitSlice(n.Mode, c.rAlloc, c.rDest)
@@ -1078,19 +1057,8 @@ func (c *Compiler) compileExpr(node ast.Node, isRoot bool) (int, int) {
 			}
 		case ecv:
 			c.rAlloc++
-			i, s := c.compileExpr(n.First, false)
-			switch s {
-			case rLoc:
-				if v != c.rAlloc {
-					c.emitMove(i, c.rAlloc)
-				}
-			case rGlob:
-				c.emitLoadG(i, c.rAlloc)
-			case rKonst:
-				c.emitLoadK(i, c.rAlloc)
-			case rFree:
-				c.emitLoadF(i, c.rAlloc)
-			}
+			v, s := c.compileExpr(n.First, false)
+			c.exprToReg(v, s)
 			c.rAlloc--
 			if c.mutLoc && isRoot {
 				c.emitSlice(n.Mode, c.rAlloc, c.rDest)
@@ -1101,32 +1069,10 @@ func (c *Compiler) compileExpr(node ast.Node, isRoot bool) (int, int) {
 		case ece:
 			c.rAlloc++
 			f, sf := c.compileExpr(n.First, false)
-			switch sf {
-			case rLoc:
-				if v != c.rAlloc {
-					c.emitMove(f, c.rAlloc)
-				}
-			case rGlob:
-				c.emitLoadG(f, c.rAlloc)
-			case rKonst:
-				c.emitLoadK(f, c.rAlloc)
-			case rFree:
-				c.emitLoadF(f, c.rAlloc)
-			}
+			c.exprToReg(f, sf)
 			c.rAlloc++
 			l, sl := c.compileExpr(n.Last, false)
-			switch sl {
-			case rLoc:
-				if v != c.rAlloc {
-					c.emitMove(l, c.rAlloc)
-				}
-			case rGlob:
-				c.emitLoadG(l, c.rAlloc)
-			case rKonst:
-				c.emitLoadK(l, c.rAlloc)
-			case rFree:
-				c.emitLoadF(l, c.rAlloc)
-			}
+			c.exprToReg(l, sl)
 			c.rAlloc -= 2
 			if c.mutLoc && isRoot {
 				c.emitSlice(n.Mode, c.rAlloc, c.rDest)
@@ -1231,7 +1177,7 @@ func (c *Compiler) cleanUpLoopScope(init int) {
 	count := c.breakCount[lastElem]
 	if hasBreaks > 0 {
 		for i := 1; i <= count; i++ {
-			// binary.NativeEndian.PutUint16(c.currentFn.Code[c.breakJumps[hasBreaks-i]:], uint16(len(c.currentFn.Code)))
+			c.currentFn.Code[c.breakJumps[hasBreaks-i]] |= uint64(len(c.currentFn.Code))
 		}
 		c.breakJumps = c.breakJumps[:hasBreaks-count]
 	}
@@ -1241,7 +1187,7 @@ func (c *Compiler) cleanUpLoopScope(init int) {
 	count = c.continueCount[lastElem]
 	if hasContinues > 0 {
 		for i := 1; i <= count; i++ {
-			// binary.NativeEndian.PutUint16(c.currentFn.Code[c.continueJumps[hasContinues-i]:], uint16(init))
+			c.currentFn.Code[c.continueJumps[hasContinues-i]] |= uint64(len(c.currentFn.Code) - 1)
 		}
 		c.continueJumps = c.continueJumps[:hasContinues-count]
 	}
@@ -1279,5 +1225,20 @@ func (c *Compiler) integrateKonst(val Value) (int, int) {
 		return c.kb.StringIndex(e.Value), rKonst
 	default:
 		return c.kb.NilIndex(), rKonst
+	}
+}
+
+func (c *Compiler) exprToReg(v, s int) {
+	switch s {
+	case rLoc:
+		if v != c.rAlloc {
+			c.emitMove(v, c.rAlloc)
+		}
+	case rGlob:
+		c.emitLoadG(v, c.rAlloc)
+	case rKonst:
+		c.emitLoadK(v, c.rAlloc)
+	case rFree:
+		c.emitLoadF(v, c.rAlloc)
 	}
 }

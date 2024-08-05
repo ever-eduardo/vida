@@ -214,16 +214,18 @@ func (c *Compiler) emitSlice(mode, sliceable, to int) {
 	c.currentFn.Code = append(c.currentFn.Code, i)
 }
 
-func (c *Compiler) emitForSet(initReg, evalLoopAddr int) {
-	// c.currentFn.Code = append(c.currentFn.Code, forSet)
-	// c.currentFn.Code = append(c.currentFn.Code, initReg)
-	// c.currentFn.Code = append(c.currentFn.Code, (evalLoopAddr), (evalLoopAddr>>8))
+func (c *Compiler) emitForSet(iReg, loop int) {
+	var i uint64 = uint64(iReg)
+	i |= uint64(loop) << shift16
+	i |= forSet << shift56
+	c.currentFn.Code = append(c.currentFn.Code, i)
 }
 
-func (c *Compiler) emitForLoop(initReg, jump int) {
-	// c.currentFn.Code = append(c.currentFn.Code, forLoop)
-	// c.currentFn.Code = append(c.currentFn.Code, initReg)
-	// c.currentFn.Code = append(c.currentFn.Code, (jump), (jump>>8))
+func (c *Compiler) emitForLoop(iReg, loop int) {
+	var i uint64 = uint64(iReg)
+	i |= uint64(loop) << shift16
+	i |= forLoop << shift56
+	c.currentFn.Code = append(c.currentFn.Code, i)
 }
 
 func (c *Compiler) emitIForSet(evalLoopAddr, idx, scope, reg int) {
@@ -241,8 +243,9 @@ func (c *Compiler) emitIForLoop(forLoopReg, jump int) {
 }
 
 func (c *Compiler) emitJump(to int) {
-	// c.currentFn.Code = append(c.currentFn.Code, jump)
-	// c.currentFn.Code = append(c.currentFn.Code, (to), (to>>8))
+	var i uint64 = uint64(to)
+	i |= jump << shift56
+	c.currentFn.Code = append(c.currentFn.Code, i)
 }
 
 func (c *Compiler) emitTestF(from, scope, jump int) {

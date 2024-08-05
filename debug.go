@@ -81,8 +81,8 @@ func (vm *VM) Debug() (Result, error) {
 		// 	if !vm.valueFrom(scope, from).Boolean() {
 		// 		ip = int(jump)
 		// 	}
-		// case jump:
-		// 	ip = int(uint16(vm.Frame.code[ip]) | uint16(vm.Frame.code[ip+1])<<8)
+		case jump:
+			ip = int(B)
 		case binopG:
 			val, err := vm.Module.Store[A].Binop(P>>shift16, vm.Module.Store[P&clean16])
 			if err != nil {
@@ -185,25 +185,21 @@ func (vm *VM) Debug() (Result, error) {
 			vm.Frame.stack[B] = &List{Value: xs}
 		case object:
 			vm.Frame.stack[B] = &Object{Value: make(map[string]Value)}
-		// case forSet:
-		// 	i := vm.Frame.code[ip]
-		// 	ip++
-		// 	jump := uint16(vm.Frame.code[ip]) | uint16(vm.Frame.code[ip+1])<<8
-		// 	ip += 2
-		// 	if _, isInteger := vm.Frame.stack[i].(Integer); !isInteger {
-		// 		return Failure, verror.RuntimeError
-		// 	}
-		// 	if _, isInteger := vm.Frame.stack[i+1].(Integer); !isInteger {
-		// 		return Failure, verror.RuntimeError
-		// 	}
-		// 	if v, isInteger := vm.Frame.stack[i+2].(Integer); !isInteger {
-		// 		return Failure, verror.RuntimeError
-		// 	} else {
-		// 		if v == 0 {
-		// 			return Failure, verror.RuntimeError
-		// 		}
-		// 	}
-		// 	ip = int(jump)
+		case forSet:
+			if _, isInteger := vm.Frame.stack[B].(Integer); !isInteger {
+				return Failure, verror.RuntimeError
+			}
+			if _, isInteger := vm.Frame.stack[B+1].(Integer); !isInteger {
+				return Failure, verror.RuntimeError
+			}
+			if v, isInteger := vm.Frame.stack[B+2].(Integer); !isInteger {
+				return Failure, verror.RuntimeError
+			} else {
+				if v == 0 {
+					return Failure, verror.RuntimeError
+				}
+			}
+			ip = int(A)
 		// case iForSet:
 		// 	scope := vm.Frame.code[ip]
 		// 	ip++
@@ -219,29 +215,25 @@ func (vm *VM) Debug() (Result, error) {
 		// 	}
 		// 	vm.Frame.stack[reg] = val.Iterator()
 		// 	ip = int(jump)
-		// case forLoop:
-		// 	r := vm.Frame.code[ip]
-		// 	ip++
-		// 	jump := uint16(vm.Frame.code[ip]) | uint16(vm.Frame.code[ip+1])<<8
-		// 	ip += 2
-		// 	i := vm.Frame.stack[r].(Integer)
-		// 	e := vm.Frame.stack[r+1].(Integer)
-		// 	s := vm.Frame.stack[r+2].(Integer)
-		// 	if s > 0 {
-		// 		if i < e {
-		// 			vm.Frame.stack[r+3] = i
-		// 			i += s
-		// 			vm.Frame.stack[r] = i
-		// 			ip = int(jump)
-		// 		}
-		// 	} else {
-		// 		if i > e {
-		// 			vm.Frame.stack[r+3] = i
-		// 			i += s
-		// 			vm.Frame.stack[r] = i
-		// 			ip = int(jump)
-		// 		}
-		// 	}
+		case forLoop:
+			i := vm.Frame.stack[B].(Integer)
+			e := vm.Frame.stack[B+1].(Integer)
+			s := vm.Frame.stack[B+2].(Integer)
+			if s > 0 {
+				if i < e {
+					vm.Frame.stack[B+3] = i
+					i += s
+					vm.Frame.stack[B] = i
+					ip = int(A)
+				}
+			} else {
+				if i > e {
+					vm.Frame.stack[B+3] = i
+					i += s
+					vm.Frame.stack[B] = i
+					ip = int(A)
+				}
+			}
 		// case iForLoop:
 		// 	r := vm.Frame.code[ip]
 		// 	ip++
