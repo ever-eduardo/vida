@@ -1033,29 +1033,109 @@ func (c *Compiler) compileExpr(node ast.Node, isRoot bool) (int, int) {
 		}
 		return c.rAlloc, rLoc
 	case *ast.Slice:
-		resultReg := c.rAlloc
-		var scopeV, scopeL, scopeR int
-		var fromV, fromL, fromR int
-		c.rAlloc++
-		fromV, scopeV = c.compileExpr(n.Value, false)
+		v, s := c.compileExpr(n.Value, false)
+		switch s {
+		case rLoc:
+			if v != c.rAlloc {
+				c.emitMove(v, c.rAlloc)
+			}
+		case rGlob:
+			c.emitLoadG(v, c.rAlloc)
+		case rKonst:
+			c.emitLoadK(v, c.rAlloc)
+		case rFree:
+			c.emitLoadF(v, c.rAlloc)
+		}
 		switch n.Mode {
 		case vcv:
-			break
+			if c.mutLoc && isRoot {
+				c.emitSlice(n.Mode, c.rAlloc, c.rDest)
+				return c.rDest, rLoc
+			} else {
+				c.emitSlice(n.Mode, c.rAlloc, c.rAlloc)
+			}
 		case vce:
 			c.rAlloc++
-			fromR, scopeR = c.compileExpr(n.Last, false)
+			i, s := c.compileExpr(n.Last, false)
+			switch s {
+			case rLoc:
+				if v != c.rAlloc {
+					c.emitMove(i, c.rAlloc)
+				}
+			case rGlob:
+				c.emitLoadG(i, c.rAlloc)
+			case rKonst:
+				c.emitLoadK(i, c.rAlloc)
+			case rFree:
+				c.emitLoadF(i, c.rAlloc)
+			}
+			c.rAlloc--
+			if c.mutLoc && isRoot {
+				c.emitSlice(n.Mode, c.rAlloc, c.rDest)
+				return c.rDest, rLoc
+			} else {
+				c.emitSlice(n.Mode, c.rAlloc, c.rAlloc)
+			}
 		case ecv:
 			c.rAlloc++
-			fromL, scopeL = c.compileExpr(n.First, false)
+			i, s := c.compileExpr(n.First, false)
+			switch s {
+			case rLoc:
+				if v != c.rAlloc {
+					c.emitMove(i, c.rAlloc)
+				}
+			case rGlob:
+				c.emitLoadG(i, c.rAlloc)
+			case rKonst:
+				c.emitLoadK(i, c.rAlloc)
+			case rFree:
+				c.emitLoadF(i, c.rAlloc)
+			}
+			c.rAlloc--
+			if c.mutLoc && isRoot {
+				c.emitSlice(n.Mode, c.rAlloc, c.rDest)
+				return c.rDest, rLoc
+			} else {
+				c.emitSlice(n.Mode, c.rAlloc, c.rAlloc)
+			}
 		case ece:
 			c.rAlloc++
-			fromL, scopeL = c.compileExpr(n.First, false)
+			f, sf := c.compileExpr(n.First, false)
+			switch sf {
+			case rLoc:
+				if v != c.rAlloc {
+					c.emitMove(f, c.rAlloc)
+				}
+			case rGlob:
+				c.emitLoadG(f, c.rAlloc)
+			case rKonst:
+				c.emitLoadK(f, c.rAlloc)
+			case rFree:
+				c.emitLoadF(f, c.rAlloc)
+			}
 			c.rAlloc++
-			fromR, scopeR = c.compileExpr(n.Last, false)
+			l, sl := c.compileExpr(n.Last, false)
+			switch sl {
+			case rLoc:
+				if v != c.rAlloc {
+					c.emitMove(l, c.rAlloc)
+				}
+			case rGlob:
+				c.emitLoadG(l, c.rAlloc)
+			case rKonst:
+				c.emitLoadK(l, c.rAlloc)
+			case rFree:
+				c.emitLoadF(l, c.rAlloc)
+			}
+			c.rAlloc -= 2
+			if c.mutLoc && isRoot {
+				c.emitSlice(n.Mode, c.rAlloc, c.rDest)
+				return c.rDest, rLoc
+			} else {
+				c.emitSlice(n.Mode, c.rAlloc, c.rAlloc)
+			}
 		}
-		c.rAlloc = resultReg
-		c.emitSlice(n.Mode, fromV, fromL, fromR, scopeV, scopeL, scopeR, resultReg)
-		return resultReg, rLoc
+		return c.rAlloc, rLoc
 	case *ast.Fun:
 		fn := &CoreFunction{}
 		c.fn = append(c.fn, fn)

@@ -23,8 +23,8 @@ const (
 	eqG
 	eqK
 	eqQ
-	// --
 	slice
+	// --
 	forSet
 	forLoop
 	iForSet
@@ -58,8 +58,8 @@ var opcodes = [...]string{
 	eqG:    "EqG",
 	eqK:    "EqK",
 	eqQ:    "EqQ",
+	slice:  "Slice",
 	// --
-	slice:    "Slice",
 	forSet:   "For",
 	forLoop:  "Loop",
 	iForSet:  "IFor",

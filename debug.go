@@ -169,28 +169,12 @@ func (vm *VM) Debug() (Result, error) {
 			if err != nil {
 				return Failure, verror.New(vm.Module.Name, "Runtime error", verror.RunTimeErrMsg, math.MaxUint16)
 			}
-		// case slice:
-		// 	mode := vm.Frame.code[ip]
-		// 	ip++
-		// 	scopeV := vm.Frame.code[ip]
-		// 	ip++
-		// 	scopeL := vm.Frame.code[ip]
-		// 	ip++
-		// 	scopeR := vm.Frame.code[ip]
-		// 	ip++
-		// 	fromV := uint16(vm.Frame.code[ip]) | uint16(vm.Frame.code[ip+1])<<8
-		// 	ip += 2
-		// 	fromL := uint16(vm.Frame.code[ip]) | uint16(vm.Frame.code[ip+1])<<8
-		// 	ip += 2
-		// 	fromR := uint16(vm.Frame.code[ip]) | uint16(vm.Frame.code[ip+1])<<8
-		// 	ip += 2
-		// 	to := vm.Frame.code[ip]
-		// 	ip++
-		// 	val, err := vm.processSlice(mode, fromV, fromL, fromR, scopeV, scopeL, scopeR)
-		// 	if err != nil {
-		// 		return Failure, verror.New(vm.Module.Name, "Runtime error", verror.RunTimeErrMsg, math.MaxUint16)
-		// 	}
-		// 	vm.Frame.stack[to] = val
+		case slice:
+			val, err := vm.processSlice(P, A)
+			if err != nil {
+				return Failure, verror.New(vm.Module.Name, "Runtime error", verror.RunTimeErrMsg, math.MaxUint16)
+			}
+			vm.Frame.stack[B] = val
 		case list:
 			xs := make([]Value, P)
 			F := A
