@@ -253,7 +253,7 @@ func (vm *VM) Run() (Result, error) {
 				if vm.fp >= frameSize {
 					return Failure, verror.RuntimeError
 				}
-				if fn == vm.Frame.lambda && vm.Frame.code[ip] == ret {
+				if fn == vm.Frame.lambda && vm.Frame.code[ip]>>shift56 == ret {
 					for i := 0; i < int(A); i++ {
 						vm.Frame.stack[i] = vm.Frame.stack[int(B)+1+i]
 					}
