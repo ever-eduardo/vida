@@ -194,7 +194,7 @@ func (c *Compiler) compileStmt(node ast.Node) {
 
 		c.currentFn.Code[loop-1] |= uint64(checkLoop) << shift16
 		c.emitForLoop(ireg, loop)
-		c.cleanUpLoopScope(loop)
+		c.cleanUpLoopScope(loop, false)
 
 		c.rAlloc -= c.sb.clearLocals(c.level, c.scope)
 		c.rAlloc -= 3
@@ -225,40 +225,39 @@ func (c *Compiler) compileStmt(node ast.Node) {
 
 		c.currentFn.Code[loop-1] |= uint64(checkLoop) << shift32
 		c.emitIForLoop(ireg, loop)
-		c.cleanUpLoopScope(loop)
+		c.cleanUpLoopScope(loop, false)
 
 		c.rAlloc -= c.sb.clearLocals(c.level, c.scope)
 		c.rAlloc--
 		c.scope--
 	case *ast.While:
-		// c.startLoopScope()
-
-		// init := len(c.currentFn.Code)
-		// idx, scope := c.compileExpr(n.Condition, true)
-		// if scope == rKonst {
-		// 	switch v := c.kb.Konstants[idx].(type) {
-		// 	case Nil:
-		// 		c.skipBlock(n.Block)
-		// 		c.cleanUpLoopScope(init)
-		// 		return
-		// 	case Bool:
-		// 		if !v {
-		// 			c.skipBlock(n.Block)
-		// 			c.cleanUpLoopScope(init)
-		// 			return
-		// 		}
-		// 	}
-		// 	c.compileStmt(n.Block)
-		// 	c.emitJump(init)
-		// 	c.cleanUpLoopScope(init)
-		// } else {
-		// 	// _ = len(c.currentFn.Code) + 4
-		// 	c.emitTestF(idx, scope, 0)
-		// 	c.compileStmt(n.Block)
-		// 	c.emitJump(init)
-		// 	// binary.NativeEndian.PutUint16(c.currentFn.Code[addr:], uint16(len(c.currentFn.Code)))
-		// 	c.cleanUpLoopScope(init)
-		// }
+		c.startLoopScope()
+		init := len(c.currentFn.Code)
+		idx, scope := c.compileExpr(n.Condition, true)
+		if scope == rKonst {
+			switch v := c.kb.Konstants[idx].(type) {
+			case Nil:
+				c.skipBlock(n.Block)
+				c.cleanUpLoopScope(init, true)
+				return
+			case Bool:
+				if !v {
+					c.skipBlock(n.Block)
+					c.cleanUpLoopScope(init, true)
+					return
+				}
+			}
+			c.compileStmt(n.Block)
+			c.emitJump(init)
+			c.cleanUpLoopScope(init, true)
+		} else {
+			addr := len(c.currentFn.Code)
+			c.emitCheck(0, idx, 0)
+			c.compileStmt(n.Block)
+			c.emitJump(init)
+			c.currentFn.Code[addr] |= uint64(len(c.currentFn.Code))
+			c.cleanUpLoopScope(init, true)
+		}
 	case *ast.Break:
 		c.breakJumps = append(c.breakJumps, len(c.currentFn.Code))
 		c.breakCount[len(c.breakCount)-1]++
@@ -1175,7 +1174,7 @@ func (c *Compiler) compileBlockAndCheckJump(block ast.Node, shouldJumpOutside bo
 	}
 }
 
-func (c *Compiler) cleanUpLoopScope(init int) {
+func (c *Compiler) cleanUpLoopScope(init int, isWhileLoop bool) {
 	hasBreaks := len(c.breakJumps)
 	lastElem := len(c.breakCount) - 1
 	count := c.breakCount[lastElem]
@@ -1191,7 +1190,11 @@ func (c *Compiler) cleanUpLoopScope(init int) {
 	count = c.continueCount[lastElem]
 	if hasContinues > 0 {
 		for i := 1; i <= count; i++ {
-			c.currentFn.Code[c.continueJumps[hasContinues-i]] |= uint64(len(c.currentFn.Code) - 1)
+			if isWhileLoop {
+				c.currentFn.Code[c.continueJumps[hasContinues-i]] |= uint64(init)
+			} else {
+				c.currentFn.Code[c.continueJumps[hasContinues-i]] |= uint64(len(c.currentFn.Code) - 1)
+			}
 		}
 		c.continueJumps = c.continueJumps[:hasContinues-count]
 	}
