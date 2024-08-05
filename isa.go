@@ -29,8 +29,8 @@ const (
 	jump
 	iForSet
 	iForLoop
+	check
 	// --
-	checkF
 	fun
 	ret
 	call
@@ -64,9 +64,9 @@ var opcodes = [...]string{
 	jump:     "Jump",
 	iForSet:  "IFor",
 	iForLoop: "ILoop",
+	check:    "Check",
 	// --
-	checkF: "CheckF",
-	fun:    "Fun",
-	ret:    "Ret",
-	call:   "Call",
+	fun:  "Fun",
+	ret:  "Ret",
+	call: "Call",
 }

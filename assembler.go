@@ -249,11 +249,12 @@ func (c *Compiler) emitJump(to int) {
 	c.currentFn.Code = append(c.currentFn.Code, i)
 }
 
-func (c *Compiler) emitTestF(from, scope, jump int) {
-	// c.currentFn.Code = append(c.currentFn.Code, checkF)
-	// c.currentFn.Code = append(c.currentFn.Code, scope)
-	// c.currentFn.Code = append(c.currentFn.Code, (from), (from>>8))
-	// c.currentFn.Code = append(c.currentFn.Code, (jump), (jump>>8))
+func (c *Compiler) emitCheck(against, reg, jump int) {
+	var i uint64 = uint64(jump)
+	i |= uint64(reg) << shift16
+	i |= uint64(against) << shift32
+	i |= check << shift56
+	c.currentFn.Code = append(c.currentFn.Code, i)
 }
 
 func (c *Compiler) emitFun(from, to int) {

@@ -71,16 +71,12 @@ func (vm *VM) Debug() (Result, error) {
 			vm.Frame.stack[B] = vm.Frame.stack[A]
 		case storeF:
 			vm.Frame.lambda.Free[B] = vm.Frame.stack[A]
-		// case checkF:
-		// 	scope := vm.Frame.code[ip]
-		// 	ip++
-		// 	from := uint16(vm.Frame.code[ip]) | uint16(vm.Frame.code[ip+1])<<8
-		// 	ip += 2
-		// 	jump := uint16(vm.Frame.code[ip]) | uint16(vm.Frame.code[ip+1])<<8
-		// 	ip += 2
-		// 	if !vm.valueFrom(scope, from).Boolean() {
-		// 		ip = int(jump)
-		// 	}
+		case check:
+			if P == 0 {
+				if !vm.Frame.stack[A].Boolean() {
+					ip = int(B)
+				}
+			}
 		case jump:
 			ip = int(B)
 		case binopG:

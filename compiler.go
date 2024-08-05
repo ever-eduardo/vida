@@ -159,10 +159,10 @@ func (c *Compiler) compileStmt(node ast.Node) {
 			c.compileStmt(e.Block)
 		}
 		if shouldJumpOutside {
-			// _ = len(c.currentFn.Code)
-			// for _, v := range c.jumps {
-			// 	// binary.NativeEndian.PutUint16(c.currentFn.Code[v:], uint16(addr))
-			// }
+			addr := len(c.currentFn.Code)
+			for _, v := range c.jumps {
+				c.currentFn.Code[v] |= uint64(addr)
+			}
 			c.jumps = c.jumps[:0]
 		}
 	case *ast.For:
@@ -231,34 +231,34 @@ func (c *Compiler) compileStmt(node ast.Node) {
 		c.rAlloc--
 		c.scope--
 	case *ast.While:
-		c.startLoopScope()
+		// c.startLoopScope()
 
-		init := len(c.currentFn.Code)
-		idx, scope := c.compileExpr(n.Condition, true)
-		if scope == rKonst {
-			switch v := c.kb.Konstants[idx].(type) {
-			case Nil:
-				c.skipBlock(n.Block)
-				c.cleanUpLoopScope(init)
-				return
-			case Bool:
-				if !v {
-					c.skipBlock(n.Block)
-					c.cleanUpLoopScope(init)
-					return
-				}
-			}
-			c.compileStmt(n.Block)
-			c.emitJump(init)
-			c.cleanUpLoopScope(init)
-		} else {
-			// _ = len(c.currentFn.Code) + 4
-			c.emitTestF(idx, scope, 0)
-			c.compileStmt(n.Block)
-			c.emitJump(init)
-			// binary.NativeEndian.PutUint16(c.currentFn.Code[addr:], uint16(len(c.currentFn.Code)))
-			c.cleanUpLoopScope(init)
-		}
+		// init := len(c.currentFn.Code)
+		// idx, scope := c.compileExpr(n.Condition, true)
+		// if scope == rKonst {
+		// 	switch v := c.kb.Konstants[idx].(type) {
+		// 	case Nil:
+		// 		c.skipBlock(n.Block)
+		// 		c.cleanUpLoopScope(init)
+		// 		return
+		// 	case Bool:
+		// 		if !v {
+		// 			c.skipBlock(n.Block)
+		// 			c.cleanUpLoopScope(init)
+		// 			return
+		// 		}
+		// 	}
+		// 	c.compileStmt(n.Block)
+		// 	c.emitJump(init)
+		// 	c.cleanUpLoopScope(init)
+		// } else {
+		// 	// _ = len(c.currentFn.Code) + 4
+		// 	c.emitTestF(idx, scope, 0)
+		// 	c.compileStmt(n.Block)
+		// 	c.emitJump(init)
+		// 	// binary.NativeEndian.PutUint16(c.currentFn.Code[addr:], uint16(len(c.currentFn.Code)))
+		// 	c.cleanUpLoopScope(init)
+		// }
 	case *ast.Break:
 		c.breakJumps = append(c.breakJumps, len(c.currentFn.Code))
 		c.breakCount[len(c.breakCount)-1]++
@@ -1152,24 +1152,25 @@ func (c *Compiler) compileConditional(n *ast.If, shouldJumpOutside bool) {
 		}
 		c.compileBlockAndCheckJump(n.Block, shouldJumpOutside)
 	} else {
-		_ = len(c.currentFn.Code) + 4
-		c.emitTestF(idx, scope, 0)
+		c.exprToReg(idx, scope)
+		addr := len(c.currentFn.Code)
+		c.emitCheck(0, c.rAlloc, 0)
 		c.compileBlockAndCheckJump(n.Block, shouldJumpOutside)
-		// binary.NativeEndian.PutUint16(c.currentFn.Code[addr:], uint16(len(c.currentFn.Code)))
+		c.currentFn.Code[addr] |= uint64(len(c.currentFn.Code))
 	}
 }
 
 func (c *Compiler) skipBlock(block ast.Node) {
-	_ = len(c.currentFn.Code) + 1
+	addr := len(c.currentFn.Code)
 	c.emitJump(0)
 	c.compileStmt(block)
-	// binary.NativeEndian.PutUint16(c.currentFn.Code[addr:], uint16(len(c.currentFn.Code)))
+	c.currentFn.Code[addr] |= uint64(len(c.currentFn.Code))
 }
 
 func (c *Compiler) compileBlockAndCheckJump(block ast.Node, shouldJumpOutside bool) {
 	c.compileStmt(block)
 	if shouldJumpOutside {
-		c.jumps = append(c.jumps, len(c.currentFn.Code)+1)
+		c.jumps = append(c.jumps, len(c.currentFn.Code))
 		c.emitJump(0)
 	}
 }
