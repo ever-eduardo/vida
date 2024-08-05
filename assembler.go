@@ -228,18 +228,19 @@ func (c *Compiler) emitForLoop(iReg, loop int) {
 	c.currentFn.Code = append(c.currentFn.Code, i)
 }
 
-func (c *Compiler) emitIForSet(evalLoopAddr, idx, scope, reg int) {
-	// c.currentFn.Code = append(c.currentFn.Code, iForSet)
-	// c.currentFn.Code = append(c.currentFn.Code, scope)
-	// c.currentFn.Code = append(c.currentFn.Code, reg)
-	// c.currentFn.Code = append(c.currentFn.Code, (idx), (idx>>8))
-	// c.currentFn.Code = append(c.currentFn.Code, (evalLoopAddr), (evalLoopAddr>>8))
+func (c *Compiler) emitIForSet(loop, iterable, ireg int) {
+	var i uint64 = uint64(ireg)
+	i |= uint64(iterable) << shift16
+	i |= uint64(loop) << shift32
+	i |= iForSet << shift56
+	c.currentFn.Code = append(c.currentFn.Code, i)
 }
 
-func (c *Compiler) emitIForLoop(forLoopReg, jump int) {
-	// c.currentFn.Code = append(c.currentFn.Code, iForLoop)
-	// c.currentFn.Code = append(c.currentFn.Code, forLoopReg)
-	// c.currentFn.Code = append(c.currentFn.Code, (jump), (jump>>8))
+func (c *Compiler) emitIForLoop(iReg, loop int) {
+	var i uint64 = uint64(iReg)
+	i |= uint64(loop) << shift16
+	i |= iForLoop << shift56
+	c.currentFn.Code = append(c.currentFn.Code, i)
 }
 
 func (c *Compiler) emitJump(to int) {

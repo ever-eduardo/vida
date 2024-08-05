@@ -201,28 +201,31 @@ func (c *Compiler) compileStmt(node ast.Node) {
 		c.scope--
 	case *ast.IFor:
 		c.startLoopScope()
-
 		c.scope++
 		ireg := c.rAlloc
-		c.emitLoc(c.kb.IntegerIndex(0), c.rAlloc, rKonst)
+		c.emitLoadK(c.kb.IntegerIndex(0), ireg)
 
 		c.rAlloc++
 		c.sb.addLocal(n.Key, c.level, c.scope, c.rAlloc)
-		c.emitLoc(c.kb.IntegerIndex(0), c.rAlloc, rKonst)
+		c.emitLoadK(c.kb.IntegerIndex(0), c.rAlloc)
 
 		c.rAlloc++
 		c.sb.addLocal(n.Value, c.level, c.scope, c.rAlloc)
-		c.emitLoc(c.kb.IntegerIndex(0), c.rAlloc, rKonst)
-		c.rAlloc++
+		c.emitLoadK(c.kb.IntegerIndex(0), c.rAlloc)
 
-		idx, scope := c.compileExpr(n.Expr, true)
-		c.emitIForSet(0, idx, scope, ireg)
-		jump := len(c.currentFn.Code)
+		c.rAlloc++
+		i, s := c.compileExpr(n.Expr, true)
+		c.exprToReg(i, s)
+
+		c.emitIForSet(0, c.rAlloc, ireg)
+		loop := len(c.currentFn.Code)
+
 		c.compileStmt(n.Block)
-		// evalLoop_ = len(c.currentFn.Code)
-		// binary.NativeEndian.PutUint16(c.currentFn.Code[jump-2:], uint16(evalLoopAddr))
-		c.emitIForLoop(ireg, jump)
-		// c.cleanUpLoopScope(evalLoopAddr)
+		checkLoop := len(c.currentFn.Code)
+
+		c.currentFn.Code[loop-1] |= uint64(checkLoop) << shift32
+		c.emitIForLoop(ireg, loop)
+		c.cleanUpLoopScope(loop)
 
 		c.rAlloc -= c.sb.clearLocals(c.level, c.scope)
 		c.rAlloc--

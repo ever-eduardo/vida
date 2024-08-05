@@ -27,9 +27,9 @@ const (
 	forSet
 	forLoop
 	jump
-	// --
 	iForSet
 	iForLoop
+	// --
 	checkF
 	fun
 	ret
@@ -37,36 +37,36 @@ const (
 )
 
 var opcodes = [...]string{
-	end:     "End",
-	storeG:  "StoreG",
-	loadG:   "LoadG",
-	loadF:   "LoadF",
-	loadK:   "LoadK",
-	move:    "Move",
-	storeF:  "StoreF",
-	prefix:  "Prefix",
-	binop:   "Binop",
-	binopG:  "BinopG",
-	binopK:  "BinopK",
-	binopQ:  "BinopQ",
-	list:    "List",
-	object:  "Object",
-	iGet:    "IGet",
-	iSet:    "ISet",
-	iSetK:   "ISetK",
-	eq:      "Eq",
-	eqG:     "EqG",
-	eqK:     "EqK",
-	eqQ:     "EqQ",
-	slice:   "Slice",
-	forSet:  "For",
-	forLoop: "Loop",
-	jump:    "Jump",
-	// --
+	end:      "End",
+	storeG:   "StoreG",
+	loadG:    "LoadG",
+	loadF:    "LoadF",
+	loadK:    "LoadK",
+	move:     "Move",
+	storeF:   "StoreF",
+	prefix:   "Prefix",
+	binop:    "Binop",
+	binopG:   "BinopG",
+	binopK:   "BinopK",
+	binopQ:   "BinopQ",
+	list:     "List",
+	object:   "Object",
+	iGet:     "IGet",
+	iSet:     "ISet",
+	iSetK:    "ISetK",
+	eq:       "Eq",
+	eqG:      "EqG",
+	eqK:      "EqK",
+	eqQ:      "EqQ",
+	slice:    "Slice",
+	forSet:   "For",
+	forLoop:  "Loop",
+	jump:     "Jump",
 	iForSet:  "IFor",
 	iForLoop: "ILoop",
-	checkF:   "CheckF",
-	fun:      "Fun",
-	ret:      "Ret",
-	call:     "Call",
+	// --
+	checkF: "CheckF",
+	fun:    "Fun",
+	ret:    "Ret",
+	call:   "Call",
 }

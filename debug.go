@@ -200,21 +200,13 @@ func (vm *VM) Debug() (Result, error) {
 				}
 			}
 			ip = int(A)
-		// case iForSet:
-		// 	scope := vm.Frame.code[ip]
-		// 	ip++
-		// 	reg := vm.Frame.code[ip]
-		// 	ip++
-		// 	idx := uint16(vm.Frame.code[ip]) | uint16(vm.Frame.code[ip+1])<<8
-		// 	ip += 2
-		// 	jump := uint16(vm.Frame.code[ip]) | uint16(vm.Frame.code[ip+1])<<8
-		// 	ip += 2
-		// 	val := vm.valueFrom(scope, idx)
-		// 	if !val.IsIterable() {
-		// 		return Failure, verror.RuntimeError
-		// 	}
-		// 	vm.Frame.stack[reg] = val.Iterator()
-		// 	ip = int(jump)
+		case iForSet:
+			iterable := vm.Frame.stack[A]
+			if !iterable.IsIterable() {
+				return Failure, verror.RuntimeError
+			}
+			vm.Frame.stack[B] = iterable.Iterator()
+			ip = int(P)
 		case forLoop:
 			i := vm.Frame.stack[B].(Integer)
 			e := vm.Frame.stack[B+1].(Integer)
@@ -234,18 +226,14 @@ func (vm *VM) Debug() (Result, error) {
 					ip = int(A)
 				}
 			}
-		// case iForLoop:
-		// 	r := vm.Frame.code[ip]
-		// 	ip++
-		// 	jump := uint16(vm.Frame.code[ip]) | uint16(vm.Frame.code[ip+1])<<8
-		// 	ip += 2
-		// 	i, _ := vm.Frame.stack[r].(Iterator)
-		// 	if i.Next() {
-		// 		vm.Frame.stack[r+1] = i.Key()
-		// 		vm.Frame.stack[r+2] = i.Value()
-		// 		ip = int(jump)
-		// 		continue
-		// 	}
+		case iForLoop:
+			i, _ := vm.Frame.stack[B].(Iterator)
+			if i.Next() {
+				vm.Frame.stack[B+1] = i.Key()
+				vm.Frame.stack[B+2] = i.Value()
+				ip = int(A)
+				continue
+			}
 		// case fun:
 		// 	from := uint16(vm.Frame.code[ip]) | uint16(vm.Frame.code[ip+1])<<8
 		// 	ip += 2
