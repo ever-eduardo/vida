@@ -543,237 +543,9 @@ func (c *Compiler) compileExpr(node ast.Node, isRoot bool) (int, int) {
 	case *ast.BinaryExpr:
 		switch n.Op {
 		case token.EQ, token.NEQ:
-			lidx, lscope := c.compileExpr(n.Lhs, false)
-			lreg := c.rAlloc
-			switch lscope {
-			case rKonst:
-				ridx, rscope := c.compileExpr(n.Rhs, false)
-				switch rscope {
-				case rKonst:
-					return c.integrateKonst(c.kb.Konstants[lidx].Equals(c.kb.Konstants[ridx]))
-				case rGlob:
-					c.emitLoadG(ridx, lreg)
-					c.emitEqQ(lidx, lreg, lreg, n.Op)
-				case rLoc:
-					c.emitEqQ(lidx, ridx, lreg, n.Op)
-				case rFree:
-					c.emitLoadF(ridx, lreg)
-					c.emitEqQ(lidx, lreg, lreg, n.Op)
-				}
-			case rGlob:
-				ridx, rscope := c.compileExpr(n.Rhs, false)
-				switch rscope {
-				case rGlob:
-					c.emitEqG(lidx, ridx, lreg, n.Op)
-				case rKonst:
-					c.emitLoadG(lidx, lreg)
-					c.emitEqK(ridx, lreg, lreg, n.Op)
-				case rLoc:
-					if c.mutLoc && isRoot {
-						c.emitLoadG(lidx, lreg)
-						c.emitEq(lreg, ridx, c.rDest, n.Op)
-						return c.rDest, rLoc
-					} else {
-						c.emitLoadG(lidx, lreg)
-						c.emitEq(lreg, ridx, lreg, n.Op)
-					}
-				case rFree:
-					c.rAlloc++
-					c.emitLoadG(lidx, lreg)
-					c.emitLoadF(ridx, c.rAlloc)
-					c.emitEq(lreg, c.rAlloc, lreg, n.Op)
-					c.rAlloc--
-				}
-			case rLoc:
-				c.rAlloc++
-				ridx, rscope := c.compileExpr(n.Rhs, false)
-				switch rscope {
-				case rLoc:
-					if c.mutLoc && isRoot {
-						c.emitEq(lidx, ridx, c.rDest, n.Op)
-						c.rAlloc--
-						return c.rDest, rLoc
-					} else {
-						c.emitEq(lidx, ridx, lreg, n.Op)
-					}
-				case rGlob:
-					if c.mutLoc && isRoot {
-						c.emitLoadG(ridx, c.rAlloc)
-						c.emitEq(lidx, c.rAlloc, c.rDest, n.Op)
-						c.rAlloc--
-						return c.rDest, rLoc
-					} else {
-						c.emitLoadG(ridx, c.rAlloc)
-						c.emitEq(lidx, c.rAlloc, lreg, n.Op)
-					}
-				case rKonst:
-					if c.mutLoc && isRoot {
-						c.emitEqK(ridx, lidx, c.rDest, n.Op)
-						c.rAlloc--
-						return c.rDest, rLoc
-					} else {
-						c.emitEqK(ridx, lidx, lreg, n.Op)
-					}
-				case rFree:
-					if c.mutLoc && isRoot {
-						c.emitLoadF(ridx, c.rAlloc)
-						c.emitEq(lidx, c.rAlloc, c.rDest, n.Op)
-						c.rAlloc--
-						return c.rDest, rLoc
-					} else {
-						c.emitLoadF(ridx, c.rAlloc)
-						c.emitEq(lidx, c.rAlloc, lreg, n.Op)
-					}
-				}
-				c.rAlloc--
-			case rFree:
-				ridx, rscope := c.compileExpr(n.Rhs, false)
-				switch rscope {
-				case rLoc:
-					if c.mutLoc && isRoot {
-						c.emitLoadF(lidx, lreg)
-						c.emitEq(lreg, ridx, c.rDest, n.Op)
-						return c.rDest, rLoc
-					} else {
-						c.emitLoadF(lidx, lreg)
-						c.emitEq(lreg, ridx, lreg, n.Op)
-					}
-				case rGlob:
-					c.rAlloc++
-					c.emitLoadF(lidx, lreg)
-					c.emitLoadG(ridx, c.rAlloc)
-					c.emitEq(lreg, c.rAlloc, lreg, n.Op)
-					c.rAlloc--
-				case rKonst:
-					c.emitLoadF(lidx, lreg)
-					c.emitEqK(ridx, lreg, lreg, n.Op)
-				case rFree:
-					c.rAlloc++
-					c.emitLoadF(lidx, lreg)
-					c.emitLoadF(ridx, c.rAlloc)
-					c.emitEq(lreg, c.rAlloc, lreg, n.Op)
-					c.rAlloc--
-				}
-			}
-			return lreg, rLoc
+			return c.compileBinaryEq(n, isRoot)
 		default:
-			lidx, lscope := c.compileExpr(n.Lhs, false)
-			lreg := c.rAlloc
-			switch lscope {
-			case rKonst:
-				ridx, rscope := c.compileExpr(n.Rhs, false)
-				switch rscope {
-				case rKonst:
-					if val, err := c.kb.Konstants[lidx].Binop(uint64(n.Op), c.kb.Konstants[ridx]); err == nil {
-						return c.integrateKonst(val)
-					} else {
-						c.hadError = true
-					}
-				case rGlob:
-					c.emitLoadG(ridx, lreg)
-					c.emitBinopQ(lidx, lreg, lreg, n.Op)
-				case rLoc:
-					c.emitBinopQ(lidx, ridx, lreg, n.Op)
-				case rFree:
-					c.emitLoadF(ridx, lreg)
-					c.emitBinopQ(lidx, lreg, lreg, n.Op)
-				}
-			case rGlob:
-				ridx, rscope := c.compileExpr(n.Rhs, false)
-				switch rscope {
-				case rGlob:
-					c.emitBinopG(lidx, ridx, lreg, n.Op)
-				case rKonst:
-					c.emitLoadG(lidx, lreg)
-					c.emitBinopK(ridx, lreg, lreg, n.Op)
-				case rLoc:
-					if c.mutLoc && isRoot {
-						c.emitLoadG(lidx, lreg)
-						c.emitBinop(lreg, ridx, c.rDest, n.Op)
-						return c.rDest, rLoc
-					} else {
-						c.emitLoadG(lidx, lreg)
-						c.emitBinop(lreg, ridx, lreg, n.Op)
-					}
-				case rFree:
-					c.rAlloc++
-					c.emitLoadG(lidx, lreg)
-					c.emitLoadF(ridx, c.rAlloc)
-					c.emitBinop(lreg, c.rAlloc, lreg, n.Op)
-					c.rAlloc--
-				}
-			case rLoc:
-				c.rAlloc++
-				ridx, rscope := c.compileExpr(n.Rhs, false)
-				switch rscope {
-				case rLoc:
-					if c.mutLoc && isRoot {
-						c.emitBinop(lidx, ridx, c.rDest, n.Op)
-						c.rAlloc--
-						return c.rDest, rLoc
-					} else {
-						c.emitBinop(lidx, ridx, lreg, n.Op)
-					}
-				case rGlob:
-					if c.mutLoc && isRoot {
-						c.emitLoadG(ridx, c.rAlloc)
-						c.emitBinop(lidx, c.rAlloc, c.rDest, n.Op)
-						c.rAlloc--
-						return c.rDest, rLoc
-					} else {
-						c.emitLoadG(ridx, c.rAlloc)
-						c.emitBinop(lidx, c.rAlloc, lreg, n.Op)
-					}
-				case rKonst:
-					if c.mutLoc && isRoot {
-						c.emitBinopK(ridx, lidx, c.rDest, n.Op)
-						c.rAlloc--
-						return c.rDest, rLoc
-					} else {
-						c.emitBinopK(ridx, lidx, lreg, n.Op)
-					}
-				case rFree:
-					if c.mutLoc && isRoot {
-						c.emitLoadF(ridx, c.rAlloc)
-						c.emitBinop(lidx, c.rAlloc, c.rDest, n.Op)
-						c.rAlloc--
-						return c.rDest, rLoc
-					} else {
-						c.emitLoadF(ridx, c.rAlloc)
-						c.emitBinop(lidx, c.rAlloc, lreg, n.Op)
-					}
-				}
-				c.rAlloc--
-			case rFree:
-				ridx, rscope := c.compileExpr(n.Rhs, false)
-				switch rscope {
-				case rLoc:
-					if c.mutLoc && isRoot {
-						c.emitLoadF(lidx, lreg)
-						c.emitBinop(lreg, ridx, c.rDest, n.Op)
-						return c.rDest, rLoc
-					} else {
-						c.emitLoadF(lidx, lreg)
-						c.emitBinop(lreg, ridx, lreg, n.Op)
-					}
-				case rGlob:
-					c.rAlloc++
-					c.emitLoadF(lidx, lreg)
-					c.emitLoadG(ridx, c.rAlloc)
-					c.emitBinop(lreg, c.rAlloc, lreg, n.Op)
-					c.rAlloc--
-				case rKonst:
-					c.emitLoadF(lidx, lreg)
-					c.emitBinopK(ridx, lreg, lreg, n.Op)
-				case rFree:
-					c.rAlloc++
-					c.emitLoadF(lidx, lreg)
-					c.emitLoadF(ridx, c.rAlloc)
-					c.emitBinop(lreg, c.rAlloc, lreg, n.Op)
-					c.rAlloc--
-				}
-			}
-			return lreg, rLoc
+			return c.compileBinaryExpr(n, isRoot)
 		}
 	case *ast.PrefixExpr:
 		from, scope := c.compileExpr(n.Expr, false)
@@ -1121,18 +893,20 @@ func (c *Compiler) compileExpr(node ast.Node, isRoot bool) (int, int) {
 	case *ast.MethodCallExpr:
 		// reg := c.rAlloc
 		// c.rAlloc++
-		// i, s := c.compileExpr(n.Obj)
+		// i, s := c.compileExpr(n.Obj, false)
+		// c.exprToReg(i, s)
 		// c.rAlloc++
-		// j, t := c.compileExpr(n.Prop)
+		// j, t := c.compileExpr(n.Prop, false)
+		// c.exprToReg(j, t)
 		// c.rAlloc = reg
-		// c.emitIGet(i, j, s, t, reg)
+		// c.emitIGet(0, 0, 0, 1)
 		// c.rAlloc++
-		// i, s = c.compileExpr(n.Obj)
-		// c.emitLoc(i, c.rAlloc, s)
+		// i, s = c.compileExpr(n.Obj, false)
+		// c.exprToReg(i, s)
 		// c.rAlloc++
 		// for _, v := range n.Args {
-		// 	i, s := c.compileExpr(v)
-		// 	c.emitLoc(i, c.rAlloc, s)
+		// 	i, s := c.compileExpr(v, false)
+		// 	c.exprToReg(i, s)
 		// 	c.rAlloc++
 		// }
 		// c.rAlloc = reg
@@ -1255,4 +1029,340 @@ func (c *Compiler) exprToReg(v, s int) {
 	case rFree:
 		c.emitLoadF(v, c.rAlloc)
 	}
+}
+
+func (c *Compiler) compileBinaryExpr(n *ast.BinaryExpr, isRoot bool) (int, int) {
+	lidx, lscope := c.compileExpr(n.Lhs, false)
+	lreg := c.rAlloc
+	switch lscope {
+	case rKonst:
+		ridx, rscope := c.compileExpr(n.Rhs, false)
+		switch rscope {
+		case rKonst:
+			if val, err := c.kb.Konstants[lidx].Binop(uint64(n.Op), c.kb.Konstants[ridx]); err == nil {
+				return c.integrateKonst(val)
+			} else {
+				c.hadError = true
+			}
+		case rGlob:
+			c.emitLoadG(ridx, lreg)
+			if c.mutLoc && isRoot {
+				c.emitBinopQ(lidx, lreg, c.rDest, n.Op)
+				return c.rDest, rLoc
+			} else {
+				c.emitBinopQ(lidx, lreg, lreg, n.Op)
+			}
+		case rLoc:
+			if c.mutLoc && isRoot {
+				c.emitBinopQ(lidx, ridx, c.rDest, n.Op)
+				return c.rDest, rLoc
+			} else {
+				c.emitBinopQ(lidx, ridx, lreg, n.Op)
+			}
+		case rFree:
+			c.emitLoadF(ridx, lreg)
+			if c.mutLoc && isRoot {
+				c.emitBinopQ(lidx, lreg, c.rDest, n.Op)
+				return c.rDest, rLoc
+			} else {
+				c.emitBinopQ(lidx, lreg, lreg, n.Op)
+			}
+		}
+	case rGlob:
+		ridx, rscope := c.compileExpr(n.Rhs, false)
+		switch rscope {
+		case rGlob:
+			if c.mutLoc && isRoot {
+				c.emitBinopG(lidx, ridx, c.rDest, n.Op)
+				return c.rDest, rLoc
+			} else {
+				c.emitBinopG(lidx, ridx, lreg, n.Op)
+			}
+		case rKonst:
+			c.emitLoadG(lidx, lreg)
+			if c.mutLoc && isRoot {
+				c.emitBinopK(ridx, lreg, c.rDest, n.Op)
+				return c.rDest, rLoc
+			} else {
+				c.emitBinopK(ridx, lreg, lreg, n.Op)
+			}
+		case rLoc:
+			c.rAlloc++
+			c.emitLoadG(lidx, c.rAlloc)
+			if c.mutLoc && isRoot {
+				c.emitBinop(c.rAlloc, lreg, c.rDest, n.Op)
+				c.rAlloc--
+				return c.rDest, rLoc
+			} else {
+				c.emitBinop(c.rAlloc, lreg, lreg, n.Op)
+				c.rAlloc--
+			}
+		case rFree:
+			c.rAlloc++
+			c.emitLoadG(lidx, lreg)
+			c.emitLoadF(ridx, c.rAlloc)
+			if c.mutLoc && isRoot {
+				c.emitBinop(lreg, c.rAlloc, c.rDest, n.Op)
+				c.rAlloc--
+				return c.rDest, rLoc
+			} else {
+				c.emitBinop(lreg, c.rAlloc, lreg, n.Op)
+				c.rAlloc--
+			}
+		}
+	case rLoc:
+		c.rAlloc++
+		ridx, rscope := c.compileExpr(n.Rhs, false)
+		switch rscope {
+		case rLoc:
+			if c.mutLoc && isRoot {
+				c.emitBinop(lidx, ridx, c.rDest, n.Op)
+				c.rAlloc--
+				return c.rDest, rLoc
+			} else {
+				c.emitBinop(lidx, ridx, lreg, n.Op)
+			}
+		case rGlob:
+			if c.mutLoc && isRoot {
+				c.emitLoadG(ridx, c.rAlloc)
+				c.emitBinop(lidx, c.rAlloc, c.rDest, n.Op)
+				c.rAlloc--
+				return c.rDest, rLoc
+			} else {
+				c.emitLoadG(ridx, c.rAlloc)
+				c.emitBinop(lidx, c.rAlloc, lreg, n.Op)
+			}
+		case rKonst:
+			if c.mutLoc && isRoot {
+				c.emitBinopK(ridx, lidx, c.rDest, n.Op)
+				c.rAlloc--
+				return c.rDest, rLoc
+			} else {
+				c.emitBinopK(ridx, lidx, lreg, n.Op)
+			}
+		case rFree:
+			if c.mutLoc && isRoot {
+				c.emitLoadF(ridx, c.rAlloc)
+				c.emitBinop(lidx, c.rAlloc, c.rDest, n.Op)
+				c.rAlloc--
+				return c.rDest, rLoc
+			} else {
+				c.emitLoadF(ridx, c.rAlloc)
+				c.emitBinop(lidx, c.rAlloc, lreg, n.Op)
+			}
+		}
+		c.rAlloc--
+	case rFree:
+		ridx, rscope := c.compileExpr(n.Rhs, false)
+		switch rscope {
+		case rLoc:
+			c.emitLoadF(lidx, lreg)
+			if c.mutLoc && isRoot {
+				c.emitBinop(lreg, ridx, c.rDest, n.Op)
+				return c.rDest, rLoc
+			} else {
+				c.emitBinop(lreg, ridx, lreg, n.Op)
+			}
+		case rGlob:
+			c.rAlloc++
+			c.emitLoadF(lidx, lreg)
+			c.emitLoadG(ridx, c.rAlloc)
+			if c.mutLoc && isRoot {
+				c.emitBinop(lreg, c.rAlloc, c.rDest, n.Op)
+				c.rAlloc--
+				return c.rDest, rLoc
+			} else {
+				c.emitBinop(lreg, c.rAlloc, lreg, n.Op)
+				c.rAlloc--
+			}
+		case rKonst:
+			c.emitLoadF(lidx, lreg)
+			if c.mutLoc && isRoot {
+				c.emitBinopK(ridx, lreg, c.rDest, n.Op)
+				return c.rDest, rLoc
+			} else {
+				c.emitBinopK(ridx, lreg, lreg, n.Op)
+			}
+		case rFree:
+			c.rAlloc++
+			c.emitLoadF(lidx, lreg)
+			c.emitLoadF(ridx, c.rAlloc)
+			if c.mutLoc && isRoot {
+				c.emitBinop(lreg, c.rAlloc, c.rDest, n.Op)
+				c.rAlloc--
+				return c.rDest, rLoc
+			} else {
+				c.emitBinop(lreg, c.rAlloc, lreg, n.Op)
+				c.rAlloc--
+			}
+		}
+	}
+	return lreg, rLoc
+
+}
+
+func (c *Compiler) compileBinaryEq(n *ast.BinaryExpr, isRoot bool) (int, int) {
+	lidx, lscope := c.compileExpr(n.Lhs, false)
+	lreg := c.rAlloc
+	switch lscope {
+	case rKonst:
+		ridx, rscope := c.compileExpr(n.Rhs, false)
+		switch rscope {
+		case rKonst:
+			val := c.kb.Konstants[lidx].Equals(c.kb.Konstants[ridx])
+			return c.integrateKonst(val)
+		case rGlob:
+			c.emitLoadG(ridx, lreg)
+			if c.mutLoc && isRoot {
+				c.emitEqQ(lidx, lreg, c.rDest, n.Op)
+				return c.rDest, rLoc
+			} else {
+				c.emitEqQ(lidx, lreg, lreg, n.Op)
+			}
+		case rLoc:
+			if c.mutLoc && isRoot {
+				c.emitEqQ(lidx, ridx, c.rDest, n.Op)
+				return c.rDest, rLoc
+			} else {
+				c.emitEqQ(lidx, ridx, lreg, n.Op)
+			}
+		case rFree:
+			c.emitLoadF(ridx, lreg)
+			if c.mutLoc && isRoot {
+				c.emitEqQ(lidx, lreg, c.rDest, n.Op)
+				return c.rDest, rLoc
+			} else {
+				c.emitEqQ(lidx, lreg, lreg, n.Op)
+			}
+		}
+	case rGlob:
+		ridx, rscope := c.compileExpr(n.Rhs, false)
+		switch rscope {
+		case rGlob:
+			if c.mutLoc && isRoot {
+				c.emitEqG(lidx, ridx, c.rDest, n.Op)
+				return c.rDest, rLoc
+			} else {
+				c.emitEqG(lidx, ridx, lreg, n.Op)
+			}
+		case rKonst:
+			c.emitLoadG(lidx, lreg)
+			if c.mutLoc && isRoot {
+				c.emitEqK(ridx, lreg, c.rDest, n.Op)
+				return c.rDest, rLoc
+			} else {
+				c.emitEqK(ridx, lreg, lreg, n.Op)
+			}
+		case rLoc:
+			c.rAlloc++
+			c.emitLoadG(lidx, c.rAlloc)
+			if c.mutLoc && isRoot {
+				c.emitEq(c.rAlloc, lreg, c.rDest, n.Op)
+				c.rAlloc--
+				return c.rDest, rLoc
+			} else {
+				c.emitEq(c.rAlloc, lreg, lreg, n.Op)
+				c.rAlloc--
+			}
+		case rFree:
+			c.rAlloc++
+			c.emitLoadG(lidx, lreg)
+			c.emitLoadF(ridx, c.rAlloc)
+			if c.mutLoc && isRoot {
+				c.emitEq(lreg, c.rAlloc, c.rDest, n.Op)
+				c.rAlloc--
+				return c.rDest, rLoc
+			} else {
+				c.emitEq(lreg, c.rAlloc, lreg, n.Op)
+				c.rAlloc--
+			}
+		}
+	case rLoc:
+		c.rAlloc++
+		ridx, rscope := c.compileExpr(n.Rhs, false)
+		switch rscope {
+		case rLoc:
+			if c.mutLoc && isRoot {
+				c.emitEq(lidx, ridx, c.rDest, n.Op)
+				c.rAlloc--
+				return c.rDest, rLoc
+			} else {
+				c.emitEq(lidx, ridx, lreg, n.Op)
+			}
+		case rGlob:
+			if c.mutLoc && isRoot {
+				c.emitLoadG(ridx, c.rAlloc)
+				c.emitEq(lidx, c.rAlloc, c.rDest, n.Op)
+				c.rAlloc--
+				return c.rDest, rLoc
+			} else {
+				c.emitLoadG(ridx, c.rAlloc)
+				c.emitEq(lidx, c.rAlloc, lreg, n.Op)
+			}
+		case rKonst:
+			if c.mutLoc && isRoot {
+				c.emitEqK(ridx, lidx, c.rDest, n.Op)
+				c.rAlloc--
+				return c.rDest, rLoc
+			} else {
+				c.emitEqK(ridx, lidx, lreg, n.Op)
+			}
+		case rFree:
+			if c.mutLoc && isRoot {
+				c.emitLoadF(ridx, c.rAlloc)
+				c.emitEq(lidx, c.rAlloc, c.rDest, n.Op)
+				c.rAlloc--
+				return c.rDest, rLoc
+			} else {
+				c.emitLoadF(ridx, c.rAlloc)
+				c.emitEq(lidx, c.rAlloc, lreg, n.Op)
+			}
+		}
+		c.rAlloc--
+	case rFree:
+		ridx, rscope := c.compileExpr(n.Rhs, false)
+		switch rscope {
+		case rLoc:
+			c.emitLoadF(lidx, lreg)
+			if c.mutLoc && isRoot {
+				c.emitEq(lreg, ridx, c.rDest, n.Op)
+				return c.rDest, rLoc
+			} else {
+				c.emitEq(lreg, ridx, lreg, n.Op)
+			}
+		case rGlob:
+			c.rAlloc++
+			c.emitLoadF(lidx, lreg)
+			c.emitLoadG(ridx, c.rAlloc)
+			if c.mutLoc && isRoot {
+				c.emitEq(lreg, c.rAlloc, c.rDest, n.Op)
+				c.rAlloc--
+				return c.rDest, rLoc
+			} else {
+				c.emitEq(lreg, c.rAlloc, lreg, n.Op)
+				c.rAlloc--
+			}
+		case rKonst:
+			c.emitLoadF(lidx, lreg)
+			if c.mutLoc && isRoot {
+				c.emitEqK(ridx, lreg, c.rDest, n.Op)
+				return c.rDest, rLoc
+			} else {
+				c.emitEqK(ridx, lreg, lreg, n.Op)
+			}
+		case rFree:
+			c.rAlloc++
+			c.emitLoadF(lidx, lreg)
+			c.emitLoadF(ridx, c.rAlloc)
+			if c.mutLoc && isRoot {
+				c.emitEq(lreg, c.rAlloc, c.rDest, n.Op)
+				c.rAlloc--
+				return c.rDest, rLoc
+			} else {
+				c.emitEq(lreg, c.rAlloc, lreg, n.Op)
+				c.rAlloc--
+			}
+		}
+	}
+	return lreg, rLoc
 }
