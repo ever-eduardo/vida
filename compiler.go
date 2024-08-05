@@ -502,6 +502,7 @@ func (c *Compiler) compileStmt(node ast.Node) {
 		c.emitRet(c.rAlloc)
 	case *ast.CallStmt:
 		reg := c.rAlloc
+		c.rAlloc++
 		for _, v := range n.Args {
 			i, s := c.compileExpr(v, true)
 			c.exprToReg(i, s)
