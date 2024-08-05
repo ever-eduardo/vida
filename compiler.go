@@ -653,167 +653,236 @@ func (c *Compiler) compileExpr(node ast.Node, isRoot bool) (int, int) {
 					c.emitIGet(i, j, lreg, 0)
 				}
 			case rGlob:
+				c.emitLoadG(j, c.rAlloc)
 				if c.mutLoc && isRoot {
-					c.emitLoadG(j, c.rAlloc)
 					c.emitIGet(i, c.rAlloc, c.rDest, 0)
+					c.rAlloc--
 					return c.rDest, rLoc
 				} else {
-					c.emitLoadG(j, c.rAlloc)
-					c.emitIGet(i, c.rAlloc, c.rAlloc, 0)
+					c.emitIGet(i, c.rAlloc, lreg, 0)
 				}
 			case rKonst:
+				c.emitLoadK(j, c.rAlloc)
 				if c.mutLoc && isRoot {
-					c.emitIGet(i, j, c.rDest, 1)
+					c.emitIGet(i, c.rAlloc, c.rDest, 1)
+					c.rAlloc--
 					return c.rDest, rLoc
 				} else {
-					c.emitIGet(i, j, c.rAlloc, 1)
+					c.emitIGet(i, c.rAlloc, lreg, 1)
 				}
 			case rFree:
+				c.emitLoadF(j, c.rAlloc)
 				if c.mutLoc && isRoot {
-					c.emitLoadF(j, c.rAlloc)
 					c.emitIGet(i, c.rAlloc, c.rDest, 0)
+					c.rAlloc--
 					return c.rDest, rLoc
 				} else {
-					c.emitLoadF(j, c.rAlloc)
-					c.emitIGet(i, c.rAlloc, c.rAlloc, 0)
+					c.emitIGet(i, c.rAlloc, lreg, 0)
 				}
 			}
+			c.rAlloc--
 		case rGlob:
 			j, t := c.compileExpr(n.Index, false)
 			switch t {
 			case rLoc:
+				c.rAlloc++
+				c.emitLoadG(i, c.rAlloc)
 				if c.mutLoc && isRoot {
-					c.emitLoadG(i, c.rAlloc)
-					c.emitIGet(c.rAlloc, j, c.rDest, 0)
+					c.emitIGet(c.rAlloc, lreg, c.rDest, 0)
+					c.rAlloc--
 					return c.rDest, rLoc
 				} else {
-					c.emitLoadG(i, c.rAlloc)
-					c.emitIGet(c.rAlloc, j, c.rAlloc, 0)
+					c.emitIGet(c.rAlloc, lreg, lreg, 0)
+					c.rAlloc--
 				}
 			case rGlob:
-				c.emitLoadG(i, c.rAlloc)
-				c.emitLoadG(j, c.rAlloc+1)
-				c.emitIGet(c.rAlloc, c.rAlloc+1, c.rAlloc, 0)
+				c.emitLoadG(i, lreg)
+				c.emitLoadG(j, lreg+1)
+				if c.mutLoc && isRoot {
+					c.emitIGet(lreg, lreg+1, c.rDest, 0)
+					return c.rDest, rLoc
+				} else {
+					c.emitIGet(lreg, lreg+1, lreg, 0)
+				}
 			case rKonst:
-				c.emitLoadG(i, c.rAlloc)
-				c.emitIGet(c.rAlloc, j, c.rAlloc, 1)
+				c.emitLoadG(i, lreg)
+				if c.mutLoc && isRoot {
+					c.emitIGet(lreg, j, c.rDest, 1)
+					return c.rDest, rLoc
+				} else {
+					c.emitIGet(lreg, j, lreg, 1)
+				}
 			case rFree:
-				c.emitLoadG(i, c.rAlloc)
-				c.emitLoadF(j, c.rAlloc+1)
-				c.emitIGet(c.rAlloc, c.rAlloc+1, c.rAlloc, 0)
+				c.emitLoadG(i, lreg)
+				c.emitLoadF(j, lreg+1)
+				if c.mutLoc && isRoot {
+					c.emitIGet(lreg, lreg+1, c.rDest, 0)
+					return c.rDest, rLoc
+				} else {
+					c.emitIGet(lreg, lreg+1, lreg, 0)
+				}
 			}
 		case rFree:
 			j, t := c.compileExpr(n.Index, false)
 			switch t {
 			case rLoc:
+				c.emitLoadF(i, c.rAlloc)
 				if c.mutLoc && isRoot {
-					c.emitLoadF(i, c.rAlloc)
 					c.emitIGet(c.rAlloc, j, c.rDest, 0)
 					return c.rDest, rLoc
 				} else {
-					c.emitLoadF(i, c.rAlloc)
 					c.emitIGet(c.rAlloc, j, c.rAlloc, 0)
 				}
 			case rGlob:
 				c.emitLoadF(i, c.rAlloc)
 				c.emitLoadG(j, c.rAlloc+1)
-				c.emitIGet(c.rAlloc, c.rAlloc+1, c.rAlloc, 0)
+				if c.mutLoc && isRoot {
+					c.emitIGet(c.rAlloc, c.rAlloc+1, c.rDest, 0)
+				} else {
+					c.emitIGet(c.rAlloc, c.rAlloc+1, c.rAlloc, 0)
+				}
 			case rKonst:
-				c.emitLoadG(i, c.rAlloc)
-				c.emitIGet(c.rAlloc, j, c.rAlloc, 1)
+				c.emitLoadF(i, c.rAlloc)
+				if c.mutLoc && isRoot {
+					c.emitIGet(c.rAlloc, j, c.rDest, 1)
+					return c.rDest, rLoc
+				} else {
+					c.emitIGet(c.rAlloc, j, c.rAlloc, 1)
+				}
 			case rFree:
 				c.emitLoadF(i, c.rAlloc)
-				c.emitLoadG(j, c.rAlloc+1)
-				c.emitIGet(c.rAlloc, c.rAlloc+1, c.rAlloc, 0)
+				c.emitLoadF(j, c.rAlloc+1)
+				if c.mutLoc && isRoot {
+					c.emitIGet(c.rAlloc, c.rAlloc+1, c.rDest, 0)
+					return c.rDest, rLoc
+				} else {
+					c.emitIGet(c.rAlloc, c.rAlloc+1, c.rAlloc, 0)
+				}
 			}
 		}
 		return c.rAlloc, rLoc
 	case *ast.Select:
 		i, s := c.compileExpr(n.Selectable, false)
+		lreg := c.rAlloc
 		switch s {
 		case rLoc:
+			c.rAlloc++
 			j, t := c.compileExpr(n.Selector, false)
 			switch t {
 			case rLoc:
 				if c.mutLoc && isRoot {
 					c.emitIGet(i, j, c.rDest, 0)
+					c.rAlloc--
 					return c.rDest, rLoc
 				} else {
-					c.emitIGet(i, j, c.rAlloc, 0)
+					c.emitIGet(i, j, lreg, 0)
 				}
 			case rGlob:
+				c.emitLoadG(j, c.rAlloc)
 				if c.mutLoc && isRoot {
-					c.emitLoadG(j, c.rAlloc)
 					c.emitIGet(i, c.rAlloc, c.rDest, 0)
+					c.rAlloc--
 					return c.rDest, rLoc
 				} else {
-					c.emitLoadG(j, c.rAlloc)
-					c.emitIGet(i, c.rAlloc, c.rAlloc, 0)
+					c.emitIGet(i, c.rAlloc, lreg, 0)
 				}
 			case rKonst:
+				c.emitLoadK(j, c.rAlloc)
 				if c.mutLoc && isRoot {
-					c.emitIGet(i, j, c.rDest, 1)
+					c.emitIGet(i, c.rAlloc, c.rDest, 1)
+					c.rAlloc--
 					return c.rDest, rLoc
 				} else {
-					c.emitIGet(i, j, c.rAlloc, 1)
+					c.emitIGet(i, c.rAlloc, lreg, 1)
 				}
 			case rFree:
+				c.emitLoadF(j, c.rAlloc)
 				if c.mutLoc && isRoot {
-					c.emitLoadF(j, c.rAlloc)
 					c.emitIGet(i, c.rAlloc, c.rDest, 0)
+					c.rAlloc--
 					return c.rDest, rLoc
 				} else {
-					c.emitLoadF(j, c.rAlloc)
-					c.emitIGet(i, c.rAlloc, c.rAlloc, 0)
+					c.emitIGet(i, c.rAlloc, lreg, 0)
 				}
 			}
+			c.rAlloc--
 		case rGlob:
 			j, t := c.compileExpr(n.Selector, false)
 			switch t {
 			case rLoc:
+				c.rAlloc++
+				c.emitLoadG(i, c.rAlloc)
 				if c.mutLoc && isRoot {
-					c.emitLoadG(i, c.rAlloc)
-					c.emitIGet(c.rAlloc, j, c.rDest, 0)
+					c.emitIGet(c.rAlloc, lreg, c.rDest, 0)
+					c.rAlloc--
 					return c.rDest, rLoc
 				} else {
-					c.emitLoadG(i, c.rAlloc)
-					c.emitIGet(c.rAlloc, j, c.rAlloc, 0)
+					c.emitIGet(c.rAlloc, lreg, lreg, 0)
+					c.rAlloc--
 				}
 			case rGlob:
-				c.emitLoadG(i, c.rAlloc)
-				c.emitLoadG(j, c.rAlloc+1)
-				c.emitIGet(c.rAlloc, c.rAlloc+1, c.rAlloc, 0)
+				c.emitLoadG(i, lreg)
+				c.emitLoadG(j, lreg+1)
+				if c.mutLoc && isRoot {
+					c.emitIGet(lreg, lreg+1, c.rDest, 0)
+					return c.rDest, rLoc
+				} else {
+					c.emitIGet(lreg, lreg+1, lreg, 0)
+				}
 			case rKonst:
-				c.emitLoadG(i, c.rAlloc)
-				c.emitIGet(c.rAlloc, j, c.rAlloc, 1)
+				c.emitLoadG(i, lreg)
+				if c.mutLoc && isRoot {
+					c.emitIGet(lreg, j, c.rDest, 1)
+					return c.rDest, rLoc
+				} else {
+					c.emitIGet(lreg, j, lreg, 1)
+				}
 			case rFree:
-				c.emitLoadG(i, c.rAlloc)
-				c.emitLoadF(j, c.rAlloc+1)
-				c.emitIGet(c.rAlloc, c.rAlloc+1, c.rAlloc, 0)
+				c.emitLoadG(i, lreg)
+				c.emitLoadF(j, lreg+1)
+				if c.mutLoc && isRoot {
+					c.emitIGet(lreg, lreg+1, c.rDest, 0)
+					return c.rDest, rLoc
+				} else {
+					c.emitIGet(lreg, lreg+1, lreg, 0)
+				}
 			}
 		case rFree:
 			j, t := c.compileExpr(n.Selector, false)
 			switch t {
 			case rLoc:
+				c.emitLoadF(i, c.rAlloc)
 				if c.mutLoc && isRoot {
-					c.emitLoadF(i, c.rAlloc)
 					c.emitIGet(c.rAlloc, j, c.rDest, 0)
 					return c.rDest, rLoc
 				} else {
-					c.emitLoadF(i, c.rAlloc)
 					c.emitIGet(c.rAlloc, j, c.rAlloc, 0)
 				}
 			case rGlob:
 				c.emitLoadF(i, c.rAlloc)
 				c.emitLoadG(j, c.rAlloc+1)
-				c.emitIGet(c.rAlloc, c.rAlloc+1, c.rAlloc, 0)
+				if c.mutLoc && isRoot {
+					c.emitIGet(c.rAlloc, c.rAlloc+1, c.rDest, 0)
+				} else {
+					c.emitIGet(c.rAlloc, c.rAlloc+1, c.rAlloc, 0)
+				}
 			case rKonst:
-				c.emitLoadG(i, c.rAlloc)
-				c.emitIGet(c.rAlloc, j, c.rAlloc, 1)
+				c.emitLoadF(i, c.rAlloc)
+				if c.mutLoc && isRoot {
+					c.emitIGet(c.rAlloc, j, c.rDest, 1)
+					return c.rDest, rLoc
+				} else {
+					c.emitIGet(c.rAlloc, j, c.rAlloc, 1)
+				}
 			case rFree:
 				c.emitLoadF(i, c.rAlloc)
-				c.emitLoadG(j, c.rAlloc+1)
-				c.emitIGet(c.rAlloc, c.rAlloc+1, c.rAlloc, 0)
+				c.emitLoadF(j, c.rAlloc+1)
+				if c.mutLoc && isRoot {
+					c.emitIGet(c.rAlloc, c.rAlloc+1, c.rDest, 0)
+					return c.rDest, rLoc
+				} else {
+					c.emitIGet(c.rAlloc, c.rAlloc+1, c.rAlloc, 0)
+				}
 			}
 		}
 		return c.rAlloc, rLoc
