@@ -1,0 +1,31 @@
+
+
+let xs = [
+    [1,2,3,4,5],
+    [1,2,3,4,5],
+    [1,2,3,4,5],
+    [1,2,3,4,5],
+    [1,2,3,4,5]
+]
+
+loc a = 0
+loc b = 1
+
+let x = 0
+let y = 1
+
+
+let r = xs[a+b+x+y][a+b+x+y] - xs[a+b+x+y][a+b+x+y] + xs[a+b+x+y][a+b+x+y] - xs[a+b+x+y][a+b+x+y]
+
+assert(r==0)
+
+r = 10 + (a+b+x+y)
+
+assert(r==12)
+
+
+r = xs[a+x+a+x+a+x+a+x+a+x][a+x+a+x+a+x+a+x+a+x] - xs[a+x+a+x+a+x+a+x+a+x][a+x+a+x+a+x+a+x+a+x+b] + 
+    xs[a+x+a+x+a+x+a+x+a+x][a+x+a+x+a+x+a+x+a+x] + xs[a+x+a+x+a+x+a+x+a+x][a+x+a+x+a+x+a+x+a+x+b] -
+    xs[a+x+a+x+a+x+a+x+a+x][a+x+a+x+a+x+a+x+a+x+y]
+
+assert(r==0)

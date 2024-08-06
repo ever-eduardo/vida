@@ -79,7 +79,7 @@ func printInstr(instr, ip uint64, isRunningDebug bool) string {
 	case binopG, binop, binopK, binopQ, eq, eqG, eqK, eqQ:
 		sb.WriteString(fmt.Sprintf(" %3v %3v %3v %3v", token.Token(P>>shift16).String(), P&clean16, A, B))
 	case iGet, iSet, iSetK:
-		sb.WriteString(fmt.Sprintf(" %3v %3v %3v %3v", P&clean16, A, B, P>>shift16))
+		sb.WriteString(fmt.Sprintf(" %3v %3v %3v %3v", P>>shift16, P&clean16, A, B))
 	case object, jump, ret:
 		sb.WriteString(fmt.Sprintf(" %3v", B))
 	}

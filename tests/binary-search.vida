@@ -1,5 +1,5 @@
 
-let N = 1_000_000
+let N = 10_000_000
 let data = make(N, 0)
 
 for i = 0, len(data) {
@@ -23,8 +23,8 @@ let binarySearch = fn xs, key {
 }
 
 assert(binarySearch(data, 7)==7)
-assert(binarySearch(data, 17)==17)
+assert(binarySearch(data, 176_565)==176_565)
 assert(binarySearch(data, -1)==-1)
-assert(binarySearch(data, 1_000_001)==-1)
+assert(binarySearch(data, N+1)==-1)
 assert(binarySearch(data, 567_901)==567_901)
 
