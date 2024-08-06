@@ -1159,15 +1159,12 @@ func (c *Compiler) compileBinaryExpr(n *ast.BinaryExpr, isRoot bool) (int, int) 
 				c.emitBinopK(ridx, lreg, lreg, n.Op)
 			}
 		case rLoc:
-			c.rAlloc++
-			c.emitLoadG(lidx, c.rAlloc)
+			c.emitLoadG(lidx, lreg)
 			if c.mutLoc && isRoot {
-				c.emitBinop(c.rAlloc, lreg, c.rDest, n.Op)
-				c.rAlloc--
+				c.emitBinop(lreg, ridx, c.rDest, n.Op)
 				return c.rDest, rLoc
 			} else {
-				c.emitBinop(c.rAlloc, lreg, lreg, n.Op)
-				c.rAlloc--
+				c.emitBinop(lreg, ridx, lreg, n.Op)
 			}
 		case rFree:
 			c.rAlloc++
@@ -1193,12 +1190,13 @@ func (c *Compiler) compileBinaryExpr(n *ast.BinaryExpr, isRoot bool) (int, int) 
 				return c.rDest, rLoc
 			} else {
 				c.emitBinop(lidx, ridx, lreg, n.Op)
+				c.rAlloc--
 			}
 		case rGlob:
+			c.rAlloc--
 			c.emitLoadG(ridx, c.rAlloc)
 			if c.mutLoc && isRoot {
 				c.emitBinop(lidx, c.rAlloc, c.rDest, n.Op)
-				c.rAlloc--
 				return c.rDest, rLoc
 			} else {
 				c.emitBinop(lidx, c.rAlloc, lreg, n.Op)
@@ -1210,18 +1208,18 @@ func (c *Compiler) compileBinaryExpr(n *ast.BinaryExpr, isRoot bool) (int, int) 
 				return c.rDest, rLoc
 			} else {
 				c.emitBinopK(ridx, lidx, lreg, n.Op)
+				c.rAlloc--
 			}
 		case rFree:
+			c.rAlloc--
 			c.emitLoadF(ridx, c.rAlloc)
 			if c.mutLoc && isRoot {
 				c.emitBinop(lidx, c.rAlloc, c.rDest, n.Op)
-				c.rAlloc--
 				return c.rDest, rLoc
 			} else {
 				c.emitBinop(lidx, c.rAlloc, lreg, n.Op)
 			}
 		}
-		c.rAlloc--
 	case rFree:
 		ridx, rscope := c.compileExpr(n.Rhs, false)
 		switch rscope {
@@ -1268,7 +1266,6 @@ func (c *Compiler) compileBinaryExpr(n *ast.BinaryExpr, isRoot bool) (int, int) 
 		}
 	}
 	return lreg, rLoc
-
 }
 
 func (c *Compiler) compileBinaryEq(n *ast.BinaryExpr, isRoot bool) (int, int) {
@@ -1324,15 +1321,12 @@ func (c *Compiler) compileBinaryEq(n *ast.BinaryExpr, isRoot bool) (int, int) {
 				c.emitEqK(ridx, lreg, lreg, n.Op)
 			}
 		case rLoc:
-			c.rAlloc++
-			c.emitLoadG(lidx, c.rAlloc)
+			c.emitLoadG(lidx, lreg)
 			if c.mutLoc && isRoot {
-				c.emitEq(c.rAlloc, lreg, c.rDest, n.Op)
-				c.rAlloc--
+				c.emitEq(lreg, ridx, c.rDest, n.Op)
 				return c.rDest, rLoc
 			} else {
-				c.emitEq(c.rAlloc, lreg, lreg, n.Op)
-				c.rAlloc--
+				c.emitEq(lreg, ridx, lreg, n.Op)
 			}
 		case rFree:
 			c.rAlloc++
@@ -1358,15 +1352,15 @@ func (c *Compiler) compileBinaryEq(n *ast.BinaryExpr, isRoot bool) (int, int) {
 				return c.rDest, rLoc
 			} else {
 				c.emitEq(lidx, ridx, lreg, n.Op)
+				c.rAlloc--
 			}
 		case rGlob:
+			c.rAlloc--
 			c.emitLoadG(ridx, c.rAlloc)
 			if c.mutLoc && isRoot {
 				c.emitEq(lidx, c.rAlloc, c.rDest, n.Op)
-				c.rAlloc--
 				return c.rDest, rLoc
 			} else {
-				c.emitLoadG(ridx, c.rAlloc)
 				c.emitEq(lidx, c.rAlloc, lreg, n.Op)
 			}
 		case rKonst:
@@ -1376,18 +1370,18 @@ func (c *Compiler) compileBinaryEq(n *ast.BinaryExpr, isRoot bool) (int, int) {
 				return c.rDest, rLoc
 			} else {
 				c.emitEqK(ridx, lidx, lreg, n.Op)
+				c.rAlloc--
 			}
 		case rFree:
+			c.rAlloc--
 			c.emitLoadF(ridx, c.rAlloc)
 			if c.mutLoc && isRoot {
 				c.emitEq(lidx, c.rAlloc, c.rDest, n.Op)
-				c.rAlloc--
 				return c.rDest, rLoc
 			} else {
 				c.emitEq(lidx, c.rAlloc, lreg, n.Op)
 			}
 		}
-		c.rAlloc--
 	case rFree:
 		ridx, rscope := c.compileExpr(n.Rhs, false)
 		switch rscope {
