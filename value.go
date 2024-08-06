@@ -789,11 +789,22 @@ func (f *Function) Boolean() Bool {
 	return true
 }
 
-func (f *Function) Prefix(uint64) (Value, error) {
-	return NilValue, verror.RuntimeError
+func (f *Function) Prefix(op uint64) (Value, error) {
+	switch op {
+	case uint64(token.NOT):
+		return Bool(false), nil
+	default:
+		return NilValue, verror.RuntimeError
+	}
 }
 
-func (f *Function) Binop(uint64, Value) (Value, error) {
+func (f *Function) Binop(op uint64, r Value) (Value, error) {
+	switch op {
+	case uint64(token.OR):
+		return f, nil
+	case uint64(token.AND):
+		return r, nil
+	}
 	return NilValue, verror.RuntimeError
 }
 
@@ -839,10 +850,21 @@ func (gfn GFn) Boolean() Bool {
 }
 
 func (gfn GFn) Prefix(op uint64) (Value, error) {
-	return NilValue, verror.RuntimeError
+	switch op {
+	case uint64(token.NOT):
+		return Bool(false), nil
+	default:
+		return NilValue, verror.RuntimeError
+	}
 }
 
-func (gfn GFn) Binop(op uint64, rhs Value) (Value, error) {
+func (gfn GFn) Binop(op uint64, r Value) (Value, error) {
+	switch op {
+	case uint64(token.OR):
+		return gfn, nil
+	case uint64(token.AND):
+		return r, nil
+	}
 	return NilValue, verror.RuntimeError
 }
 
