@@ -131,6 +131,10 @@ func (l *Lexer) scanComment() token.Token {
 		}
 	}
 exit:
+	if l.c < 0 {
+		l.LexicalError = verror.New(l.ModuleName, "Unterminated comment ", verror.LexicalErrMsg, l.line)
+		return token.UNEXPECTED
+	}
 	return token.COMMENT
 }
 
@@ -293,6 +297,7 @@ func (l *Lexer) Next() (line uint, tok token.Token, lit string) {
 				tok = token.NEQ
 			} else {
 				tok = token.UNEXPECTED
+				l.LexicalError = verror.New(l.ModuleName, "Unexpected symbol "+string('!'), verror.LexicalErrMsg, l.line)
 			}
 		case '<':
 			if l.c == '=' {

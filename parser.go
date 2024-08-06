@@ -53,7 +53,11 @@ func (p *Parser) Parse() (*ast.Ast, error) {
 		case token.EOF:
 			return p.ast, nil
 		default:
-			p.err = verror.New(p.lexer.ModuleName, "Expected statement A", verror.SyntaxErrMsg, p.current.Line)
+			if p.current.Token == token.UNEXPECTED {
+				p.err = p.lexer.LexicalError
+			} else {
+				p.err = verror.New(p.lexer.ModuleName, "Expected high level statement", verror.SyntaxErrMsg, p.current.Line)
+			}
 			return nil, p.err
 		}
 	}
