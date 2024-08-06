@@ -975,27 +975,22 @@ func (c *Compiler) compileExpr(node ast.Node, isRoot bool) (int, int) {
 		c.emitCall(reg, len(n.Args))
 		return reg, rLoc
 	case *ast.MethodCallExpr:
-		// reg := c.rAlloc
-		// c.rAlloc++
-		// i, s := c.compileExpr(n.Obj, false)
-		// c.exprToReg(i, s)
-		// c.rAlloc++
-		// j, t := c.compileExpr(n.Prop, false)
-		// c.exprToReg(j, t)
-		// c.rAlloc = reg
-		// c.emitIGet(0, 0, 0, 1)
-		// c.rAlloc++
-		// i, s = c.compileExpr(n.Obj, false)
-		// c.exprToReg(i, s)
-		// c.rAlloc++
-		// for _, v := range n.Args {
-		// 	i, s := c.compileExpr(v, false)
-		// 	c.exprToReg(i, s)
-		// 	c.rAlloc++
-		// }
-		// c.rAlloc = reg
-		// c.emitCall(reg, len(n.Args)+1)
-		return 0, rLoc
+		reg := c.rAlloc
+		c.rAlloc++
+		i, s := c.compileExpr(n.Obj, false)
+		c.exprToReg(i, s)
+		c.rAlloc++
+		j, t := c.compileExpr(n.Prop, false)
+		c.exprToReg(j, t)
+		c.emitIGet(reg+1, reg+2, reg, 0)
+		for _, v := range n.Args {
+			i, s := c.compileExpr(v, false)
+			c.exprToReg(i, s)
+			c.rAlloc++
+		}
+		c.rAlloc = reg
+		c.emitCall(reg, len(n.Args)+1)
+		return reg, rLoc
 	default:
 		return 0, rGlob
 	}
