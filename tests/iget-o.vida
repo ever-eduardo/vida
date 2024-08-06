@@ -1,0 +1,97 @@
+
+
+let data = {
+    one: {
+        two: {
+            three: {
+                four: {
+                    five: {
+                        code: 1
+                    }
+                }
+            }
+        }
+    },
+    zero: 0
+}
+
+let hello = {
+    one: {
+        two: {
+            three: {
+                four: {
+                    five: {
+                        code: 1
+                    }
+                }
+            }
+        }
+    },
+    zero: 0
+}
+
+let world = {
+    one: {
+        two: {
+            three: {
+                four: {
+                    five: {
+                        code: 1
+                    }
+                }
+            }
+        }
+    },
+    zero: 0
+}
+
+
+let idx = [0,1,2,3,4]
+
+let xs = mkls(5, 100)
+
+let r = xs[idx[hello.one.two.three.four.five.code-world.one.two.three.four.five.code]] +
+        xs[idx[hello.one.two.three.four.five.code+world.one.two.three.four.five.code]] -
+        100
+
+assert(r==100)
+
+r = xs[idx[hello.one.two.three.four.five.code+data.one.two.three.four.five.code+world.one.two.three.four.five.code+hello.one.two.three.four.five.code]] +
+    xs[idx[hello.one.two.three.four.five.code+hello.zero+world.zero+data.zero+world.zero]]
+
+assert(r==200)
+
+r = xs[idx[hello.one.two.three.four.five.code-world.one.two.three.four.five.code]] +
+    xs[idx[hello.one.two.three.four.five.code-world.one.two.three.four.five.code]] +
+    xs[idx[hello.one.two.three.four.five.code-world.one.two.three.four.five.code]] +
+    xs[idx[hello.one.two.three.four.five.code-world.one.two.three.four.five.code]] +
+    xs[idx[hello.one.two.three.four.five.code-world.one.two.three.four.five.code]]
+
+assert(r==500)
+
+r = xs[idx[hello.one.two.three.four.five.code-world.one.two.three.four.five.code]] +
+    xs[idx[hello.one.two.three.four.five.code-world.one.two.three.four.five.code]] +
+    xs[idx[hello.one.two.three.four.five.code-world.one.two.three.four.five.code]] +
+    xs[idx[hello.one.two.three.four.five.code-world.one.two.three.four.five.code]] +
+    xs[idx[hello.one.two.three.four.five.code-world.one.two.three.four.five.code]] -
+    xs[idx[hello.one.two.three.four.five.code-world.one.two.three.four.five.code]] -
+    xs[idx[hello.one.two.three.four.five.code-world.one.two.three.four.five.code]] -
+    xs[idx[hello.one.two.three.four.five.code-world.one.two.three.four.five.code]] -
+    xs[idx[hello.one.two.three.four.five.code-world.one.two.three.four.five.code]] -
+    xs[idx[hello.one.two.three.four.five.code-world.one.two.three.four.five.code]]
+
+assert(r==0)
+
+r = idx[hello.one.two.three.four.five.code-world.one.two.three.four.five.code] +
+    idx[hello.one.two.three.four.five.code-world.one.two.three.four.five.code+world.one.two.three.four.five.code] +
+    idx[hello.one.two.three.four.five.code-world.one.two.three.four.five.code+world.one.two.three.four.five.code+world.one.two.three.four.five.code] +
+    idx[hello.one.two.three.four.five.code-world.one.two.three.four.five.code+world.one.two.three.four.five.code+world.one.two.three.four.five.code+world.one.two.three.four.five.code] +
+    idx[hello.one.two.three.four.five.code-world.one.two.three.four.five.code+world.one.two.three.four.five.code+world.one.two.three.four.five.code+world.one.two.three.four.five.code+world.one.two.three.four.five.code]
+
+assert(r==idx[0]+idx[1]+idx[2]+idx[3]+idx[4])
+
+for i = 0, 10_000_000 {
+    r = r + hello.zero + world.zero + data.zero
+}
+
+assert(r==idx[0]+idx[1]+idx[2]+idx[3]+idx[4])

@@ -613,6 +613,7 @@ func (c *Compiler) compileExpr(node ast.Node, isRoot bool) (int, int) {
 		c.emitObject(objAddr)
 		for _, v := range n.Pairs {
 			k, _ := c.compileExpr(v.Key, false)
+			c.rAlloc++
 			v, sv := c.compileExpr(v.Value, false)
 			switch sv {
 			case rKonst:
@@ -630,6 +631,7 @@ func (c *Compiler) compileExpr(node ast.Node, isRoot bool) (int, int) {
 				c.emitISetK(objAddr, k, c.rAlloc, 0)
 				c.rAlloc--
 			}
+			c.rAlloc--
 		}
 		return objAddr, rLoc
 	case *ast.Property:
