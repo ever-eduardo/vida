@@ -434,24 +434,25 @@ func (c *Compiler) compileStmt(node ast.Node) {
 				}
 				c.rAlloc--
 			case rGlob:
+				c.rAlloc++
 				k, u := c.compileExpr(n.Expr, true)
+				c.rAlloc++
+				c.emitLoadG(j, c.rAlloc)
 				switch u {
 				case rLoc:
-					c.emitLoadG(j, c.rAlloc)
 					c.emitISet(i, c.rAlloc, k, 0)
 				case rKonst:
-					c.emitLoadG(j, c.rAlloc)
 					c.emitISet(i, c.rAlloc, k, 1)
 				case rGlob:
-					c.emitLoadG(j, c.rAlloc)
 					c.emitLoadG(k, c.rAlloc+1)
 					c.emitISet(i, c.rAlloc, c.rAlloc+1, 0)
 				case rFree:
-					c.emitLoadG(j, c.rAlloc)
 					c.emitLoadF(k, c.rAlloc+1)
 					c.emitISet(i, c.rAlloc, c.rAlloc+1, 0)
 				}
+				c.rAlloc -= 2
 			case rKonst:
+				c.rAlloc++
 				k, u := c.compileExpr(n.Expr, true)
 				switch u {
 				case rLoc:
@@ -459,30 +460,35 @@ func (c *Compiler) compileStmt(node ast.Node) {
 				case rKonst:
 					c.emitISetK(i, j, k, 1)
 				case rGlob:
+					c.rAlloc++
 					c.emitLoadG(k, c.rAlloc)
 					c.emitISetK(i, j, c.rAlloc, 0)
+					c.rAlloc--
 				case rFree:
+					c.rAlloc++
 					c.emitLoadF(k, c.rAlloc)
 					c.emitISetK(i, j, c.rAlloc, 0)
+					c.rAlloc--
 				}
+				c.rAlloc--
 			case rFree:
+				c.rAlloc++
 				k, u := c.compileExpr(n.Expr, true)
+				c.rAlloc++
+				c.emitLoadF(j, c.rAlloc)
 				switch u {
 				case rLoc:
-					c.emitLoadF(j, c.rAlloc)
 					c.emitISet(i, c.rAlloc, k, 0)
 				case rKonst:
-					c.emitLoadF(j, c.rAlloc)
 					c.emitISet(i, c.rAlloc, k, 1)
 				case rGlob:
-					c.emitLoadF(j, c.rAlloc)
 					c.emitLoadG(k, c.rAlloc+1)
 					c.emitISet(i, c.rAlloc, c.rAlloc+1, 0)
 				case rFree:
-					c.emitLoadF(j, c.rAlloc)
 					c.emitLoadF(k, c.rAlloc+1)
 					c.emitISet(i, c.rAlloc, c.rAlloc+1, 0)
 				}
+				c.rAlloc -= 2
 			}
 		}
 	case *ast.Block:
