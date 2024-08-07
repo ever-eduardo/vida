@@ -282,6 +282,8 @@ func (c *Compiler) compileStmt(node ast.Node) {
 		i := c.rAlloc
 		if c.fromRefStmt {
 			i -= 1
+		} else {
+			c.rAlloc++
 		}
 		j, t := c.compileExpr(n.Index, true)
 		switch t {
@@ -296,10 +298,15 @@ func (c *Compiler) compileStmt(node ast.Node) {
 			c.emitLoadF(j, c.rAlloc)
 			c.emitIGet(i, c.rAlloc, i, 0)
 		}
+		if !c.fromRefStmt {
+			c.rAlloc--
+		}
 	case *ast.SelectStmt:
 		i := c.rAlloc
 		if c.fromRefStmt {
 			i -= 1
+		} else {
+			c.rAlloc++
 		}
 		j, t := c.compileExpr(n.Selector, true)
 		switch t {
@@ -313,6 +320,9 @@ func (c *Compiler) compileStmt(node ast.Node) {
 		case rFree:
 			c.emitLoadF(j, c.rAlloc)
 			c.emitIGet(i, c.rAlloc, i, 0)
+		}
+		if !c.fromRefStmt {
+			c.rAlloc--
 		}
 	case *ast.ISet:
 		i := c.rAlloc
