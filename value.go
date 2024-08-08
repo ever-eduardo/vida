@@ -815,7 +815,7 @@ func (c *CoreFunction) Iterator() Value {
 }
 
 func (c *CoreFunction) Type() string {
-	return "function-core"
+	return "corefunction"
 }
 
 func (f CoreFunction) String() string {
@@ -890,7 +890,7 @@ func (f *Function) Clone() Value {
 }
 
 func (f Function) String() string {
-	return fmt.Sprintf("Function %v, Free = %v", f.CoreFn, f.Free)
+	return fmt.Sprintf("Function(%v, Free = %v)", f.CoreFn, f.Free)
 }
 
 type GFn func(args ...Value) (Value, error)
