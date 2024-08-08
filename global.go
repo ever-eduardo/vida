@@ -143,6 +143,7 @@ func gfnDel(args ...Value) (Value, error) {
 	if len(args) >= 2 {
 		if o, ok := args[0].(*Object); ok {
 			delete(o.Value, args[1].String())
+			o.UpdateKeys()
 		}
 	}
 	return NilValue, nil

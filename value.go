@@ -741,6 +741,14 @@ func (o *Object) Clone() Value {
 	return &Object{Value: m, Keys: k}
 }
 
+func (o *Object) UpdateKeys() {
+	keys := make([]string, 0, len(o.Value))
+	for k := range o.Value {
+		keys = append(keys, k)
+	}
+	o.Keys = keys
+}
+
 type Module struct {
 	Konstants    []Value
 	Store        []Value
