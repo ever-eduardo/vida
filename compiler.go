@@ -481,6 +481,8 @@ func (c *Compiler) compileExpr(node ast.Node, isRoot bool) (int, int) {
 		if scope == rKonst {
 			if val, err := c.kb.Konstants[from].Prefix(uint64(n.Op)); err == nil {
 				return c.integrateKonst(val)
+			} else {
+				c.hadError = true
 			}
 		}
 		switch scope {
@@ -1206,6 +1208,9 @@ func (c *Compiler) compileBinaryEq(n *ast.BinaryExpr, isRoot bool) (int, int) {
 		switch rscope {
 		case rKonst:
 			val := c.kb.Konstants[lidx].Equals(c.kb.Konstants[ridx])
+			if n.Op == token.NEQ {
+				val = !val
+			}
 			return c.integrateKonst(val)
 		case rGlob:
 			c.emitLoadG(ridx, lreg)
