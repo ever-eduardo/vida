@@ -632,6 +632,7 @@ func (xs *List) Clone() Value {
 }
 
 type Object struct {
+	Keys  []string
 	Value map[string]Value
 }
 
@@ -685,7 +686,9 @@ func (o *Object) IGet(index Value) (Value, error) {
 }
 
 func (o *Object) ISet(index, val Value) error {
-	o.Value[index.String()] = val
+	k := index.String()
+	o.Keys = append(o.Keys, k)
+	o.Value[k] = val
 	return nil
 }
 
@@ -718,8 +721,8 @@ func (o *Object) String() string {
 		return "{}"
 	}
 	var r []string
-	for k, v := range o.Value {
-		r = append(r, fmt.Sprintf("%v: %v", k, v.String()))
+	for _, v := range o.Keys {
+		r = append(r, fmt.Sprintf("%v: %v", v, o.Value[v].String()))
 	}
 	return fmt.Sprintf("{%v}", strings.Join(r, ", "))
 }
@@ -730,10 +733,12 @@ func (o *Object) Type() string {
 
 func (o *Object) Clone() Value {
 	m := make(map[string]Value)
+	k := make([]string, len(o.Keys))
+	copy(k, o.Keys)
 	for k, v := range o.Value {
 		m[k] = v.Clone()
 	}
-	return &Object{Value: m}
+	return &Object{Value: m, Keys: k}
 }
 
 type Module struct {
