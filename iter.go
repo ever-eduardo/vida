@@ -71,6 +71,10 @@ func (it ListIterator) String() string {
 	return fmt.Sprintf("ListIter [i = %v, e = %v]", it.Init, it.End)
 }
 
+func (it *ListIterator) Clone() Value {
+	return it
+}
+
 func (it *ListIterator) Type() string {
 	return "ListIter"
 }
@@ -135,6 +139,10 @@ func (it ObjectIterator) String() string {
 	return fmt.Sprintf("DocIter [i = %v, e = %v]", it.Init, it.End)
 }
 
+func (it *ObjectIterator) Clone() Value {
+	return it
+}
+
 func (it *ObjectIterator) Type() string {
 	return "ObjIter"
 }
@@ -196,6 +204,10 @@ func (it *StringIterator) Iterator() Value {
 
 func (it StringIterator) String() string {
 	return fmt.Sprintf("StrIter [i = %v, e = %v]", it.Init, it.End)
+}
+
+func (it *StringIterator) Clone() Value {
+	return it
 }
 
 func (it *StringIterator) Type() string {

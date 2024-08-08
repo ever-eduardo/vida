@@ -18,6 +18,8 @@ var coreLibNames = []string{
 	"assert",
 	"fmt",
 	"str",
+	"clone",
+	"del",
 }
 
 func loadCoreLib() []Value {
@@ -31,6 +33,8 @@ func loadCoreLib() []Value {
 	clib = append(clib, GFn(gfnAssert))
 	clib = append(clib, GFn(gfnFormat))
 	clib = append(clib, GFn(gfnString))
+	clib = append(clib, GFn(gfnClone))
+	clib = append(clib, GFn(gfnDel))
 	return clib
 }
 
@@ -124,6 +128,22 @@ func gfnMakeList(args ...Value) (Value, error) {
 func gfnString(args ...Value) (Value, error) {
 	if len(args) > 0 {
 		return String{Value: args[0].String()}, nil
+	}
+	return NilValue, nil
+}
+
+func gfnClone(args ...Value) (Value, error) {
+	if len(args) > 0 {
+		return args[0].Clone(), nil
+	}
+	return NilValue, nil
+}
+
+func gfnDel(args ...Value) (Value, error) {
+	if len(args) >= 2 {
+		if o, ok := args[0].(*Object); ok {
+			delete(o.Value, args[1].String())
+		}
 	}
 	return NilValue, nil
 }

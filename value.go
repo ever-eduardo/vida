@@ -22,6 +22,7 @@ type Value interface {
 	IsCallable() Bool
 	String() string
 	Type() string
+	Clone() Value
 }
 
 type Nil struct{}
@@ -81,6 +82,10 @@ func (n Nil) String() string {
 
 func (n Nil) Type() string {
 	return "nil"
+}
+
+func (n Nil) Clone() Value {
+	return n
 }
 
 type Bool bool
@@ -151,6 +156,10 @@ func (b Bool) String() string {
 
 func (b Bool) Type() string {
 	return "bool"
+}
+
+func (b Bool) Clone() Value {
+	return b
 }
 
 type String struct {
@@ -252,6 +261,10 @@ func (s String) String() string {
 
 func (s String) Type() string {
 	return "string"
+}
+
+func (s String) Clone() Value {
+	return &String{Runes: s.Runes, Value: s.Value}
 }
 
 type Integer int64
@@ -376,6 +389,10 @@ func (i Integer) Type() string {
 	return "int"
 }
 
+func (i Integer) Clone() Value {
+	return i
+}
+
 type Float float64
 
 func (f Float) Boolean() Bool {
@@ -492,6 +509,10 @@ func (f Float) Type() string {
 	return "float"
 }
 
+func (f Float) Clone() Value {
+	return f
+}
+
 type List struct {
 	Value []Value
 }
@@ -602,6 +623,14 @@ func (xs *List) Type() string {
 	return "list"
 }
 
+func (xs *List) Clone() Value {
+	c := make([]Value, len(xs.Value))
+	for i, v := range xs.Value {
+		c[i] = v.Clone()
+	}
+	return &List{Value: c}
+}
+
 type Object struct {
 	Value map[string]Value
 }
@@ -699,6 +728,14 @@ func (o *Object) Type() string {
 	return "object"
 }
 
+func (o *Object) Clone() Value {
+	m := make(map[string]Value)
+	for k, v := range o.Value {
+		m[k] = v.Clone()
+	}
+	return &Object{Value: m}
+}
+
 type Module struct {
 	Konstants    []Value
 	Store        []Value
@@ -780,6 +817,10 @@ func (f CoreFunction) String() string {
 	return fmt.Sprintf("[a = %v, f = %v, i = %v]", f.Arity, f.Free, f.Info)
 }
 
+func (f *CoreFunction) Clone() Value {
+	return f
+}
+
 type Function struct {
 	Free   []Value
 	CoreFn *CoreFunction
@@ -839,6 +880,10 @@ func (f *Function) Type() string {
 	return "function"
 }
 
+func (f *Function) Clone() Value {
+	return f
+}
+
 func (f Function) String() string {
 	return fmt.Sprintf("Function %v, Free = %v", f.CoreFn, f.Free)
 }
@@ -894,6 +939,10 @@ func (gfn GFn) Iterator() Value {
 
 func (gfn GFn) String() string {
 	return "GFn"
+}
+
+func (gFn GFn) Clone() Value {
+	return gFn
 }
 
 func (gfn GFn) Type() string {
