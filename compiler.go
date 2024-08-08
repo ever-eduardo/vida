@@ -618,15 +618,12 @@ func (c *Compiler) compileExpr(node ast.Node, isRoot bool) (int, int) {
 			j, t := c.compileExpr(n.Index, false)
 			switch t {
 			case rLoc:
-				c.rAlloc++
-				c.emitLoadG(i, c.rAlloc)
+				c.emitLoadG(i, lreg)
 				if c.mutLoc && isRoot {
-					c.emitIGet(c.rAlloc, lreg, c.rDest, 0)
-					c.rAlloc--
+					c.emitIGet(lreg, j, c.rDest, 0)
 					return c.rDest, rLoc
 				} else {
-					c.emitIGet(c.rAlloc, lreg, lreg, 0)
-					c.rAlloc--
+					c.emitIGet(lreg, j, lreg, 0)
 				}
 			case rGlob:
 				c.emitLoadG(i, lreg)
@@ -664,7 +661,7 @@ func (c *Compiler) compileExpr(node ast.Node, isRoot bool) (int, int) {
 					c.emitIGet(lreg, j, c.rDest, 0)
 					return c.rDest, rLoc
 				} else {
-					c.emitIGet(lreg, j, c.rAlloc, 0)
+					c.emitIGet(lreg, j, lreg, 0)
 				}
 			case rGlob:
 				c.emitLoadF(i, lreg)
@@ -672,7 +669,7 @@ func (c *Compiler) compileExpr(node ast.Node, isRoot bool) (int, int) {
 				if c.mutLoc && isRoot {
 					c.emitIGet(lreg, lreg+1, c.rDest, 0)
 				} else {
-					c.emitIGet(lreg, lreg+1, c.rAlloc, 0)
+					c.emitIGet(lreg, lreg+1, lreg, 0)
 				}
 			case rKonst:
 				c.emitLoadF(i, lreg)
@@ -745,15 +742,12 @@ func (c *Compiler) compileExpr(node ast.Node, isRoot bool) (int, int) {
 			j, t := c.compileExpr(n.Selector, false)
 			switch t {
 			case rLoc:
-				c.rAlloc++
-				c.emitLoadG(i, c.rAlloc)
+				c.emitLoadG(i, lreg)
 				if c.mutLoc && isRoot {
-					c.emitIGet(c.rAlloc, lreg, c.rDest, 0)
-					c.rAlloc--
+					c.emitIGet(lreg, j, c.rDest, 0)
 					return c.rDest, rLoc
 				} else {
-					c.emitIGet(c.rAlloc, lreg, lreg, 0)
-					c.rAlloc--
+					c.emitIGet(lreg, j, lreg, 0)
 				}
 			case rGlob:
 				c.emitLoadG(i, lreg)
@@ -791,7 +785,7 @@ func (c *Compiler) compileExpr(node ast.Node, isRoot bool) (int, int) {
 					c.emitIGet(lreg, j, c.rDest, 0)
 					return c.rDest, rLoc
 				} else {
-					c.emitIGet(lreg, j, c.rAlloc, 0)
+					c.emitIGet(lreg, j, lreg, 0)
 				}
 			case rGlob:
 				c.emitLoadF(i, lreg)
@@ -799,7 +793,7 @@ func (c *Compiler) compileExpr(node ast.Node, isRoot bool) (int, int) {
 				if c.mutLoc && isRoot {
 					c.emitIGet(lreg, lreg+1, c.rDest, 0)
 				} else {
-					c.emitIGet(lreg, lreg+1, c.rAlloc, 0)
+					c.emitIGet(lreg, lreg+1, lreg, 0)
 				}
 			case rKonst:
 				c.emitLoadF(i, lreg)
