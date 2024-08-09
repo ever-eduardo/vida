@@ -655,7 +655,7 @@ func (o *Object) Binop(op uint64, rhs Value) (Value, error) {
 		switch op {
 		case uint64(token.ADD):
 			pairs := make(map[string]Value)
-			keys := make([]string, len(o.Value)+len(r.Value))
+			keys := make([]string, 0)
 			for k, v := range o.Value {
 				pairs[k] = v
 				keys = append(keys, k)
