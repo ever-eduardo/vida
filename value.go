@@ -655,13 +655,18 @@ func (o *Object) Binop(op uint64, rhs Value) (Value, error) {
 		switch op {
 		case uint64(token.ADD):
 			pairs := make(map[string]Value)
+			keys := make([]string, len(o.Value)+len(r.Value))
 			for k, v := range o.Value {
 				pairs[k] = v
+				keys = append(keys, k)
 			}
 			for k, v := range r.Value {
+				if _, isPresent := pairs[k]; !isPresent {
+					keys = append(keys, k)
+				}
 				pairs[k] = v
 			}
-			return &Object{Value: pairs}, nil
+			return &Object{Value: pairs, Keys: keys}, nil
 		case uint64(token.AND):
 			return r, nil
 		case uint64(token.OR):
@@ -687,7 +692,9 @@ func (o *Object) IGet(index Value) (Value, error) {
 
 func (o *Object) ISet(index, val Value) error {
 	k := index.String()
-	o.Keys = append(o.Keys, k)
+	if _, isPresent := o.Value[k]; !isPresent {
+		o.Keys = append(o.Keys, k)
+	}
 	o.Value[k] = val
 	return nil
 }
@@ -708,12 +715,7 @@ func (o *Object) IsCallable() Bool {
 }
 
 func (o *Object) Iterator() Value {
-	size := len(o.Value)
-	keys := make([]string, 0, size)
-	for k := range o.Value {
-		keys = append(keys, k)
-	}
-	return &ObjectIterator{Doc: o.Value, Init: -1, End: size, Keys: keys}
+	return &ObjectIterator{Doc: o.Value, Init: -1, End: len(o.Value), Keys: o.Keys}
 }
 
 func (o *Object) String() string {
