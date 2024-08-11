@@ -1,7 +1,9 @@
 package vida
 
 import (
+	"bufio"
 	"fmt"
+	"os"
 
 	"github.com/ever-eduardo/vida/verror"
 )
@@ -17,7 +19,7 @@ var coreLibNames = []string{
 	"type",
 	"assert",
 	"fmt",
-	"str",
+	"input",
 	"clone",
 	"del",
 }
@@ -32,7 +34,7 @@ func loadCoreLib() []Value {
 	clib = append(clib, GFn(gfnType))
 	clib = append(clib, GFn(gfnAssert))
 	clib = append(clib, GFn(gfnFormat))
-	clib = append(clib, GFn(gfnString))
+	clib = append(clib, GFn(gfnReadLine))
 	clib = append(clib, GFn(gfnClone))
 	clib = append(clib, GFn(gfnDel))
 	return clib
@@ -83,11 +85,17 @@ func gfnFormat(args ...Value) (Value, error) {
 }
 
 func gfnAssert(args ...Value) (Value, error) {
-	if len(args) > 0 {
+	if len(args) == 1 {
 		if args[0].Boolean() {
 			return NilValue, nil
 		} else {
-			return NilValue, verror.AssertErr
+			return NilValue, verror.AssertFailure
+		}
+	} else if len(args) > 1 {
+		if args[0].Boolean() {
+			return NilValue, nil
+		} else {
+			return NilValue, fmt.Errorf("%v: %v", verror.AssertFailure, args[1].String())
 		}
 	}
 	return NilValue, nil
@@ -125,9 +133,18 @@ func gfnMakeList(args ...Value) (Value, error) {
 	return NilValue, nil
 }
 
-func gfnString(args ...Value) (Value, error) {
+func gfnReadLine(args ...Value) (Value, error) {
 	if len(args) > 0 {
-		return String{Value: args[0].String()}, nil
+		fmt.Print(args[0])
+	} else {
+		fmt.Print("Input >> ")
+	}
+	scanner := bufio.NewScanner(os.Stdin)
+	for scanner.Scan() {
+		return String{Value: scanner.Text()}, nil
+	}
+	if err := scanner.Err(); err != nil {
+		return NilValue, err
 	}
 	return NilValue, nil
 }

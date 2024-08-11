@@ -10,7 +10,7 @@ const LexicalErrMsg = "Lexical"
 const SyntaxErrMsg = "Syntax"
 const CompilerErrorMsg = "Compiler error"
 const RunTimeErrMsg = "Runtime error"
-const AssertionErr = "Assertion error"
+const AssertionErr = "Assertion Failure"
 
 type VidaError struct {
 	ModuleName   string
@@ -41,5 +41,5 @@ var (
 	RuntimeError   = errors.New(RunTimeErrMsg)
 	ErrStringLimit = errors.New("String Limit")
 	CompilerError  = errors.New(CompilerErrorMsg)
-	AssertErr      = errors.New(AssertionErr)
+	AssertFailure  = errors.New(AssertionErr)
 )
