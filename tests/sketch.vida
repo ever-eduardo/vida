@@ -2,11 +2,14 @@
 
 let a = "Enter"
 let b = "caf\u00e9"
-let c = "\xe6\x97\xa5"
+let c = "\xe6\x97\xa5" // 日
 let j = "Japan 日本"
 print(a)
 print(b)
 print(c)
 print(j)
 
-
+assert(len(a)==5)
+assert(len(b)==4)
+assert(len(c)==1)
+assert(len(j)==8)
