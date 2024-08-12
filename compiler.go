@@ -621,6 +621,7 @@ func (c *Compiler) compileExpr(node ast.Node, isRoot bool) (int, int) {
 			j, t := c.compileExpr(n.Index, false)
 			switch t {
 			case rLoc:
+				c.emitMove(j, c.rAlloc)
 				c.emitLoadG(i, lreg)
 				if c.mutLoc && isRoot {
 					c.emitIGet(lreg, c.rAlloc, c.rDest, 0)
@@ -668,6 +669,7 @@ func (c *Compiler) compileExpr(node ast.Node, isRoot bool) (int, int) {
 			j, t := c.compileExpr(n.Index, false)
 			switch t {
 			case rLoc:
+				c.emitMove(j, c.rAlloc)
 				c.emitLoadF(i, lreg)
 				if c.mutLoc && isRoot {
 					c.emitIGet(lreg, c.rAlloc, c.rDest, 0)
@@ -763,6 +765,7 @@ func (c *Compiler) compileExpr(node ast.Node, isRoot bool) (int, int) {
 			j, t := c.compileExpr(n.Selector, false)
 			switch t {
 			case rLoc:
+				c.emitMove(j, c.rAlloc)
 				c.emitLoadG(i, lreg)
 				if c.mutLoc && isRoot {
 					c.emitIGet(lreg, c.rAlloc, c.rDest, 0)
@@ -810,6 +813,7 @@ func (c *Compiler) compileExpr(node ast.Node, isRoot bool) (int, int) {
 			j, t := c.compileExpr(n.Selector, false)
 			switch t {
 			case rLoc:
+				c.emitMove(j, c.rAlloc)
 				c.emitLoadF(i, lreg)
 				if c.mutLoc && isRoot {
 					c.emitIGet(lreg, c.rAlloc, c.rDest, 0)
