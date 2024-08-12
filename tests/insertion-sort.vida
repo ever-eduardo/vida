@@ -1,0 +1,84 @@
+/*
+* Insertion Sort
+*/
+
+let iComparable = {
+    comparedTo: fn self, r {
+        if self.val < r.val {
+            ret -1
+        }
+        if self.val > r.val {
+            ret 1
+        }
+        ret 0
+    }
+}
+
+let less = fn v, w {
+    if v:comparedTo(w) < 0 {
+        ret true
+    }
+    ret false
+}
+
+let swap = fn comparables, i, j {
+    loc temp = comparables[i]
+    comparables[i] = comparables[j]
+    comparables[j] = temp
+}
+
+let isSorted = fn comparables {
+    for i = 1, len(comparables) {
+        if less(comparables[i], comparables[i-1]) {
+            ret false
+        }
+    }
+    ret true
+}
+
+let insertionSort = fn comparables {
+    loc N = len(comparables)
+    for i = 0, N {
+        for j = i, 0, -1 {
+            if less(comparables[j], comparables[j-1]) {
+                swap(comparables, j, j-1)
+            } else {
+                break
+            }
+        }
+    }
+    ret comparables
+}
+
+let number = {
+    val: 0,
+    comparedTo: iComparable.comparedTo
+}
+
+let newNumber = fn x {
+    loc n = clone(number)
+    n.val = x
+    ret n
+}
+
+let randomInt = [20,19,28,17,16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1]
+let randomFloat = [20.5,19.5,28.5,17.5,16.5,15.5,14.5,13.5,12.5,11.5,10.5,9.5,8.5,7.5,6.5,5.5,4.5,3.5,2.5,1.5]
+
+let numbers = mkls(len(randomInt))
+let floats = mkls(len(randomFloat))
+
+for i, _ in numbers {
+    numbers[i] = newNumber(randomInt[i])
+}
+
+let r = insertionSort(numbers)
+
+assert(isSorted(r))
+
+for i, _ in numbers {
+    numbers[i] = newNumber(randomFloat[i])
+}
+
+r = insertionSort(numbers)
+
+assert(isSorted(r))

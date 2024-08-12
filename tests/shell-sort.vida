@@ -1,0 +1,92 @@
+/*
+* Shell Sort
+* With h(x)=3x+1
+*/
+
+
+let iComparable = {
+    comparedTo: fn self, r {
+        if self.val < r.val {
+            ret -1
+        }
+        if self.val > r.val {
+            ret 1
+        }
+        ret 0
+    }
+}
+
+let less = fn v, w {
+    if v:comparedTo(w) < 0 {
+        ret true
+    }
+    ret false
+}
+
+let swap = fn comparables, i, j {
+    loc temp = comparables[i]
+    comparables[i] = comparables[j]
+    comparables[j] = temp
+}
+
+let isSorted = fn comparables {
+    for i = 1, len(comparables) {
+        if less(comparables[i], comparables[i-1]) {
+            ret false
+        }
+    }
+    ret true
+}
+
+let number = {
+    val: 0,
+    comparedTo: iComparable.comparedTo
+}
+
+
+let shellSort = fn comparables {
+    loc N = len(comparables)
+    loc h = 1
+    while h < N/3 {
+        h = 3*h + 1
+    }
+    while h >= 1 {
+        for i = h, N {
+            loc j = i
+            while j >= h and less(comparables[j], comparables[j-h]) {
+                swap(comparables, j, j-h)
+                j = j - h
+            }
+        }
+        h = h/3
+    }
+    ret comparables
+}
+
+
+let N = 13
+
+let fillList = fn xs, N {
+    loc count = N
+    for i = 0, len(xs) {
+        xs[i] = count
+        count = count + 1
+    }
+    ret xs
+}
+
+
+let randomInt = fillList(mkls(N), N)
+let data = mkls(N)
+
+for i, v in randomInt {
+    loc val = clone(number)
+    val.val = v
+    data[i] = val
+}
+
+assert(not isSorted(data))
+
+shellSort(data)
+
+assert(isSorted(data))

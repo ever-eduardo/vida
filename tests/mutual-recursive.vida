@@ -1,0 +1,25 @@
+/*
+* Mutual Recursive Functions Calls
+*/
+
+let cons = nil
+let prod = nil
+let totalCalls = 0
+let N = 27
+
+let prod = fn x {
+    totalCalls = totalCalls + 1
+    for i = 0, x {
+        cons(i)
+    }
+}
+
+let cons = fn x {
+    totalCalls = totalCalls + 1
+    for i = 0, x {
+        prod(i)
+    }
+}
+
+prod(N)
+assert(totalCalls==134_217_728)
