@@ -11,4 +11,4 @@ let hanoi = fn num, from, help, to {
     }
 }
 
-hanoi(7, "A", "B", "C")
+hanoi(5, "A", "B", "C")

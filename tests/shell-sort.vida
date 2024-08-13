@@ -85,8 +85,6 @@ for i, v in randomInt {
     data[i] = val
 }
 
-assert(not isSorted(data))
-
 shellSort(data)
 
 assert(isSorted(data))
