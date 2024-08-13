@@ -1,0 +1,104 @@
+
+loc pr = print
+loc puts = pr
+loc field = "f"
+loc N = 5
+
+let data = [[[[[[[[[[{f: fn=>puts}]]]]]]]]]]
+let obj = {
+    one: {
+        two: {
+            three: {
+                four: {
+                    five: {
+                        six: {
+                            seven: {
+                                eight: {
+                                    nine: {
+                                        ten: 10
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+for i = -N, 1 {
+    for j = -N, 1 {
+        for k = -N, 1 {
+            for l = -N, 1 {
+                for m = -N, 1 {
+                    for n = -N, 1 {
+                        for o = -N, 1 {
+                            for p = -N, 1 {
+                                for q = -N, 1 {
+                                    for r = -N, 1 {
+                                        if  i == 0 and
+                                            j == 0 and
+                                            k == 0 and
+                                            l == 0 and
+                                            m == 0 and
+                                            n == 0 and
+                                            o == 0 and
+                                            p == 0 and
+                                            q == 0 and
+                                            r == 0 {
+                                                let result = 
+                                                    obj.
+                                                    one.
+                                                    two.
+                                                    three.
+                                                    four.
+                                                    five.
+                                                    six.
+                                                    seven.
+                                                    eight.
+                                                    nine.
+                                                    ten
+                                                    +
+                                                    obj.
+                                                    one.
+                                                    two.
+                                                    three.
+                                                    four.
+                                                    five.
+                                                    six.
+                                                    seven.
+                                                    eight.
+                                                    nine.
+                                                    ten
+                                                loc _h = 1
+                                                loc _x = -1
+                                                loc fff = field
+                                                data[i+N-N]
+                                                    [N-N+j]
+                                                    [k+12-12]
+                                                    [12-12+l]
+                                                    [m or nil]
+                                                    [n or false]
+                                                    [o+1-p-1]
+                                                    [p+_h+_x]
+                                                    [90+_h+_x-q-90]
+                                                    [90+r+_h+_x+N-N+_h+_x-90]
+                                                    [fff]()(result)
+                                            }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+} 
+
+
+loc h = 10
+assert(result == h-h+N+N+10-10+N+N)
+assert(h == obj.one.two.three.four.five.six.seven.eight.nine.ten)

@@ -1,0 +1,74 @@
+
+
+loc x = 0
+loc N = 100
+
+while true {
+    break
+    x = nil
+}
+
+assert(x == 0)
+
+loc limit = 10_000_000
+
+assert(x <= limit)
+
+while x < limit {
+    x = x + 1
+    assert(x <= limit)
+}
+
+assert(x <= limit)
+
+x = 0
+
+while true {
+    while true {
+        while x < limit {
+            x = x + 1
+        }
+        break
+    }
+    break
+}
+
+assert(x == limit)
+
+for i = 0, N {
+    for j = 0, N {
+        for k = 0, N {
+            assert(0 <= i and i < N)
+            assert(0 <= j and j < N)
+            assert(0 <= k and k < N)
+        }
+        assert(0 <= i and i < N)
+        assert(0 <= j and j < N)
+    }
+    assert(0 <= i and i < N)
+}
+
+for i = -N, -1, -1 {
+    assert(-N <= i and i < -1)
+}
+
+
+while true {
+    loc k = nil
+    loc N = 10_000_000
+    for i = 0, N+1, 10 {
+        if i < N {
+            k = i
+            continue
+        } else {
+            k = i
+            break
+        }
+    }
+    assert(k == N)
+    break
+}
+
+assert(not nil)
+
+
