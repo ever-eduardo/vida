@@ -7,6 +7,7 @@ import (
 
 	"github.com/ever-eduardo/vida"
 	"github.com/ever-eduardo/vida/ast"
+	"github.com/ever-eduardo/vida/stdlib"
 )
 
 func main() {
@@ -25,44 +26,44 @@ func main() {
 	}
 }
 
-func debugPath(module string) {
+func debugPath(modulePath string) {
 	var src []byte
 	var err error
-	src, err = vida.ReadModule(module)
+	src, err = vida.ReadModule(modulePath)
 	handleError(err)
-	p := vida.NewParser(src, module)
-	r, err := p.Parse()
+	p := vida.NewParser(src, modulePath)
+	rAst, err := p.Parse()
 	handleError(err)
-	fmt.Println(ast.PrintAST(r))
+	fmt.Println(ast.PrintAST(rAst))
 	fmt.Scanf(" ")
-	c := vida.NewCompiler(r, module)
+	c := vida.NewCompiler(rAst, modulePath)
 	m, e := c.CompileModule()
 	handleError(e)
 	fmt.Println(vida.PrintBytecode(m, m.Name))
 	fmt.Scanf(" ")
-	vm, err := vida.NewVM(m)
+	vm, err := vida.NewVM(m, stdlib.LoadersMap())
 	handleError(err)
 	res, err := vm.Debug()
 	handleError(err)
 	fmt.Println(res)
 }
 
-func normalPath(module string) {
+func normalPath(modulePath string) {
 	var src []byte
 	var err error
 	init := time.Now()
-	src, err = vida.ReadModule(module)
+	src, err = vida.ReadModule(modulePath)
 	handleError(err)
-	p := vida.NewParser(src, module)
-	r, err := p.Parse()
+	p := vida.NewParser(src, modulePath)
+	rAst, err := p.Parse()
 	handleError(err)
-	c := vida.NewCompiler(r, module)
+	c := vida.NewCompiler(rAst, modulePath)
 	m, e := c.CompileModule()
 	handleError(e)
 	fmt.Printf("Compiler time = %vs\n", time.Since(init).Seconds())
 	fmt.Printf("Compiler time = %v\n", time.Since(init))
 	init = time.Now()
-	vm, err := vida.NewVM(m)
+	vm, err := vida.NewVM(m, stdlib.LoadersMap())
 	handleError(err)
 	res, err := vm.Run()
 	fmt.Printf("VM time = %vs\n", time.Since(init).Seconds())

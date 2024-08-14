@@ -9,6 +9,7 @@ import (
 )
 
 var NilValue = Nil{}
+var LoadersMap map[string]func() Value
 
 var coreLibNames = []string{
 	"print",
@@ -30,7 +31,7 @@ func loadCoreLib() []Value {
 	clib = append(clib, GFn(gfnLen))
 	clib = append(clib, GFn(gfnAppend))
 	clib = append(clib, GFn(gfnMakeList))
-	clib = append(clib, NilValue)
+	clib = append(clib, GFn(gfnLoadLib))
 	clib = append(clib, GFn(gfnType))
 	clib = append(clib, GFn(gfnAssert))
 	clib = append(clib, GFn(gfnFormat))
@@ -161,6 +162,17 @@ func gfnDel(args ...Value) (Value, error) {
 		if o, ok := args[0].(*Object); ok {
 			delete(o.Value, args[1].String())
 			o.UpdateKeys()
+		}
+	}
+	return NilValue, nil
+}
+
+func gfnLoadLib(args ...Value) (Value, error) {
+	if len(args) > 0 {
+		if v, ok := args[0].(String); ok {
+			if l, isPresent := LoadersMap[v.Value]; isPresent {
+				return l(), nil
+			}
 		}
 	}
 	return NilValue, nil

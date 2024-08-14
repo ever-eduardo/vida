@@ -33,7 +33,8 @@ type VM struct {
 	fp     int
 }
 
-func NewVM(m *Module) (*VM, error) {
+func NewVM(m *Module, loaders map[string]func() Value) (*VM, error) {
+	LoadersMap = loaders
 	return &VM{Module: m}, checkISACompatibility(m)
 }
 

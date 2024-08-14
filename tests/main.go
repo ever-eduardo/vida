@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/ever-eduardo/vida"
+	"github.com/ever-eduardo/vida/stdlib"
 )
 
 func main() {
@@ -42,7 +43,7 @@ func executeModule(modulePath string) {
 	fmt.Printf("Compiler time = %vs\n", time.Since(init).Seconds())
 	fmt.Printf("Compiler time = %v\n", time.Since(init))
 	init = time.Now()
-	vm, err := vida.NewVM(m)
+	vm, err := vida.NewVM(m, stdlib.LoadersMap())
 	handleError(err)
 	res, err := vm.Run()
 	fmt.Printf("VM time = %vs\n", time.Since(init).Seconds())
