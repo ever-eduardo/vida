@@ -1,0 +1,26 @@
+loc rand = load("rand")
+loc N = 19_000_000
+
+loc randRange = fn a, b {
+    assert(b > a)
+    ret rand.nextI(b - a) + a
+}
+
+loc makeList = fn N, a, b {
+    loc xs = mkls(N)
+    for i = 0, N {
+        xs[i] = randRange(a, b)
+    }
+    ret xs
+}
+
+loc checkRange = fn xs, a, b {
+    for _, v in xs {
+        assert(a <= v and v < b)
+    }
+}
+
+loc a = 1_000_000
+loc b = 2_000_000
+
+checkRange(makeList(N, a, b), a, b)
