@@ -692,11 +692,11 @@ func (c *Compiler) compileExpr(node ast.Node, isRoot bool) (int, int) {
 			case rKonst:
 				c.emitLoadF(i, lreg)
 				if c.mutLoc && isRoot {
-					c.emitIGet(lreg, c.rAlloc, c.rDest, 1)
+					c.emitIGet(lreg, j, c.rDest, 1)
 					c.rAlloc--
 					return c.rDest, rLoc
 				} else {
-					c.emitIGet(lreg, c.rAlloc, lreg, 1)
+					c.emitIGet(lreg, j, lreg, 1)
 					c.rAlloc--
 				}
 			case rFree:
@@ -836,11 +836,11 @@ func (c *Compiler) compileExpr(node ast.Node, isRoot bool) (int, int) {
 			case rKonst:
 				c.emitLoadF(i, lreg)
 				if c.mutLoc && isRoot {
-					c.emitIGet(lreg, c.rAlloc, c.rDest, 1)
+					c.emitIGet(lreg, j, c.rDest, 1)
 					c.rAlloc--
 					return c.rDest, rLoc
 				} else {
-					c.emitIGet(lreg, c.rAlloc, lreg, 1)
+					c.emitIGet(lreg, j, lreg, 1)
 					c.rAlloc--
 				}
 			case rFree:
