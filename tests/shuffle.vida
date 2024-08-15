@@ -1,0 +1,32 @@
+
+loc rand = load("rand")
+
+loc swap = fn xs, i, j {
+    loc aux = xs[i]
+    xs[i] = xs[j]
+    xs[j] = aux
+}
+
+loc shuffle = fn xs {
+    loc N = len(xs)
+    loc r = nil
+    for i = 0, N {
+        r = rand.nextI(i + 1)
+        swap(xs, i, r)
+    }
+    ret xs
+}
+
+loc generateList = fn N {
+    loc xs = mkls(N)
+    for i = 0, N {
+        xs[i] = i
+    }
+    ret xs
+}
+
+loc N = 10_000_000
+loc xs = generateList(N)
+
+loc r = shuffle(xs)
+assert(r != nil)
