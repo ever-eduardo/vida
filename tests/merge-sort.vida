@@ -1,0 +1,126 @@
+/*
+* Merge Sort
+*/
+
+
+loc p = print
+
+
+loc rand = load("rand")
+
+
+loc iComparable = {
+    comparedTo: fn self, r {
+        if self.val < r.val {
+            ret -1
+        }
+        if self.val > r.val {
+            ret 1
+        }
+        ret 0
+    }
+}
+
+
+loc iPrinter = {
+    print: fn self {
+        p(self.val)
+    }
+}
+
+
+loc data = {val: nil, comparedTo: iComparable.comparedTo, print: iPrinter.print}
+
+
+loc makeData = fn N, rnd, upperLimit {
+    loc xs = mkls(N)
+    for i = 0, N {
+        loc c = clone(data)
+        c.val = rnd(upperLimit)
+        xs[i] = c
+    }
+    ret xs
+}
+
+
+loc printData = fn xs {
+    for _, v in xs {
+        v:print()
+    }
+}
+
+
+loc less = fn v, w {
+    if v:comparedTo(w) < 0 {
+        ret true
+    }
+    ret false
+}
+
+
+loc swap = fn comparables, i, j {
+    loc temp = comparables[i]
+    comparables[i] = comparables[j]
+    comparables[j] = temp
+}
+
+
+loc isSorted = fn comparables, lo, hi {
+    for i = lo+1, hi {
+        if less(comparables[i], comparables[i-1]) {
+            ret false
+        }
+    }
+    ret true
+}
+
+
+loc merge = fn comparables, auxList, lo, mid, hi {
+    for k = lo, hi+1 {
+        auxList[k] = comparables[k]
+    }
+
+    loc i = lo
+    loc j = mid+1
+
+    for k = lo, hi+1 {
+        if i > mid {
+            comparables[k] = auxList[j]
+            j = j + 1
+        } else if j > hi {
+            comparables[k] = auxList[i]
+            i = i + 1
+        } else if less(auxList[j], auxList[i]) {
+            comparables[k] = auxList[j]
+            j = j + 1
+        } else {
+            comparables[k] = auxList[i]
+            i = i + 1
+        }
+    }
+}
+
+
+let sort = fn comparables, auxList, lo, hi {
+    if hi <= lo {
+        ret nil
+    }
+    loc mid = lo + (hi - lo) / 2
+    sort(comparables, auxList, lo, mid)
+    sort(comparables, auxList, mid+1, hi)
+    merge(comparables, auxList, lo, mid, hi)
+}
+
+
+loc mergeSort = fn comparables {
+    loc N = len(comparables)
+    loc auxList = mkls(N)
+    sort(comparables, auxList, 0, N-1)
+}
+
+
+loc N = 250_000
+loc upperLimit = N*5
+loc xs = makeData(N, rand.nextI, upperLimit)
+mergeSort(xs)
+p(isSorted(xs, 0, N))

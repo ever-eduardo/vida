@@ -2,6 +2,8 @@
 * Insertion Sort
 */
 
+let rand = load("rand")
+
 let iComparable = {
     comparedTo: fn self, r {
         if self.val < r.val {
@@ -61,14 +63,12 @@ let newNumber = fn x {
     ret n
 }
 
-let randomInt = [20,19,28,17,16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1]
-let randomFloat = [20.5,19.5,28.5,17.5,16.5,15.5,14.5,13.5,12.5,11.5,10.5,9.5,8.5,7.5,6.5,5.5,4.5,3.5,2.5,1.5]
-
-let numbers = mkls(len(randomInt))
-let floats = mkls(len(randomFloat))
+let N = 1_000
+let upperLimit = N
+let numbers = mkls(N)
 
 for i, _ in numbers {
-    numbers[i] = newNumber(randomInt[i])
+    numbers[i] = newNumber(rand.nextI(N))
 }
 
 let r = insertionSort(numbers)
@@ -76,7 +76,7 @@ let r = insertionSort(numbers)
 assert(isSorted(r))
 
 for i, _ in numbers {
-    numbers[i] = newNumber(randomFloat[i])
+    numbers[i] = newNumber(rand.nextF()*N)
 }
 
 r = insertionSort(numbers)
