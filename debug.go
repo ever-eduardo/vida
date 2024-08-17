@@ -72,10 +72,8 @@ func (vm *VM) Debug() (Result, error) {
 		case storeF:
 			vm.Frame.lambda.Free[B] = vm.Frame.stack[A]
 		case check:
-			if P == 0 {
-				if !vm.Frame.stack[A].Boolean() {
-					ip = int(B)
-				}
+			if P == 0 && !vm.Frame.stack[A].Boolean() {
+				ip = int(B)
 			}
 		case jump:
 			ip = int(B)
@@ -190,10 +188,8 @@ func (vm *VM) Debug() (Result, error) {
 			}
 			if v, isInteger := vm.Frame.stack[B+2].(Integer); !isInteger {
 				return Failure, verror.RuntimeError
-			} else {
-				if v == 0 {
-					return Failure, verror.RuntimeError
-				}
+			} else if v == 0 {
+				return Failure, verror.RuntimeError
 			}
 			ip = int(A)
 		case iForSet:

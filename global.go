@@ -9,7 +9,7 @@ import (
 )
 
 var NilValue = Nil{}
-var LoadersMap map[string]func() Value
+var LibLoaders map[string]func() Value
 
 var coreLibNames = []string{
 	"print",
@@ -170,7 +170,7 @@ func gfnDel(args ...Value) (Value, error) {
 func gfnLoadLib(args ...Value) (Value, error) {
 	if len(args) > 0 {
 		if v, ok := args[0].(String); ok {
-			if l, isPresent := LoadersMap[v.Value]; isPresent {
+			if l, isPresent := LibLoaders[v.Value]; isPresent {
 				return l(), nil
 			}
 		}
