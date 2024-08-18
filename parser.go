@@ -260,25 +260,32 @@ func (p *Parser) forLoop() ast.Node {
 	if p.current.Token == token.COMMA {
 		return p.iterforLoop(id)
 	}
+	var init, end, step ast.Node
 	p.expect(token.ASSIGN)
 	p.advance()
-	init := p.expression(token.LowestPrec)
+	init = p.expression(token.LowestPrec)
 	p.advance()
-	p.expect(token.COMMA)
-	p.advance()
-	end := p.expression(token.LowestPrec)
-	p.advance()
-	var step ast.Node = &ast.Integer{Value: 1}
 	if p.current.Token == token.COMMA {
 		p.expect(token.COMMA)
 		p.advance()
-		step = p.expression(token.LowestPrec)
+		end = p.expression(token.LowestPrec)
 		p.advance()
+		step = &ast.Integer{Value: 1}
+		if p.current.Token == token.COMMA {
+			p.expect(token.COMMA)
+			p.advance()
+			step = p.expression(token.LowestPrec)
+			p.advance()
+		}
+		p.expect(token.LCURLY)
+		block := p.block(true)
+		p.advance()
+		return &ast.For{Init: init, End: end, Id: id, Step: step, Block: block}
 	}
 	p.expect(token.LCURLY)
 	block := p.block(true)
 	p.advance()
-	return &ast.For{Init: init, End: end, Id: id, Step: step, Block: block}
+	return &ast.For{Init: &ast.Integer{Value: 0}, End: init, Id: id, Step: &ast.Integer{Value: 1}, Block: block}
 }
 
 func (p *Parser) iterforLoop(key string) ast.Node {
