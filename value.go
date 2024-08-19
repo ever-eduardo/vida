@@ -370,7 +370,7 @@ func (i Integer) Equals(other Value) Bool {
 }
 
 func (i Integer) IsIterable() Bool {
-	return false
+	return true
 }
 
 func (i Integer) IsCallable() Bool {
@@ -378,7 +378,10 @@ func (i Integer) IsCallable() Bool {
 }
 
 func (i Integer) Iterator() Value {
-	return NilValue
+	if i < 0 {
+		i = -i
+	}
+	return &IntegerIterator{Init: -1, End: i}
 }
 
 func (i Integer) String() string {

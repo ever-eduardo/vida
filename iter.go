@@ -213,3 +213,69 @@ func (it *StringIterator) Clone() Value {
 func (it *StringIterator) Type() string {
 	return "StrIter"
 }
+
+type IntegerIterator struct {
+	Init Integer
+	End  Integer
+}
+
+func (it *IntegerIterator) Next() bool {
+	it.Init++
+	return it.Init < it.End
+}
+
+func (it *IntegerIterator) Key() Value {
+	return it.Init
+}
+
+func (it *IntegerIterator) Value() Value {
+	return it.Init
+}
+
+func (it *IntegerIterator) Boolean() Bool {
+	return true
+}
+
+func (it *IntegerIterator) Prefix(uint64) (Value, error) {
+	return NilValue, verror.RuntimeError
+}
+
+func (it *IntegerIterator) Binop(uint64, Value) (Value, error) {
+	return NilValue, verror.RuntimeError
+}
+
+func (it *IntegerIterator) IGet(Value) (Value, error) {
+	return NilValue, verror.RuntimeError
+}
+
+func (it *IntegerIterator) ISet(Value, Value) error {
+	return verror.RuntimeError
+}
+
+func (it *IntegerIterator) Equals(Value) Bool {
+	return false
+}
+
+func (it *IntegerIterator) IsIterable() Bool {
+	return false
+}
+
+func (it *IntegerIterator) IsCallable() Bool {
+	return false
+}
+
+func (it *IntegerIterator) Iterator() Value {
+	return NilValue
+}
+
+func (it IntegerIterator) String() string {
+	return fmt.Sprintf("IntIter [i = %v, e = %v]", it.Init, it.End)
+}
+
+func (it *IntegerIterator) Clone() Value {
+	return it
+}
+
+func (it *IntegerIterator) Type() string {
+	return "IntIter"
+}

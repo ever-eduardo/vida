@@ -254,6 +254,16 @@ assignment:
 
 func (p *Parser) forLoop() ast.Node {
 	p.advance()
+	if p.current.Token == token.IN {
+		p.advance()
+		e := p.expression(token.LowestPrec)
+		p.advance()
+		p.expect(token.LCURLY)
+		b := p.block(true)
+		p.advance()
+		id := "*_"
+		return &ast.IFor{Key: id, Value: id, Expr: e, Block: b}
+	}
 	p.expect(token.IDENTIFIER)
 	id := p.current.Lit
 	p.advance()
