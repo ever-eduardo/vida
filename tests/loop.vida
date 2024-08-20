@@ -52,6 +52,26 @@ for i = -N, -1, -1 {
     assert(-N <= i and i < -1)
 }
 
+for i = N {
+    for j = N {
+        for k = N {
+            assert(0 <= i and i < N)
+            assert(0 <= j and j < N)
+            assert(0 <= k and k < N)
+        }
+        assert(0 <= i and i < N)
+        assert(0 <= j and j < N)
+    }
+    assert(0 <= i and i < N)
+}
+
+x = 0
+
+for in 10_000_000 {
+    x = x + 1
+}
+
+assert(x == 10_000_000)
 
 while true {
     loc k = nil
@@ -69,6 +89,7 @@ while true {
     break
 }
 
-assert(not nil)
+x = nil
+assert(x == nil)
 
 
