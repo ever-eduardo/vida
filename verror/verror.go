@@ -11,6 +11,7 @@ const SyntaxErrMsg = "Syntax"
 const CompilerErrorMsg = "Compiler error"
 const RunTimeErrMsg = "Runtime error"
 const AssertionErr = "Assertion Failure"
+const FatalFailure = "Fatal Failure"
 
 type VidaError struct {
 	ModuleName   string

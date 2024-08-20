@@ -2,6 +2,7 @@ package vida
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"os"
 
@@ -23,6 +24,7 @@ var coreLibNames = []string{
 	"input",
 	"clone",
 	"del",
+	"failure",
 }
 
 func loadCoreLib() []Value {
@@ -38,6 +40,7 @@ func loadCoreLib() []Value {
 	clib = append(clib, GFn(gfnReadLine))
 	clib = append(clib, GFn(gfnClone))
 	clib = append(clib, GFn(gfnDel))
+	clib = append(clib, GFn(gfnFailure))
 	return clib
 }
 
@@ -176,4 +179,11 @@ func gfnLoadLib(args ...Value) (Value, error) {
 		}
 	}
 	return NilValue, nil
+}
+
+func gfnFailure(args ...Value) (Value, error) {
+	if len(args) > 0 {
+		return NilValue, fmt.Errorf("%v: %v", verror.FatalFailure, args[0].String())
+	}
+	return NilValue, errors.New(verror.FatalFailure)
 }
