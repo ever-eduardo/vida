@@ -10,22 +10,21 @@ import (
 )
 
 func main() {
-	// f, err := os.Create("vida.prof")
-	// handleError(err)
-	// pprof.StartCPUProfile(f)
-	// defer pprof.StopCPUProfile()
 	clear()
-	println(vida.Name(), vida.Version())
+	fmt.Println(vida.Name(), vida.Version())
 	basePath := "./"
 	modules, err := os.ReadDir(basePath)
 	handleError(err)
-	for _, v := range modules {
+	count := 0
+	for i, v := range modules {
 		if !v.IsDir() && v.Name() != "main.go" && v.Name() != "tests.exe" {
+			count = i
 			fmt.Printf("Testing %v\n", v.Name())
 			executeModule(basePath + v.Name())
 			fmt.Printf("End\n\n\n")
 		}
 	}
+	fmt.Printf("All %v test were ok!", count)
 }
 
 func executeModule(modulePath string) {
