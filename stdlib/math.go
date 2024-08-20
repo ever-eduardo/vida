@@ -22,6 +22,18 @@ func generateMath() vida.Value {
 	m.Value["abs"] = mathFromFloatToFloat(math.Abs)
 	m.Value["sqrt"] = mathFromFloatToFloat(math.Sqrt)
 	m.Value["cbrt"] = mathFromFloatToFloat(math.Cbrt)
+	m.Value["sin"] = mathFromFloatToFloat(math.Sin)
+	m.Value["cos"] = mathFromFloatToFloat(math.Cos)
+	m.Value["tan"] = mathFromFloatToFloat(math.Tan)
+	m.Value["asin"] = mathFromFloatToFloat(math.Asin)
+	m.Value["acos"] = mathFromFloatToFloat(math.Acos)
+	m.Value["atan"] = mathFromFloatToFloat(math.Atan)
+	m.Value["sinh"] = mathFromFloatToFloat(math.Sinh)
+	m.Value["cosh"] = mathFromFloatToFloat(math.Cosh)
+	m.Value["tanh"] = mathFromFloatToFloat(math.Tanh)
+	m.Value["asinh"] = mathFromFloatToFloat(math.Asinh)
+	m.Value["acosh"] = mathFromFloatToFloat(math.Acosh)
+	m.Value["atanh"] = mathFromFloatToFloat(math.Atanh)
 	m.UpdateKeys()
 	return m
 }
