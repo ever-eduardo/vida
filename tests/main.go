@@ -16,15 +16,15 @@ func main() {
 	modules, err := os.ReadDir(basePath)
 	handleError(err)
 	count := 0
-	for i, v := range modules {
+	for _, v := range modules {
 		if !v.IsDir() && v.Name() != "main.go" && v.Name() != "tests.exe" {
-			count = i
-			fmt.Printf("Testing %v\n", v.Name())
+			count++
+			fmt.Printf("Running test file '%v'\n", v.Name())
 			executeModule(basePath + v.Name())
 			fmt.Printf("End\n\n\n")
 		}
 	}
-	fmt.Printf("All %v test were ok!", count)
+	fmt.Printf("All %v tests files were ok!", count)
 }
 
 func executeModule(modulePath string) {
