@@ -2,7 +2,6 @@ package vida
 
 import (
 	"bufio"
-	"errors"
 	"fmt"
 	"os"
 
@@ -29,18 +28,19 @@ var coreLibNames = []string{
 
 func loadCoreLib() []Value {
 	clib := make([]Value, 0)
-	clib = append(clib, GFn(gfnPrint))
-	clib = append(clib, GFn(gfnLen))
-	clib = append(clib, GFn(gfnAppend))
-	clib = append(clib, GFn(gfnMakeList))
-	clib = append(clib, GFn(gfnLoadLib))
-	clib = append(clib, GFn(gfnType))
-	clib = append(clib, GFn(gfnAssert))
-	clib = append(clib, GFn(gfnFormat))
-	clib = append(clib, GFn(gfnReadLine))
-	clib = append(clib, GFn(gfnClone))
-	clib = append(clib, GFn(gfnDel))
-	clib = append(clib, GFn(gfnFailure))
+	clib = append(clib,
+		GFn(gfnPrint),
+		GFn(gfnLen),
+		GFn(gfnAppend),
+		GFn(gfnMakeList),
+		GFn(gfnLoadLib),
+		GFn(gfnType),
+		GFn(gfnAssert),
+		GFn(gfnFormat),
+		GFn(gfnReadLine),
+		GFn(gfnClone),
+		GFn(gfnDel),
+		GFn(gfnFailure))
 	return clib
 }
 
@@ -185,5 +185,5 @@ func gfnFailure(args ...Value) (Value, error) {
 	if len(args) > 0 {
 		return NilValue, fmt.Errorf("%v: %v", verror.FatalFailure, args[0].String())
 	}
-	return NilValue, errors.New(verror.FatalFailure)
+	return NilValue, fmt.Errorf("%v", verror.FatalFailure)
 }
