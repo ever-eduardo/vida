@@ -43,6 +43,9 @@ func mathIsNan(fn func(float64) bool) vida.GFn {
 			if v, ok := args[0].(vida.Float); ok {
 				return vida.Bool(fn(float64(v))), nil
 			}
+			if v, ok := args[0].(vida.Integer); ok {
+				return vida.Bool(fn(float64(v))), nil
+			}
 		}
 		return vida.NilValue, nil
 	}
@@ -52,6 +55,11 @@ func mathIsInf(fn func(float64, int) bool) vida.GFn {
 	return func(args ...vida.Value) (vida.Value, error) {
 		if len(args) > 1 {
 			if v, ok := args[0].(vida.Float); ok {
+				if i, oki := args[1].(vida.Integer); oki {
+					return vida.Bool(fn(float64(v), int(i))), nil
+				}
+			}
+			if v, ok := args[0].(vida.Integer); ok {
 				if i, oki := args[1].(vida.Integer); oki {
 					return vida.Bool(fn(float64(v), int(i))), nil
 				}
@@ -71,6 +79,9 @@ func mathFromFloatToFloat(fn func(float64) float64) vida.GFn {
 	return func(args ...vida.Value) (vida.Value, error) {
 		if len(args) > 0 {
 			if v, ok := args[0].(vida.Float); ok {
+				return vida.Float(fn(float64(v))), nil
+			}
+			if v, ok := args[0].(vida.Integer); ok {
 				return vida.Float(fn(float64(v))), nil
 			}
 		}
