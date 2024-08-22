@@ -5,13 +5,13 @@ import (
 	"fmt"
 )
 
-const FileErrMsg = "File"
-const LexicalErrMsg = "Lexical"
-const SyntaxErrMsg = "Syntax"
-const CompilerErrorMsg = "Compiler error"
-const RunTimeErrMsg = "Runtime error"
-const AssertionErr = "Assertion Failure"
-const FatalFailure = "Fatal Failure"
+const FileErrMsg = "file"
+const LexicalErrMsg = "lexical"
+const SyntaxErrMsg = "syntax"
+const CompilerErrorMsg = "compiler error"
+const RunTimeErrMsg = "runtime error"
+const AssertionErr = "assertion failure"
+const FatalFailure = "fatal failure"
 
 type VidaError struct {
 	ModuleName   string
@@ -39,8 +39,8 @@ func New(moduleName string, message string, errorType string, line uint) VidaErr
 }
 
 var (
-	RuntimeError   = errors.New(RunTimeErrMsg)
-	ErrStringLimit = errors.New("String Limit")
-	CompilerError  = errors.New(CompilerErrorMsg)
-	AssertFailure  = errors.New(AssertionErr)
+	ErrRuntime          = errors.New(RunTimeErrMsg)
+	ErrStringLimit      = errors.New("string Limit")
+	ErrCompilation      = errors.New(CompilerErrorMsg)
+	ErrAssertionFailure = errors.New(AssertionErr)
 )

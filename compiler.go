@@ -45,7 +45,7 @@ func (c *Compiler) CompileModule() (*Module, error) {
 		c.compileStmt(c.ast.Statement[i])
 	}
 	if c.hadError {
-		return nil, verror.CompilerError
+		return nil, verror.ErrCompilation
 	}
 	c.module.Konstants = c.kb.Konstants
 	c.appendEnd()

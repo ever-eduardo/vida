@@ -36,19 +36,19 @@ func (it *ListIterator) Boolean() Bool {
 }
 
 func (it *ListIterator) Prefix(uint64) (Value, error) {
-	return NilValue, verror.RuntimeError
+	return NilValue, verror.ErrRuntime
 }
 
 func (it *ListIterator) Binop(uint64, Value) (Value, error) {
-	return NilValue, verror.RuntimeError
+	return NilValue, verror.ErrRuntime
 }
 
 func (it *ListIterator) IGet(Value) (Value, error) {
-	return NilValue, verror.RuntimeError
+	return NilValue, verror.ErrRuntime
 }
 
 func (it *ListIterator) ISet(Value, Value) error {
-	return verror.RuntimeError
+	return verror.ErrRuntime
 }
 
 func (it *ListIterator) Equals(Value) Bool {
@@ -104,19 +104,19 @@ func (it *ObjectIterator) Boolean() Bool {
 }
 
 func (it *ObjectIterator) Prefix(uint64) (Value, error) {
-	return NilValue, verror.RuntimeError
+	return NilValue, verror.ErrRuntime
 }
 
 func (it *ObjectIterator) Binop(uint64, Value) (Value, error) {
-	return NilValue, verror.RuntimeError
+	return NilValue, verror.ErrRuntime
 }
 
 func (it *ObjectIterator) IGet(Value) (Value, error) {
-	return NilValue, verror.RuntimeError
+	return NilValue, verror.ErrRuntime
 }
 
 func (it *ObjectIterator) ISet(Value, Value) error {
-	return verror.RuntimeError
+	return verror.ErrRuntime
 }
 
 func (it *ObjectIterator) Equals(Value) Bool {
@@ -171,19 +171,19 @@ func (it *StringIterator) Boolean() Bool {
 }
 
 func (it *StringIterator) Prefix(uint64) (Value, error) {
-	return NilValue, verror.RuntimeError
+	return NilValue, verror.ErrRuntime
 }
 
 func (it *StringIterator) Binop(uint64, Value) (Value, error) {
-	return NilValue, verror.RuntimeError
+	return NilValue, verror.ErrRuntime
 }
 
 func (it *StringIterator) IGet(Value) (Value, error) {
-	return NilValue, verror.RuntimeError
+	return NilValue, verror.ErrRuntime
 }
 
 func (it *StringIterator) ISet(Value, Value) error {
-	return verror.RuntimeError
+	return verror.ErrRuntime
 }
 
 func (it *StringIterator) Equals(Value) Bool {
@@ -237,19 +237,19 @@ func (it *IntegerIterator) Boolean() Bool {
 }
 
 func (it *IntegerIterator) Prefix(uint64) (Value, error) {
-	return NilValue, verror.RuntimeError
+	return NilValue, verror.ErrRuntime
 }
 
 func (it *IntegerIterator) Binop(uint64, Value) (Value, error) {
-	return NilValue, verror.RuntimeError
+	return NilValue, verror.ErrRuntime
 }
 
 func (it *IntegerIterator) IGet(Value) (Value, error) {
-	return NilValue, verror.RuntimeError
+	return NilValue, verror.ErrRuntime
 }
 
 func (it *IntegerIterator) ISet(Value, Value) error {
-	return verror.RuntimeError
+	return verror.ErrRuntime
 }
 
 func (it *IntegerIterator) Equals(Value) Bool {

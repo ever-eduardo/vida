@@ -179,21 +179,21 @@ func (vm *VM) Run() (Result, error) {
 			vm.Frame.stack[B] = &Object{Value: make(map[string]Value)}
 		case forSet:
 			if _, isInteger := vm.Frame.stack[B].(Integer); !isInteger {
-				return Failure, verror.RuntimeError
+				return Failure, verror.ErrRuntime
 			}
 			if _, isInteger := vm.Frame.stack[B+1].(Integer); !isInteger {
-				return Failure, verror.RuntimeError
+				return Failure, verror.ErrRuntime
 			}
 			if v, isInteger := vm.Frame.stack[B+2].(Integer); !isInteger {
-				return Failure, verror.RuntimeError
+				return Failure, verror.ErrRuntime
 			} else if v == 0 {
-				return Failure, verror.RuntimeError
+				return Failure, verror.ErrRuntime
 			}
 			ip = int(A)
 		case iForSet:
 			iterable := vm.Frame.stack[A]
 			if !iterable.IsIterable() {
-				return Failure, verror.RuntimeError
+				return Failure, verror.ErrRuntime
 			}
 			vm.Frame.stack[B] = iterable.Iterator()
 			ip = int(P)
@@ -244,11 +244,11 @@ func (vm *VM) Run() (Result, error) {
 			F := P >> shift16
 			P = P & clean16
 			if !val.IsCallable() {
-				return Failure, verror.RuntimeError
+				return Failure, verror.ErrRuntime
 			}
 			if fn, ok := val.(*Function); ok {
 				if vm.fp >= frameSize {
-					return Failure, verror.RuntimeError
+					return Failure, verror.ErrRuntime
 				}
 				if P != 0 {
 					if P == 1 {
@@ -258,7 +258,7 @@ func (vm *VM) Run() (Result, error) {
 								vm.Frame.stack[int(B)+int(F)+i] = v
 							}
 						} else {
-							return Failure, verror.RuntimeError
+							return Failure, verror.ErrRuntime
 						}
 					} else if P == 2 {
 						if xs, ok := vm.Frame.stack[int(B)+nargs].(*List); ok {
@@ -267,13 +267,13 @@ func (vm *VM) Run() (Result, error) {
 								vm.Frame.stack[int(B)+int(A)+i] = v
 							}
 						} else {
-							return Failure, verror.RuntimeError
+							return Failure, verror.ErrRuntime
 						}
 					}
 				}
 				if fn.CoreFn.IsVar {
 					if fn.CoreFn.Arity > nargs {
-						return Failure, verror.RuntimeError
+						return Failure, verror.ErrRuntime
 					}
 					init := int(B) + 1 + fn.CoreFn.Arity
 					count := nargs - fn.CoreFn.Arity
@@ -283,7 +283,7 @@ func (vm *VM) Run() (Result, error) {
 					}
 					vm.Frame.stack[init] = &List{Value: xs}
 				} else if nargs != fn.CoreFn.Arity {
-					return Failure, verror.RuntimeError
+					return Failure, verror.ErrRuntime
 				}
 				if fn == vm.Frame.lambda && vm.Frame.code[ip]>>shift56 == ret {
 					for i := 0; i < nargs; i++ {
@@ -470,7 +470,7 @@ func (vm *VM) processSlice(mode, sliceable uint64) (Value, error) {
 			}
 		}
 	}
-	return NilValue, verror.RuntimeError
+	return NilValue, verror.ErrRuntime
 }
 
 func checkISACompatibility(m *Module) error {

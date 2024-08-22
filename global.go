@@ -93,13 +93,13 @@ func gfnAssert(args ...Value) (Value, error) {
 		if args[0].Boolean() {
 			return NilValue, nil
 		} else {
-			return NilValue, verror.AssertFailure
+			return NilValue, verror.ErrAssertionFailure
 		}
 	} else if len(args) > 1 {
 		if args[0].Boolean() {
 			return NilValue, nil
 		} else {
-			return NilValue, fmt.Errorf("%v: %v", verror.AssertFailure, args[1].String())
+			return NilValue, fmt.Errorf("%v: %v", verror.ErrAssertionFailure, args[1].String())
 		}
 	}
 	return NilValue, nil

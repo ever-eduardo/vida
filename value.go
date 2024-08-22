@@ -36,7 +36,7 @@ func (n Nil) Prefix(op uint64) (Value, error) {
 	case uint64(token.NOT):
 		return Bool(true), nil
 	default:
-		return NilValue, verror.RuntimeError
+		return NilValue, verror.ErrRuntime
 	}
 }
 
@@ -47,16 +47,16 @@ func (n Nil) Binop(op uint64, rhs Value) (Value, error) {
 	case uint64(token.OR):
 		return rhs, nil
 	default:
-		return NilValue, verror.RuntimeError
+		return NilValue, verror.ErrRuntime
 	}
 }
 
 func (n Nil) IGet(index Value) (Value, error) {
-	return NilValue, verror.RuntimeError
+	return NilValue, verror.ErrRuntime
 }
 
 func (n Nil) ISet(index, val Value) error {
-	return verror.RuntimeError
+	return verror.ErrRuntime
 }
 
 func (n Nil) Equals(other Value) Bool {
@@ -99,7 +99,7 @@ func (b Bool) Prefix(op uint64) (Value, error) {
 	case uint64(token.NOT):
 		return !b, nil
 	default:
-		return NilValue, verror.RuntimeError
+		return NilValue, verror.ErrRuntime
 	}
 }
 
@@ -116,16 +116,16 @@ func (b Bool) Binop(op uint64, rhs Value) (Value, error) {
 		}
 		return rhs, nil
 	default:
-		return NilValue, verror.RuntimeError
+		return NilValue, verror.ErrRuntime
 	}
 }
 
 func (b Bool) IGet(index Value) (Value, error) {
-	return NilValue, verror.RuntimeError
+	return NilValue, verror.ErrRuntime
 }
 
 func (b Bool) ISet(index, val Value) error {
-	return verror.RuntimeError
+	return verror.ErrRuntime
 }
 
 func (b Bool) Equals(other Value) Bool {
@@ -199,7 +199,7 @@ func (s String) Binop(op uint64, rhs Value) (Value, error) {
 			return r, nil
 		}
 	}
-	return NilValue, verror.RuntimeError
+	return NilValue, verror.ErrRuntime
 }
 
 func (s String) IGet(index Value) (Value, error) {
@@ -217,11 +217,11 @@ func (s String) IGet(index Value) (Value, error) {
 			return String{Value: string(sr), Runes: sr}, nil
 		}
 	}
-	return NilValue, verror.RuntimeError
+	return NilValue, verror.ErrRuntime
 }
 
 func (s String) ISet(index, val Value) error {
-	return verror.RuntimeError
+	return verror.ErrRuntime
 }
 
 func (s String) Prefix(op uint64) (Value, error) {
@@ -229,7 +229,7 @@ func (s String) Prefix(op uint64) (Value, error) {
 	case uint64(token.NOT):
 		return Bool(false), nil
 	default:
-		return NilValue, verror.RuntimeError
+		return NilValue, verror.ErrRuntime
 	}
 }
 
@@ -282,7 +282,7 @@ func (i Integer) Prefix(op uint64) (Value, error) {
 	case uint64(token.ADD):
 		return i, nil
 	}
-	return NilValue, verror.RuntimeError
+	return NilValue, verror.ErrRuntime
 }
 
 func (l Integer) Binop(op uint64, rhs Value) (Value, error) {
@@ -297,12 +297,12 @@ func (l Integer) Binop(op uint64, rhs Value) (Value, error) {
 			return l * r, nil
 		case uint64(token.DIV):
 			if r == 0 {
-				return NilValue, verror.RuntimeError
+				return NilValue, verror.ErrRuntime
 			}
 			return l / r, nil
 		case uint64(token.REM):
 			if r == 0 {
-				return NilValue, verror.RuntimeError
+				return NilValue, verror.ErrRuntime
 			}
 			return l % r, nil
 		case uint64(token.AND):
@@ -351,15 +351,15 @@ func (l Integer) Binop(op uint64, rhs Value) (Value, error) {
 			return l, nil
 		}
 	}
-	return NilValue, verror.RuntimeError
+	return NilValue, verror.ErrRuntime
 }
 
 func (i Integer) IGet(index Value) (Value, error) {
-	return NilValue, verror.RuntimeError
+	return NilValue, verror.ErrRuntime
 }
 
 func (i Integer) ISet(index, val Value) error {
-	return verror.RuntimeError
+	return verror.ErrRuntime
 }
 
 func (i Integer) Equals(other Value) Bool {
@@ -411,7 +411,7 @@ func (f Float) Prefix(op uint64) (Value, error) {
 	case uint64(token.ADD):
 		return f, nil
 	}
-	return NilValue, verror.RuntimeError
+	return NilValue, verror.ErrRuntime
 }
 
 func (f Float) Binop(op uint64, rhs Value) (Value, error) {
@@ -474,15 +474,15 @@ func (f Float) Binop(op uint64, rhs Value) (Value, error) {
 			return f, nil
 		}
 	}
-	return NilValue, verror.RuntimeError
+	return NilValue, verror.ErrRuntime
 }
 
 func (f Float) IGet(index Value) (Value, error) {
-	return NilValue, verror.RuntimeError
+	return NilValue, verror.ErrRuntime
 }
 
 func (f Float) ISet(index, val Value) error {
-	return verror.RuntimeError
+	return verror.ErrRuntime
 }
 
 func (f Float) Equals(other Value) Bool {
@@ -529,7 +529,7 @@ func (xs *List) Prefix(op uint64) (Value, error) {
 	case uint64(token.NOT):
 		return Bool(false), nil
 	default:
-		return NilValue, verror.RuntimeError
+		return NilValue, verror.ErrRuntime
 	}
 }
 
@@ -560,7 +560,7 @@ func (xs *List) Binop(op uint64, rhs Value) (Value, error) {
 			return r, nil
 		}
 	}
-	return NilValue, verror.RuntimeError
+	return NilValue, verror.ErrRuntime
 }
 
 func (xs *List) IGet(index Value) (Value, error) {
@@ -574,7 +574,7 @@ func (xs *List) IGet(index Value) (Value, error) {
 			return xs.Value[r], nil
 		}
 	}
-	return NilValue, verror.RuntimeError
+	return NilValue, verror.ErrRuntime
 }
 
 func (xs *List) ISet(index, val Value) error {
@@ -589,7 +589,7 @@ func (xs *List) ISet(index, val Value) error {
 			return nil
 		}
 	}
-	return verror.RuntimeError
+	return verror.ErrRuntime
 }
 
 func (xs *List) Equals(other Value) Bool {
@@ -648,7 +648,7 @@ func (o *Object) Prefix(op uint64) (Value, error) {
 	case uint64(token.NOT):
 		return Bool(false), nil
 	default:
-		return NilValue, verror.RuntimeError
+		return NilValue, verror.ErrRuntime
 	}
 }
 
@@ -683,7 +683,7 @@ func (o *Object) Binop(op uint64, rhs Value) (Value, error) {
 			return r, nil
 		}
 	}
-	return NilValue, verror.RuntimeError
+	return NilValue, verror.ErrRuntime
 }
 
 func (o *Object) IGet(index Value) (Value, error) {
@@ -794,19 +794,19 @@ func (c *CoreFunction) Boolean() Bool {
 }
 
 func (c *CoreFunction) Prefix(uint64) (Value, error) {
-	return NilValue, verror.RuntimeError
+	return NilValue, verror.ErrRuntime
 }
 
 func (c *CoreFunction) Binop(uint64, Value) (Value, error) {
-	return NilValue, verror.RuntimeError
+	return NilValue, verror.ErrRuntime
 }
 
 func (c *CoreFunction) IGet(Value) (Value, error) {
-	return NilValue, verror.RuntimeError
+	return NilValue, verror.ErrRuntime
 }
 
 func (c *CoreFunction) ISet(Value, Value) error {
-	return verror.RuntimeError
+	return verror.ErrRuntime
 }
 
 func (c *CoreFunction) Equals(other Value) Bool {
@@ -854,7 +854,7 @@ func (f *Function) Prefix(op uint64) (Value, error) {
 	case uint64(token.NOT):
 		return Bool(false), nil
 	default:
-		return NilValue, verror.RuntimeError
+		return NilValue, verror.ErrRuntime
 	}
 }
 
@@ -865,15 +865,15 @@ func (f *Function) Binop(op uint64, r Value) (Value, error) {
 	case uint64(token.AND):
 		return r, nil
 	}
-	return NilValue, verror.RuntimeError
+	return NilValue, verror.ErrRuntime
 }
 
 func (f *Function) IGet(Value) (Value, error) {
-	return NilValue, verror.RuntimeError
+	return NilValue, verror.ErrRuntime
 }
 
 func (f *Function) ISet(Value, Value) error {
-	return verror.RuntimeError
+	return verror.ErrRuntime
 }
 
 func (f *Function) Equals(other Value) Bool {
@@ -918,7 +918,7 @@ func (gfn GFn) Prefix(op uint64) (Value, error) {
 	case uint64(token.NOT):
 		return Bool(false), nil
 	default:
-		return NilValue, verror.RuntimeError
+		return NilValue, verror.ErrRuntime
 	}
 }
 
@@ -929,15 +929,15 @@ func (gfn GFn) Binop(op uint64, r Value) (Value, error) {
 	case uint64(token.AND):
 		return r, nil
 	}
-	return NilValue, verror.RuntimeError
+	return NilValue, verror.ErrRuntime
 }
 
 func (gfn GFn) IGet(index Value) (Value, error) {
-	return NilValue, verror.RuntimeError
+	return NilValue, verror.ErrRuntime
 }
 
 func (gfn GFn) ISet(index, val Value) error {
-	return verror.RuntimeError
+	return verror.ErrRuntime
 }
 
 func (gfn GFn) Equals(other Value) Bool {
