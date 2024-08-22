@@ -287,7 +287,12 @@ func (l *Lexer) Next() (line uint, tok token.Token, lit string) {
 		case '.':
 			if l.c == '.' {
 				l.next()
-				tok = token.DOUBLE_DOT
+				if l.c == '.' {
+					l.next()
+					tok = token.ELLIPSIS
+				} else {
+					tok = token.DOUBLE_DOT
+				}
 			} else {
 				tok = token.DOT
 			}

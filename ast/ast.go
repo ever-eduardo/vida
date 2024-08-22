@@ -163,8 +163,9 @@ type Break struct{}
 type Continue struct{}
 
 type Fun struct {
-	Args []string
-	Body Node
+	Args  []string
+	Body  Node
+	IsVar bool
 }
 
 type Ret struct {
@@ -172,23 +173,27 @@ type Ret struct {
 }
 
 type CallExpr struct {
-	Args []Node
-	Fun  Node
+	Args     []Node
+	Fun      Node
+	Ellipsis int
 }
 
 type CallStmt struct {
-	Args []Node
+	Args     []Node
+	Ellipsis int
 }
 
 type MethodCallStmt struct {
-	Args []Node
-	Prop Node
+	Args     []Node
+	Prop     Node
+	Ellipsis int
 }
 
 type MethodCallExpr struct {
-	Args []Node
-	Prop Node
-	Obj  Node
+	Args     []Node
+	Prop     Node
+	Obj      Node
+	Ellipsis int
 }
 
 func (ast *Ast) _node()           {}

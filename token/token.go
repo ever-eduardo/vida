@@ -30,6 +30,7 @@ const (
 	RBRACKET
 	ARROW
 	DOUBLE_DOT
+	ELLIPSIS
 	operator_end
 
 	binary_op_init
@@ -88,6 +89,7 @@ var Tokens = [...]string{
 	RBRACKET:   "]",
 	ARROW:      "=>",
 	DOUBLE_DOT: "..",
+	ELLIPSIS:   "...",
 	ADD:        "+",
 	SUB:        "-",
 	MUL:        "*",

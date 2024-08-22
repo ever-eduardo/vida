@@ -718,7 +718,7 @@ func (o *Object) IsCallable() Bool {
 }
 
 func (o *Object) Iterator() Value {
-	return &ObjectIterator{Doc: o.Value, Init: -1, End: len(o.Value), Keys: o.Keys}
+	return &ObjectIterator{Obj: o.Value, Init: -1, End: len(o.Value), Keys: o.Keys}
 }
 
 func (o *Object) String() string {
@@ -786,6 +786,7 @@ type CoreFunction struct {
 	Info  []freeInfo
 	Free  int
 	Arity int
+	IsVar bool
 }
 
 func (c *CoreFunction) Boolean() Bool {
@@ -832,7 +833,7 @@ func (c *CoreFunction) Type() string {
 }
 
 func (f CoreFunction) String() string {
-	return fmt.Sprintf("[a = %v, f = %v, i = %v]", f.Arity, f.Free, f.Info)
+	return fmt.Sprintf("[a = %v, v = %v, f = %v, i = %v]", f.Arity, f.IsVar, f.Free, f.Info)
 }
 
 func (f *CoreFunction) Clone() Value {

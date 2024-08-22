@@ -437,7 +437,7 @@ func (c *Compiler) compileStmt(node ast.Node) {
 		}
 		c.rAlloc = callable
 		c.fromRefStmt = false
-		c.emitCall(callable, len(n.Args))
+		c.emitCall(callable, len(n.Args), n.Ellipsis, 1)
 	case *ast.MethodCallStmt:
 		obj := c.rAlloc
 		if c.fromRefStmt {
@@ -457,7 +457,7 @@ func (c *Compiler) compileStmt(node ast.Node) {
 		}
 		c.rAlloc = obj
 		c.fromRefStmt = false
-		c.emitCall(obj, len(n.Args)+1)
+		c.emitCall(obj, len(n.Args)+1, n.Ellipsis, 2)
 	}
 }
 
@@ -917,6 +917,10 @@ func (c *Compiler) compileExpr(node ast.Node, isRoot bool) (int, int) {
 			c.sb.addLocal(v, c.level, c.scope, c.rAlloc)
 			c.rAlloc++
 		}
+		if n.IsVar {
+			fn.IsVar = true
+			fn.Arity--
+		}
 		c.compileStmt(n.Body)
 		c.leaveFuncScope()
 		c.rAlloc = reg
@@ -931,7 +935,7 @@ func (c *Compiler) compileExpr(node ast.Node, isRoot bool) (int, int) {
 			c.exprToReg(i, s)
 		}
 		c.rAlloc = reg
-		c.emitCall(reg, len(n.Args))
+		c.emitCall(reg, len(n.Args), n.Ellipsis, 1)
 		return reg, rLoc
 	case *ast.MethodCallExpr:
 		reg := c.rAlloc
@@ -948,7 +952,7 @@ func (c *Compiler) compileExpr(node ast.Node, isRoot bool) (int, int) {
 			c.rAlloc++
 		}
 		c.rAlloc = reg
-		c.emitCall(reg, len(n.Args)+1)
+		c.emitCall(reg, len(n.Args)+1, n.Ellipsis, 2)
 		return reg, rLoc
 	default:
 		return 0, rGlob

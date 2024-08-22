@@ -257,9 +257,11 @@ func (c *Compiler) emitFun(from, to int) {
 	c.currentFn.Code = append(c.currentFn.Code, i)
 }
 
-func (c *Compiler) emitCall(callable, argCount int) {
+func (c *Compiler) emitCall(callable, argCount, ellipsis, firstArg int) {
 	var i uint64 = uint64(callable)
 	i |= uint64(argCount) << shift16
+	i |= uint64(ellipsis) << shift32
+	i |= uint64(firstArg) << shift48
 	i |= call << shift56
 	c.currentFn.Code = append(c.currentFn.Code, i)
 }

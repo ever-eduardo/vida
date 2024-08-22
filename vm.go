@@ -240,18 +240,53 @@ func (vm *VM) Run() (Result, error) {
 			vm.Frame.stack[B] = fn
 		case call:
 			val := vm.Frame.stack[B]
+			nargs := int(A)
+			F := P >> shift16
+			P = P & clean16
 			if !val.IsCallable() {
 				return Failure, verror.RuntimeError
 			}
 			if fn, ok := val.(*Function); ok {
-				if int(A) != fn.CoreFn.Arity {
-					return Failure, verror.RuntimeError
-				}
 				if vm.fp >= frameSize {
 					return Failure, verror.RuntimeError
 				}
+				if P != 0 {
+					if P == 1 {
+						if xs, ok := vm.Frame.stack[B+F].(*List); ok {
+							nargs = len(xs.Value) + int(F) - 1
+							for i, v := range xs.Value {
+								vm.Frame.stack[int(B)+int(F)+i] = v
+							}
+						} else {
+							return Failure, verror.RuntimeError
+						}
+					} else if P == 2 {
+						if xs, ok := vm.Frame.stack[int(B)+nargs].(*List); ok {
+							nargs += len(xs.Value) - 1
+							for i, v := range xs.Value {
+								vm.Frame.stack[int(B)+int(A)+i] = v
+							}
+						} else {
+							return Failure, verror.RuntimeError
+						}
+					}
+				}
+				if fn.CoreFn.IsVar {
+					if fn.CoreFn.Arity > nargs {
+						return Failure, verror.RuntimeError
+					}
+					init := int(B) + 1 + fn.CoreFn.Arity
+					count := nargs - fn.CoreFn.Arity
+					xs := make([]Value, count)
+					for i := 0; i < count; i++ {
+						xs[i] = vm.Frame.stack[init+i]
+					}
+					vm.Frame.stack[init] = &List{Value: xs}
+				} else if nargs != fn.CoreFn.Arity {
+					return Failure, verror.RuntimeError
+				}
 				if fn == vm.Frame.lambda && vm.Frame.code[ip]>>shift56 == ret {
-					for i := 0; i < int(A); i++ {
+					for i := 0; i < nargs; i++ {
 						vm.Frame.stack[i] = vm.Frame.stack[int(B)+1+i]
 					}
 					ip = 0

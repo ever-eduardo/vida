@@ -81,7 +81,7 @@ func (it *ListIterator) Type() string {
 
 type ObjectIterator struct {
 	Keys []string
-	Doc  map[string]Value
+	Obj  map[string]Value
 	Init int
 	End  int
 }
@@ -96,7 +96,7 @@ func (it *ObjectIterator) Key() Value {
 }
 
 func (it *ObjectIterator) Value() Value {
-	return it.Doc[it.Keys[it.Init]]
+	return it.Obj[it.Keys[it.Init]]
 }
 
 func (it *ObjectIterator) Boolean() Bool {
