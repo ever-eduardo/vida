@@ -1,0 +1,30 @@
+let f = fn acc, xs... {
+    if acc == 0 {
+        ret xs
+    }
+    xs[0] = xs[0]+1
+    xs[1] = xs[1]-1
+    ret f(acc-1, ...xs)
+}
+
+loc N = 10_000_000
+loc xs = [0, N]
+
+print(xs)
+loc r = f(N, ...xs)
+print(r)
+
+loc curry = fn f => fn x... => fn y... => f(f(...x), ...y)
+
+loc g = fn xs... {
+    loc s = 0
+    for _, v in xs {
+        s = s + v
+    }
+    ret s
+}
+
+loc c = curry(g)
+
+assert(c(1,2,3)(4,5) == 15)
+assert(c(...mkls(100, 2))(...mkls(100, 1)) == 300)
