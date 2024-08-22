@@ -13,7 +13,7 @@ global		:=	'let' ident '=' expr
 local		:=	'loc' ident '=' expr
 mut			:=	iden '=' expr
 datamut		:=	ident select select* '=' expr
-call		:=	iden select* '(' (expr (',' expr)*)? ')'
+call		:=	iden select* '(' ...expr | (expr (',' expr)* (',' ...expr)?)? ')'
 block		:=	'{' statement* '}'
 loopBlock	:=	'{' statement* break* continue* '}'
 for			:=	'for' ident '=' expr (',' expr (',' expr)?)? loopBlock
@@ -56,12 +56,12 @@ binop		:=	'and'
 List		:=	'[' (expr (',' expr)*)? ']'
 Object		:=	'{' (pair (',' pair))* '}'
 pair		:=	ident ':' expr
-Function	:=	'fn' (iden (',' iden)*)? fBody | '=>' expr
+Function	:=	'fn' (iden... | iden (',' iden)* (',' iden...)? )? fBody | '=>' expr
 fBody		:=	'{' statement* ret?* '}'
 select		:=	'[' expr | '..' | '..' expr | expr '..' | expr '..' expr ']' select*
 			|	'.' ident select*
-			|	'(' (expr (',' expr)*)? ')' select*
-			|	':' ident '(' (expr (',' expr)*)? ')' select*
+			|	'(' ...expr | (expr (',' expr)*)?  (',' ...expr)? ')' select*
+			|	':' ident '(' ...expr | (expr (',' expr)*)? (',' ...expr)? ')' select*
 break		:=	'break'
 continue	:=	'continue'
 ret			:=	'ret' expr
