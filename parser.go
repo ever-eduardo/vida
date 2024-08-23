@@ -446,10 +446,11 @@ func (p *Parser) operand() ast.Node {
 	case token.INTEGER:
 		if i, err := strconv.ParseInt(p.current.Lit, 0, 64); err == nil {
 			return &ast.Integer{Value: i}
+		} else {
+			p.err = verror.New(p.lexer.ModuleName, "Integer value could not be processed.\n"+err.Error(), verror.SyntaxErrMsg, p.current.Line)
+			p.ok = false
+			return &ast.Nil{}
 		}
-		p.err = verror.New(p.lexer.ModuleName, "Integer value could not be processed", verror.SyntaxErrMsg, p.current.Line)
-		p.ok = false
-		return &ast.Nil{}
 	case token.FLOAT:
 		if f, err := strconv.ParseFloat(p.current.Lit, 64); err == nil {
 			return &ast.Float{Value: f}
