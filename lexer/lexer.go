@@ -131,10 +131,6 @@ func (l *Lexer) scanComment() token.Token {
 		}
 	}
 exit:
-	if l.c < 0 {
-		l.LexicalError = verror.New(l.ModuleName, "Unterminated comment ", verror.LexicalErrMsg, l.line)
-		return token.UNEXPECTED
-	}
 	return token.COMMENT
 }
 
