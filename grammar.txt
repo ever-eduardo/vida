@@ -35,6 +35,7 @@ primary		:=	'true'
 			|	ident
 			|	'(' expr ')'
 			|	Integer
+			|	UInteger
 			|	Float
 			|	String
 			|	List
