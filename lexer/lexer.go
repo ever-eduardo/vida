@@ -115,8 +115,11 @@ func (l *Lexer) scanComment() token.Token {
 		}
 		if l.c == '\n' {
 			l.next()
+			return token.COMMENT
 		}
-		goto exit
+		if l.c == eof {
+			return token.COMMENT
+		}
 	}
 	l.next()
 	for l.c >= 0 {
@@ -127,11 +130,11 @@ func (l *Lexer) scanComment() token.Token {
 		l.next()
 		if ch == '*' && l.c == '/' {
 			l.next()
-			goto exit
+			return token.COMMENT
 		}
 	}
-exit:
-	return token.COMMENT
+	l.LexicalError = verror.New(l.ModuleName, "Unterminated comment ", verror.LexicalErrMsg, l.line)
+	return token.UNEXPECTED
 }
 
 func (l *Lexer) scanString() (token.Token, string) {
