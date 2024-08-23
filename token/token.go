@@ -46,6 +46,11 @@ const (
 	GE
 	EQ
 	NEQ
+	BOR
+	BAND
+	BXOR
+	BSHL
+	BSHR
 	binary_op_end
 
 	keyword_init
@@ -103,6 +108,11 @@ var Tokens = [...]string{
 	GE:         ">=",
 	EQ:         "==",
 	NEQ:        "!=",
+	BOR:        "|",
+	BAND:       "&",
+	BXOR:       "^",
+	BSHL:       "<<",
+	BSHR:       ">>",
 	AND:        "and",
 	OR:         "or",
 	FOR:        "for",
@@ -191,9 +201,9 @@ func (op Token) Precedence() int {
 		return 2
 	case EQ, NEQ, LT, LE, GT, GE:
 		return 3
-	case ADD, SUB:
+	case ADD, SUB, BOR, BXOR:
 		return 4
-	case MUL, DIV, REM:
+	case MUL, DIV, REM, BSHL, BSHR, BAND:
 		return 5
 	}
 	return LowestPrec

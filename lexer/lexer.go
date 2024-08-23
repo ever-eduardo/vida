@@ -347,6 +347,9 @@ func (l *Lexer) Next() (line uint, tok token.Token, lit string) {
 			if l.c == '=' {
 				l.next()
 				tok = token.LE
+			} else if l.c == '<' {
+				l.next()
+				tok = token.BSHL
 			} else {
 				tok = token.LT
 			}
@@ -354,6 +357,9 @@ func (l *Lexer) Next() (line uint, tok token.Token, lit string) {
 			if l.c == '=' {
 				l.next()
 				tok = token.GE
+			} else if l.c == '>' {
+				l.next()
+				tok = token.BSHR
 			} else {
 				tok = token.GT
 			}
@@ -373,6 +379,12 @@ func (l *Lexer) Next() (line uint, tok token.Token, lit string) {
 			tok = token.COLON
 		case '~':
 			tok = token.TILDE
+		case '|':
+			tok = token.BOR
+		case '^':
+			tok = token.BXOR
+		case '&':
+			tok = token.BAND
 		default:
 			tok = token.UNEXPECTED
 			lit = string(ch)

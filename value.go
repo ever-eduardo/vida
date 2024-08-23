@@ -319,6 +319,16 @@ func (l Integer) Binop(op uint64, rhs Value) (Value, error) {
 			return Bool(l > r), nil
 		case uint64(token.GE):
 			return Bool(l >= r), nil
+		case uint64(token.BXOR):
+			return Integer(uint32(l) ^ uint32(r)), nil
+		case uint64(token.BOR):
+			return Integer(uint32(l) | uint32(r)), nil
+		case uint64(token.BAND):
+			return Integer(uint32(l) & uint32(r)), nil
+		case uint64(token.BSHL):
+			return Integer(uint32(l) << uint32(r)), nil
+		case uint64(token.BSHR):
+			return Integer(uint32(l) >> uint32(r)), nil
 		}
 	case Float:
 		switch op {
