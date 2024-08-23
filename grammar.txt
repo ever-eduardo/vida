@@ -53,6 +53,8 @@ binop		:=	'and'
 			|	'>='
 			|	'=='
 			|	'!='
+String		:=	'"' Any valid utf-8 encoded byte '"'
+			|	'`' Any valid utf-8 encoded byte '`'
 List		:=	'[' (expr (',' expr)*)? ']'
 Object		:=	'{' (pair (',' pair))* '}'
 pair		:=	ident ':' expr
