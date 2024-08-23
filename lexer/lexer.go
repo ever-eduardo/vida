@@ -371,6 +371,8 @@ func (l *Lexer) Next() (line uint, tok token.Token, lit string) {
 			tok = token.RBRACKET
 		case ':':
 			tok = token.COLON
+		case '~':
+			tok = token.TILDE
 		default:
 			tok = token.UNEXPECTED
 			lit = string(ch)

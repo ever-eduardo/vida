@@ -400,7 +400,7 @@ func (p *Parser) expression(precedence int) ast.Node {
 
 func (p *Parser) prefix() ast.Node {
 	switch p.current.Token {
-	case token.NOT, token.SUB, token.ADD:
+	case token.NOT, token.SUB, token.ADD, token.TILDE:
 		t := p.current.Token
 		p.advance()
 		e := p.prefix()

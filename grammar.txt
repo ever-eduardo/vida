@@ -26,7 +26,7 @@ while		:=	'while' expr loopBlock
 ident		:=	['_' | letter]+ ['_' | letter | number]*
 expr		:=	prefix
 			|	binary
-prefix		:=	'not' | '+' | '-' prefix
+prefix		:=	'not' | '+' | '-' | '~' prefix
 			|	primary select*
 binary		:=	expr binop expr
 primary		:=	'true'

@@ -31,6 +31,7 @@ const (
 	ARROW
 	DOUBLE_DOT
 	ELLIPSIS
+	TILDE
 	operator_end
 
 	binary_op_init
@@ -90,6 +91,7 @@ var Tokens = [...]string{
 	ARROW:      "=>",
 	DOUBLE_DOT: "..",
 	ELLIPSIS:   "...",
+	TILDE:      "~",
 	ADD:        "+",
 	SUB:        "-",
 	MUL:        "*",

@@ -281,6 +281,8 @@ func (i Integer) Prefix(op uint64) (Value, error) {
 		return Bool(false), nil
 	case uint64(token.ADD):
 		return i, nil
+	case uint64(token.TILDE):
+		return Integer(^uint32(i)), nil
 	}
 	return NilValue, verror.ErrRuntime
 }
