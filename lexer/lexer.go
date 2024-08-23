@@ -142,10 +142,7 @@ func (l *Lexer) scanString() (token.Token, string) {
 	init := l.pointer - 1
 	for {
 		ch := l.c
-		if ch == '\n' {
-			l.line++
-		}
-		if ch < 0 {
+		if ch == '\n' || ch < 0 {
 			l.c = unexpected
 			l.LexicalError = verror.New(l.ModuleName, fmt.Sprintf("The file %v has an unterminated string literal", l.ModuleName), verror.FileErrMsg, l.line)
 			return token.UNEXPECTED, ""
@@ -154,8 +151,49 @@ func (l *Lexer) scanString() (token.Token, string) {
 		if ch == '"' {
 			break
 		}
+		if ch == '\\' && l.c == '"' {
+			l.next()
+		}
 	}
 	return token.STRING, string(l.src[init:l.pointer])
+}
+
+func (l *Lexer) scanRawString() (token.Token, string) {
+	init := l.pointer - 1
+	hasCR := false
+	for {
+		ch := l.c
+		if ch < 0 {
+			l.c = unexpected
+			l.LexicalError = verror.New(l.ModuleName, fmt.Sprintf("The file %v has an unterminated string literal", l.ModuleName), verror.FileErrMsg, l.line)
+			return token.UNEXPECTED, ""
+		}
+		l.next()
+		if ch == '`' {
+			break
+		}
+		if ch == 'r' {
+			hasCR = true
+		}
+	}
+	lit := l.src[init:l.pointer]
+	if hasCR {
+		lit = stripCR(lit)
+	}
+	return token.STRING, string(lit)
+}
+
+func stripCR(b []byte) []byte {
+	lb := len(b)
+	c := make([]byte, lb)
+	i := 0
+	for j, ch := range b {
+		if ch != 'r' || j+1 < lb {
+			c[i] = ch
+			i++
+		}
+	}
+	return c[:i]
 }
 
 func (l *Lexer) scanIdentifier() string {
@@ -268,6 +306,8 @@ func (l *Lexer) Next() (line uint, tok token.Token, lit string) {
 			}
 		case '"':
 			tok, lit = l.scanString()
+		case '`':
+			tok, lit = l.scanRawString()
 		case '+':
 			tok = token.ADD
 		case '-':
