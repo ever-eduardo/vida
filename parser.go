@@ -444,10 +444,10 @@ Loop:
 func (p *Parser) operand() ast.Node {
 	switch p.current.Token {
 	case token.INTEGER:
-		if i, err := strconv.ParseInt(p.current.Lit, 0, 64); err == nil {
-			return &ast.Integer{Value: i}
+		if i, err := strconv.ParseUint(p.current.Lit, 0, 64); err == nil {
+			return &ast.Integer{Value: int64(i)}
 		} else {
-			p.err = verror.New(p.lexer.ModuleName, "Integer value could not be processed.\n"+err.Error(), verror.SyntaxErrMsg, p.current.Line)
+			p.err = verror.New(p.lexer.ModuleName, "Integer value could not be processed", verror.SyntaxErrMsg, p.current.Line)
 			p.ok = false
 			return &ast.Nil{}
 		}
