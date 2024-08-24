@@ -1,0 +1,44 @@
+
+let rand = load("rand")
+
+let alpha = "abcdefghijklmnopqrstuvwxyz"
+
+let mod = len(alpha)
+
+let indexOf = fn cp, s {
+    for i, v in s {
+        if cp == v {
+            ret i
+        }
+    }
+}
+
+let getK = fn => rand.nextI(mod)
+
+let encode = fn k, m, alpha {
+    loc r = ""
+    for _, v in m {
+        r = r + alpha[(indexOf(v, alpha) + k) % mod]
+    }
+    ret r
+}
+
+let decode = fn k, c, alpha {
+    loc r = ""
+    for _, v in c {
+        r = r + alpha[(indexOf(v, alpha) - k) % mod]
+    }
+    ret r
+}
+
+let N = 1000
+let m = "hellothisisthecaesarcipherwithlotsofsecurityinecryptedmessages"
+
+for in N {
+    loc k = getK()
+    loc a = rand.shuffle(alpha)
+    loc c = encode(k, m, a)
+    loc r = decode(k, c, a)
+    assert(m == r)
+}
+
