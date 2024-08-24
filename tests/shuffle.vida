@@ -30,3 +30,15 @@ loc xs = generateList(N)
 
 loc r = shuffle(xs)
 assert(r != nil)
+
+loc alpha = "abcdefghiklmopqrstuvwxyz"
+
+for in 10 {
+    loc r = rand.shuffle(alpha) 
+    print(r)
+    assert(len(r)==len(alpha))
+}
+
+for in 10 {
+    print(fmt("%032b", rand.nextU32()))
+}
