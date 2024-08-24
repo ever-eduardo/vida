@@ -34,6 +34,7 @@ func generateMath() vida.Value {
 	m.Value["asinh"] = mathFromFloatToFloat(math.Asinh)
 	m.Value["acosh"] = mathFromFloatToFloat(math.Acosh)
 	m.Value["atanh"] = mathFromFloatToFloat(math.Atanh)
+	m.Value["pow"] = mathPow(math.Pow)
 	m.UpdateKeys()
 	return m
 }
@@ -95,6 +96,30 @@ func mathFromFloatToFloat(fn func(float64) float64) vida.GFn {
 			}
 			if v, ok := args[0].(vida.Integer); ok {
 				return vida.Float(fn(float64(v))), nil
+			}
+		}
+		return vida.NilValue, nil
+	}
+}
+
+func mathPow(fn func(float64, float64) float64) vida.GFn {
+	return func(args ...vida.Value) (vida.Value, error) {
+		if len(args) > 1 {
+			switch l := args[0].(type) {
+			case vida.Integer:
+				switch r := args[1].(type) {
+				case vida.Integer:
+					return vida.Integer(fn(float64(l), float64(r))), nil
+				case vida.Float:
+					return vida.Float(fn(float64(l), float64(r))), nil
+				}
+			case vida.Float:
+				switch r := args[1].(type) {
+				case vida.Integer:
+					return vida.Float(fn(float64(l), float64(r))), nil
+				case vida.Float:
+					return vida.Float(fn(float64(l), float64(r))), nil
+				}
 			}
 		}
 		return vida.NilValue, nil
