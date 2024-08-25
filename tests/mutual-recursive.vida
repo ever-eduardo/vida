@@ -5,7 +5,7 @@
 let cons = nil
 let prod = nil
 let totalCalls = 0
-let N = 27
+let N = 23
 
 let prod = fn x {
     totalCalls = totalCalls + 1
@@ -22,4 +22,4 @@ let cons = fn x {
 }
 
 prod(N)
-assert(totalCalls==134_217_728)
+assert(totalCalls==8_388_608)

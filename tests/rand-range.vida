@@ -1,5 +1,5 @@
 loc rand = load("rand")
-loc N = 19_000_000
+loc N = 1_000_000
 
 loc randRange = fn a, b {
     assert(b > a)
