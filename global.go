@@ -23,7 +23,7 @@ var coreLibNames = []string{
 	"input",
 	"clone",
 	"del",
-	"failure",
+	"except",
 }
 
 func loadCoreLib() []Value {
@@ -40,7 +40,7 @@ func loadCoreLib() []Value {
 		GFn(gfnReadLine),
 		GFn(gfnClone),
 		GFn(gfnDel),
-		GFn(gfnFailure))
+		GFn(gfnExcept))
 	return clib
 }
 
@@ -181,9 +181,9 @@ func gfnLoadLib(args ...Value) (Value, error) {
 	return NilValue, nil
 }
 
-func gfnFailure(args ...Value) (Value, error) {
+func gfnExcept(args ...Value) (Value, error) {
 	if len(args) > 0 {
-		return NilValue, fmt.Errorf("%v: %v", verror.FatalFailure, args[0].String())
+		return NilValue, fmt.Errorf("%v: %v", verror.Exception, args[0].String())
 	}
-	return NilValue, fmt.Errorf("%v", verror.FatalFailure)
+	return NilValue, fmt.Errorf("%v", verror.Exception)
 }
