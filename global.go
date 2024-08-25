@@ -23,7 +23,7 @@ var coreLibNames = []string{
 	"input",
 	"clone",
 	"del",
-	"except",
+	"exception",
 }
 
 func loadCoreLib() []Value {
