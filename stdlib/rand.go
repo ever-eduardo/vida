@@ -2,7 +2,6 @@ package stdlib
 
 import (
 	"math/rand/v2"
-	"strings"
 
 	"github.com/ever-eduardo/vida"
 )
@@ -70,13 +69,19 @@ func randShuffle() vida.GFn {
 	return func(args ...vida.Value) (vida.Value, error) {
 		if len(args) > 0 {
 			if v, ok := args[0].(*vida.List); ok {
-				rand.Shuffle(len(v.Value), func(i, j int) { v.Value[i], v.Value[j] = v.Value[j], v.Value[i] })
-				return v, nil
+				c := v.Clone().(*vida.List)
+				rand.Shuffle(len(v.Value), func(i, j int) { c.Value[i], c.Value[j] = c.Value[j], c.Value[i] })
+				return c, nil
 			}
 			if v, ok := args[0].(vida.String); ok {
-				s := strings.Split(v.Value, "")
-				rand.Shuffle(len(s), func(i, j int) { s[i], s[j] = s[j], s[i] })
-				return vida.String{Value: strings.Join(s, "")}, nil
+				if v.Runes == nil {
+					v.Runes = []rune(v.Value)
+				}
+				l := len(v.Runes)
+				r := make([]rune, l)
+				copy(r, v.Runes)
+				rand.Shuffle(l, func(i, j int) { r[i], r[j] = r[j], r[i] })
+				return vida.String{Value: string(r), Runes: r}, nil
 			}
 		}
 		return vida.NilValue, nil
