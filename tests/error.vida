@@ -1,0 +1,108 @@
+
+loc errors = {
+    whenTrue: error(42),
+    whenFalse: error(90)
+}
+
+loc g = fn v {
+    if v {
+        ret errors.whenTrue
+    }
+    ret errors.whenFalse
+}
+
+
+loc r = g(true)
+assert(r.message == errors.whenTrue.message)
+assert(r.message == error(errors.whenTrue.message).message)
+
+if iserror(r) {
+    assert(not r)
+}
+
+r = g(nil)
+assert(r.message == errors.whenFalse.message)
+assert(r.message == error(errors.whenFalse.message).message)
+
+if iserror(r) {
+    assert(not r)
+}
+
+assert(error() == error())
+assert(error(0xff<<2) == error(0xff<<2))
+assert(error("") == error(""))
+assert(error(false) == error(not true))
+assert(error(not false) == error(not nil))
+assert(error(not error()) == error(not error()))
+assert((error() and 42) == error())
+assert((error() or 42) == error(42).message)
+
+r = error()
+
+if not r {
+    assert(iserror(r))
+}
+
+if r {
+    assert(true)
+} else {
+    assert(iserror(r))
+}
+
+loc val = 0b11111111
+assert((r and val) == r)
+
+val = 45.67
+assert((r and val) == r)
+
+val = ""
+assert((r and val) == r)
+
+val = []
+assert((r and val) == r)
+
+val = {}
+assert((r and val) == r)
+
+val = true
+assert((r and val) == r)
+
+val = false
+assert((r and val) == r)
+
+val = nil
+assert((r and val) == r)
+
+val = fn => nil
+assert((r and val) == r)
+
+val = print
+assert((r and val) == r)
+
+loc val = 0b11111111
+assert((r or val) == val)
+
+val = 45.67
+assert((r or val) == val)
+
+val = ""
+assert((r or val) == val)
+
+val = []
+assert((r or val) == val)
+
+val = {}
+assert((r or val) == val)
+
+val = true
+assert((r or val) == val)
+
+val = false
+assert((r or val) == val)
+
+val = nil
+assert((r or val) == val)
+
+val = fn => nil
+assert((r or val) == val)
+

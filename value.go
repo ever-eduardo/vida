@@ -979,3 +979,71 @@ func (gFn GFn) Clone() Value {
 func (gfn GFn) Type() string {
 	return "function"
 }
+
+type Error struct {
+	Message Value
+}
+
+func (e Error) Boolean() Bool {
+	return false
+}
+
+func (e Error) Prefix(op uint64) (Value, error) {
+	switch op {
+	case uint64(token.NOT):
+		return Bool(true), nil
+	default:
+		return NilValue, verror.ErrRuntime
+	}
+}
+
+func (e Error) Binop(op uint64, rhs Value) (Value, error) {
+	switch op {
+	case uint64(token.AND):
+		return e, nil
+	case uint64(token.OR):
+		return rhs, nil
+	default:
+		return NilValue, verror.ErrRuntime
+	}
+}
+
+func (e Error) IGet(index Value) (Value, error) {
+	if val, ok := index.(String); ok && val.Value == "message" {
+		return e.Message, nil
+	}
+	return NilValue, nil
+}
+
+func (e Error) ISet(index, val Value) error {
+	return verror.ErrRuntime
+}
+
+func (e Error) Equals(other Value) Bool {
+	v, ok := other.(Error)
+	return Bool(ok) && e.Message.Equals(v.Message)
+}
+
+func (e Error) IsIterable() Bool {
+	return false
+}
+
+func (e Error) IsCallable() Bool {
+	return false
+}
+
+func (e Error) Iterator() Value {
+	return NilValue
+}
+
+func (e Error) String() string {
+	return fmt.Sprintf("Error: %v", e.Message.String())
+}
+
+func (e Error) Type() string {
+	return "error"
+}
+
+func (e Error) Clone() Value {
+	return e
+}
