@@ -251,8 +251,9 @@ func (c *Compiler) compileStmt(node ast.Node) {
 			c.emitJump(init)
 			c.cleanUpLoopScope(init, true)
 		} else {
+			c.exprToReg(idx, scope)
 			addr := len(c.currentFn.Code)
-			c.emitCheck(0, idx, 0)
+			c.emitCheck(0, c.rAlloc, 0)
 			c.compileStmt(n.Block)
 			c.emitJump(init)
 			c.currentFn.Code[addr] |= uint64(len(c.currentFn.Code))
@@ -1058,18 +1059,18 @@ func (c *Compiler) integrateKonst(val Value) (int, int) {
 	}
 }
 
-func (c *Compiler) exprToReg(v, s int) {
+func (c *Compiler) exprToReg(i, s int) {
 	switch s {
 	case rLoc:
-		if v != c.rAlloc {
-			c.emitMove(v, c.rAlloc)
+		if i != c.rAlloc {
+			c.emitMove(i, c.rAlloc)
 		}
 	case rGlob:
-		c.emitLoadG(v, c.rAlloc)
+		c.emitLoadG(i, c.rAlloc)
 	case rKonst:
-		c.emitLoadK(v, c.rAlloc)
+		c.emitLoadK(i, c.rAlloc)
 	case rFree:
-		c.emitLoadF(v, c.rAlloc)
+		c.emitLoadF(i, c.rAlloc)
 	}
 }
 
