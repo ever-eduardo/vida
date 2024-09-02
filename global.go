@@ -25,11 +25,11 @@ var coreLibNames = []string{
 	"del",
 	"error",
 	"exception",
-	"iserror",
+	"err",
 }
 
 func loadCoreLib() []Value {
-	clib := make([]Value, 0)
+	clib := make([]Value, 32)
 	clib = append(clib,
 		GFn(gfnPrint),
 		GFn(gfnLen),
