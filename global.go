@@ -53,7 +53,7 @@ func gfnPrint(args ...Value) (Value, error) {
 	for _, v := range args {
 		s = append(s, v.String())
 	}
-	fmt.Println(s...)
+	fmt.Fprintln(os.Stdout, s...)
 	return NilValue, nil
 }
 
