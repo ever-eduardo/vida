@@ -41,6 +41,7 @@ primary		:=	'true'
 			|	List
 			|	Object
 			|	Function
+			|	Error
 binop		:=	'and'
 			|	'or'
 			|	'+'
@@ -64,6 +65,7 @@ String		:=	'"' Any valid utf-8 encoded byte '"'
 List		:=	'[' (expr (',' expr)*)? ']'
 Object		:=	'{' (pair (',' pair))* '}'
 pair		:=	ident ':' expr
+Error		:=	'error' '(' expr? ')'
 Function	:=	'fn' (iden... | iden (',' iden)* (',' iden...)? )? fBody | '=>' expr
 fBody		:=	'{' statement* ret?* '}'
 select		:=	'[' expr | '..' | '..' expr | expr '..' | expr '..' expr ']' select*
