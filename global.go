@@ -29,7 +29,7 @@ var coreLibNames = []string{
 }
 
 func loadCoreLib() []Value {
-	clib := make([]Value, 32)
+	clib := make([]Value, 0, 32)
 	clib = append(clib,
 		GFn(gfnPrint),
 		GFn(gfnLen),
