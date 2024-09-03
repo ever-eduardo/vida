@@ -28,8 +28,10 @@ var coreLibNames = []string{
 	"err",
 }
 
+const initStoreSize = 32
+
 func loadCoreLib() []Value {
-	clib := make([]Value, 0, 32)
+	clib := make([]Value, 0, initStoreSize)
 	clib = append(clib,
 		GFn(gfnPrint),
 		GFn(gfnLen),
