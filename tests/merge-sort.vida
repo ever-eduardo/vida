@@ -10,7 +10,7 @@ loc rand = load("rand")
 
 
 loc iComparable = {
-    comparedTo: fn self, r {
+    comparedTo = fn self, r {
         if self.val < r.val {
             ret -1
         }
@@ -23,13 +23,13 @@ loc iComparable = {
 
 
 loc iPrinter = {
-    print: fn self {
+    print = fn self {
         p(self.val)
     }
 }
 
 
-loc data = {val: nil, comparedTo: iComparable.comparedTo, print: iPrinter.print}
+loc data = {val = nil, comparedTo = iComparable.comparedTo, print = iPrinter.print}
 
 
 loc makeData = fn N, rnd, upperLimit {

@@ -5,7 +5,7 @@
 
 
 let iComparable = {
-    comparedTo: fn self, r {
+    comparedTo = fn self, r {
         if self.val < r.val {
             ret -1
         }
@@ -39,8 +39,8 @@ let isSorted = fn comparables {
 }
 
 let number = {
-    val: 0,
-    comparedTo: iComparable.comparedTo
+    val = 0,
+    comparedTo = iComparable.comparedTo
 }
 
 

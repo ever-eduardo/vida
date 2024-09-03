@@ -1,48 +1,48 @@
 
 
 let data = {
-    one: {
-        two: {
-            three: {
-                four: {
-                    five: {
-                        code: 1
+    one= {
+        two= {
+            three= {
+                four= {
+                    five= {
+                        code= 1
                     }
                 }
             }
         }
     },
-    zero: 0
+    zero= 0
 }
 
 let hello = {
-    one: {
-        two: {
-            three: {
-                four: {
-                    five: {
-                        code: 1
+    one= {
+        two= {
+            three= {
+                four= {
+                    five= {
+                        code= 1
                     }
                 }
             }
         }
     },
-    zero: 0
+    zero= 0
 }
 
 let world = {
-    one: {
-        two: {
-            three: {
-                four: {
-                    five: {
-                        code: 1
+    one= {
+        two= {
+            three= {
+                four= {
+                    five= {
+                        code= 1
                     }
                 }
             }
         }
     },
-    zero: 0
+    zero= 0
 }
 
 

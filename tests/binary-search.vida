@@ -19,12 +19,11 @@ let binarySearch = fn xs, key {
             ret mid
         }
     }
-    ret -1
 }
 
 assert(binarySearch(data, 7)==7)
 assert(binarySearch(data, 176_565)==176_565)
-assert(binarySearch(data, -1)==-1)
-assert(binarySearch(data, N+1)==-1)
+assert(binarySearch(data, -1)==nil)
+assert(binarySearch(data, N+1)==nil)
 assert(binarySearch(data, 567_901)==567_901)
 
