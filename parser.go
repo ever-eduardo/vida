@@ -503,7 +503,7 @@ func (p *Parser) operand() ast.Node {
 			p.expect(token.IDENTIFIER)
 			k := &ast.Property{Value: p.current.Lit}
 			p.advance()
-			p.expect(token.COLON)
+			p.expect(token.ASSIGN)
 			p.advance()
 			v := p.expression(token.LowestPrec)
 			p.advance()
@@ -517,7 +517,7 @@ func (p *Parser) operand() ast.Node {
 				p.expect(token.IDENTIFIER)
 				k := &ast.Property{Value: p.current.Lit}
 				p.advance()
-				p.expect(token.COLON)
+				p.expect(token.ASSIGN)
 				p.advance()
 				v := p.expression(token.LowestPrec)
 				p.advance()

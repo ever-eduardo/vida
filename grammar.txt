@@ -35,7 +35,6 @@ primary		:=	'true'
 			|	ident
 			|	'(' expr ')'
 			|	Integer
-			|	UInteger
 			|	Float
 			|	String
 			|	List
@@ -64,7 +63,7 @@ String		:=	'"' Any valid utf-8 encoded byte '"'
 			|	'`' Any valid utf-8 encoded byte '`'
 List		:=	'[' (expr (',' expr)*)? ']'
 Object		:=	'{' (pair (',' pair))* '}'
-pair		:=	ident ':' expr
+pair		:=	ident '=' expr
 Error		:=	'error' '(' expr? ')'
 Function	:=	'fn' (iden... | iden (',' iden)* (',' iden...)? )? fBody | '=>' expr
 fBody		:=	'{' statement* ret?* '}'
