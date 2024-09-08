@@ -14,7 +14,7 @@ func generateRandom() vida.Value {
 	m.Value["norm"] = randNextF(rand.NormFloat64)
 	m.Value["exp"] = randNextF(rand.ExpFloat64)
 	m.Value["perm"] = randPerm()
-	m.Value["shuffle"] = randShuffle()
+	m.Value["shuffled"] = randShuffled()
 	m.UpdateKeys()
 	return m
 }
@@ -65,7 +65,7 @@ func randPerm() vida.GFn {
 	}
 }
 
-func randShuffle() vida.GFn {
+func randShuffled() vida.GFn {
 	return func(args ...vida.Value) (vida.Value, error) {
 		if len(args) > 0 {
 			if v, ok := args[0].(*vida.List); ok {
