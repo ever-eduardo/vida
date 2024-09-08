@@ -34,7 +34,7 @@ assert(r != nil)
 loc alpha = "abcdefghiklmopqrstuvwxyz"
 
 for in 10 {
-    loc r = rand.shuffle(alpha) 
+    loc r = rand.shuffled(alpha) 
     print(r)
     assert(len(r)==len(alpha))
 }
