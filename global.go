@@ -25,7 +25,7 @@ var coreLibNames = []string{
 	"del",
 	"error",
 	"exception",
-	"err",
+	"isError",
 }
 
 const initStoreSize = 32
