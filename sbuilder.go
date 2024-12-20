@@ -1,7 +1,5 @@
 package vida
 
-var dummy struct{}
-
 type lKey struct {
 	id    string
 	level int

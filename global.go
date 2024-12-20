@@ -200,6 +200,7 @@ func gfnError(args ...Value) (Value, error) {
 	}
 	return Error{Message: NilValue}, nil
 }
+
 func gfnIsError(args ...Value) (Value, error) {
 	if len(args) > 0 {
 		_, ok := args[0].(Error)

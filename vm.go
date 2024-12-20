@@ -33,12 +33,12 @@ type VM struct {
 	fp     int
 }
 
-func NewVM(m *Module, libLoaders map[string]func() Value) (*VM, error) {
+func newVM(m *Module, libLoaders map[string]func() Value) (*VM, error) {
 	LibLoaders = libLoaders
 	return &VM{Module: m}, checkISACompatibility(m)
 }
 
-func (vm *VM) Run() (Result, error) {
+func (vm *VM) run() (Result, error) {
 	vm.Frame = &vm.Frames[vm.fp]
 	vm.Frame.code = vm.Module.MainFunction.CoreFn.Code
 	vm.Frame.lambda = vm.Module.MainFunction

@@ -4,7 +4,7 @@ import (
 	"os"
 )
 
-func ReadModule(moduleName string) ([]byte, error) {
+func readModule(moduleName string) ([]byte, error) {
 	if data, err := os.ReadFile(moduleName); err == nil {
 		return data, nil
 	} else {

@@ -27,7 +27,7 @@ type Compiler struct {
 	hadError      bool
 }
 
-func NewCompiler(ast *ast.Ast, moduleName string) *Compiler {
+func newCompiler(ast *ast.Ast, moduleName string) *Compiler {
 	c := &Compiler{
 		ast:    ast,
 		module: newModule(moduleName),
@@ -39,7 +39,7 @@ func NewCompiler(ast *ast.Ast, moduleName string) *Compiler {
 	return c
 }
 
-func (c *Compiler) CompileModule() (*Module, error) {
+func (c *Compiler) compileModule() (*Module, error) {
 	c.appendHeader()
 	for i := range len(c.ast.Statement) {
 		c.compileStmt(c.ast.Statement[i])

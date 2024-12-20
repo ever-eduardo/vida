@@ -19,7 +19,7 @@ type Parser struct {
 	ok      bool
 }
 
-func NewParser(src []byte, moduleName string) *Parser {
+func newParser(src []byte, moduleName string) *Parser {
 	p := Parser{
 		lexer: lexer.New(src, moduleName),
 		ok:    true,
@@ -30,7 +30,7 @@ func NewParser(src []byte, moduleName string) *Parser {
 	return &p
 }
 
-func (p *Parser) Parse() (*ast.Ast, error) {
+func (p *Parser) parse() (*ast.Ast, error) {
 	for p.ok {
 		switch p.current.Token {
 		case token.IDENTIFIER:
