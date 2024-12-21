@@ -15,7 +15,7 @@ func main() {
 	// defer pprof.StopCPUProfile()
 	clear()
 	println(vida.Name(), vida.Version())
-	debug := true
+	debug := false
 	module := "sketchpad.vida"
 	if debug {
 		debugPath(module)
@@ -35,7 +35,7 @@ func debugPath(modulePath string) {
 func normalPath(modulePath string) {
 	i, err := vida.NewInterpreter(modulePath, stdlib.LoadStdlib())
 	handleError(err)
-	r, err := i.Measure()
+	r, err := i.MeasureRunTime()
 	handleError(err)
 	fmt.Println(r)
 }

@@ -73,7 +73,7 @@ func (i *Interpreter) Run() (Result, error) {
 	return i.vm.run()
 }
 
-func (i *Interpreter) Measure() (Result, error) {
+func (i *Interpreter) MeasureRunTime() (Result, error) {
 	init := time.Now()
 	r, err := i.vm.run()
 	fmt.Printf("VM time = %vs\n", time.Since(init).Seconds())

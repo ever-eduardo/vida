@@ -34,7 +34,7 @@ type VM struct {
 }
 
 func newVM(m *Module, libLoaders map[string]func() Value) (*VM, error) {
-	LibLoaders = libLoaders
+	stdlibLoader = libLoaders
 	return &VM{Module: m}, checkISACompatibility(m)
 }
 

@@ -29,7 +29,7 @@ func main() {
 func executeModule(modulePath string) {
 	i, err := vida.NewInterpreter(modulePath, stdlib.LoadStdlib())
 	handleError(err)
-	r, err := i.Measure()
+	r, err := i.MeasureRunTime()
 	handleError(err)
 	fmt.Println(r)
 }

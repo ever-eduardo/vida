@@ -9,7 +9,7 @@ import (
 )
 
 var NilValue = Nil{}
-var LibLoaders map[string]func() Value
+var stdlibLoader map[string]func() Value
 
 var coreLibNames = []string{
 	"print",
@@ -28,10 +28,10 @@ var coreLibNames = []string{
 	"isError",
 }
 
-const initStoreSize = 32
+const initialStoreSize = 32
 
 func loadCoreLib() []Value {
-	clib := make([]Value, 0, initStoreSize)
+	clib := make([]Value, 0, initialStoreSize)
 	clib = append(clib,
 		GFn(gfnPrint),
 		GFn(gfnLen),
@@ -179,7 +179,7 @@ func gfnDel(args ...Value) (Value, error) {
 func gfnLoadLib(args ...Value) (Value, error) {
 	if len(args) > 0 {
 		if v, ok := args[0].(String); ok {
-			if l, isPresent := LibLoaders[v.Value]; isPresent {
+			if l, isPresent := stdlibLoader[v.Value]; isPresent {
 				return l(), nil
 			}
 		}
