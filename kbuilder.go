@@ -1,6 +1,6 @@
 package vida
 
-type KonstBuilder struct {
+type konstBuilder struct {
 	stringMap  map[string]int
 	booleanMap map[bool]int
 	integerMap map[int64]int
@@ -10,8 +10,8 @@ type KonstBuilder struct {
 	nilIndex   int
 }
 
-func newKonstBuilder() *KonstBuilder {
-	return &KonstBuilder{
+func newKonstBuilder() *konstBuilder {
+	return &konstBuilder{
 		stringMap:  make(map[string]int),
 		booleanMap: make(map[bool]int),
 		integerMap: make(map[int64]int),
@@ -21,7 +21,7 @@ func newKonstBuilder() *KonstBuilder {
 	}
 }
 
-func (kb *KonstBuilder) StringIndex(value string) int {
+func (kb *konstBuilder) StringIndex(value string) int {
 	idx, isPresent := kb.stringMap[value]
 	if isPresent {
 		return idx
@@ -33,7 +33,7 @@ func (kb *KonstBuilder) StringIndex(value string) int {
 	return i
 }
 
-func (kb *KonstBuilder) BooleanIndex(value bool) int {
+func (kb *konstBuilder) BooleanIndex(value bool) int {
 	idx, isPresent := kb.booleanMap[value]
 	if isPresent {
 		return idx
@@ -45,7 +45,7 @@ func (kb *KonstBuilder) BooleanIndex(value bool) int {
 	return i
 }
 
-func (kb *KonstBuilder) NilIndex() int {
+func (kb *konstBuilder) NilIndex() int {
 	if kb.nilIndex != -1 {
 		return kb.nilIndex
 	}
@@ -55,7 +55,7 @@ func (kb *KonstBuilder) NilIndex() int {
 	return kb.nilIndex
 }
 
-func (kb *KonstBuilder) IntegerIndex(value int64) int {
+func (kb *konstBuilder) IntegerIndex(value int64) int {
 	idx, isPresent := kb.integerMap[value]
 	if isPresent {
 		return idx
@@ -67,7 +67,7 @@ func (kb *KonstBuilder) IntegerIndex(value int64) int {
 	return i
 }
 
-func (kb *KonstBuilder) FloatIndex(value float64) int {
+func (kb *konstBuilder) FloatIndex(value float64) int {
 	idx, isPresent := kb.floatMap[value]
 	if isPresent {
 		return idx
@@ -79,7 +79,7 @@ func (kb *KonstBuilder) FloatIndex(value float64) int {
 	return i
 }
 
-func (kb *KonstBuilder) FunctionIndex(value *CoreFunction) int {
+func (kb *konstBuilder) FunctionIndex(value *CoreFunction) int {
 	i := kb.index
 	*kb.Konstants = append(*kb.Konstants, value)
 	kb.index++

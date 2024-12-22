@@ -8,7 +8,7 @@ import (
 	"github.com/ever-eduardo/vida/verror"
 )
 
-func (vm *VM) Inspect(ip int) {
+func (vm *vM) Inspect(ip int) {
 	clear()
 	fmt.Println("Running", vm.Module.Name)
 	fmt.Printf("Store => ")
@@ -39,7 +39,7 @@ func (vm *VM) Inspect(ip int) {
 	fmt.Scanf(" ")
 }
 
-func (vm *VM) debug() (Result, error) {
+func (vm *vM) debug() (Result, error) {
 	vm.Frame = &vm.Frames[vm.fp]
 	vm.Frame.code = vm.Module.MainFunction.CoreFn.Code
 	vm.Frame.lambda = vm.Module.MainFunction

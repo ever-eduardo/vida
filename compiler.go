@@ -6,7 +6,7 @@ import (
 	"github.com/ever-eduardo/vida/verror"
 )
 
-type Compiler struct {
+type compiler struct {
 	jumps         []int
 	breakJumps    []int
 	breakCount    []int
@@ -16,7 +16,7 @@ type Compiler struct {
 	currentFn     *CoreFunction
 	ast           *ast.Ast
 	module        *Module
-	kb            *KonstBuilder
+	kb            *konstBuilder
 	sb            *symbolBuilder
 	moduleMap     map[string]int
 	depMap        map[string]struct{}
@@ -32,10 +32,10 @@ type Compiler struct {
 
 var dummy = struct{}{}
 
-func newMainCompiler(ast *ast.Ast, moduleName string) *Compiler {
+func newMainCompiler(ast *ast.Ast, moduleName string) *compiler {
 	dm := make(map[string]struct{})
 	dm[moduleName] = dummy
-	c := &Compiler{
+	c := &compiler{
 		ast:       ast,
 		module:    newMainModule(moduleName),
 		kb:        newKonstBuilder(),
@@ -48,8 +48,8 @@ func newMainCompiler(ast *ast.Ast, moduleName string) *Compiler {
 	return c
 }
 
-func newSubCompiler(ast *ast.Ast, moduleName string, kb *KonstBuilder, store *[]Value, moduleMap map[string]int, depMap map[string]struct{}, initialIndex int) *Compiler {
-	c := &Compiler{
+func newSubCompiler(ast *ast.Ast, moduleName string, kb *konstBuilder, store *[]Value, moduleMap map[string]int, depMap map[string]struct{}, initialIndex int) *compiler {
+	c := &compiler{
 		ast:           ast,
 		module:        newSubModule(moduleName, store),
 		kb:            kb,
@@ -63,7 +63,7 @@ func newSubCompiler(ast *ast.Ast, moduleName string, kb *KonstBuilder, store *[]
 	return c
 }
 
-func (c *Compiler) compileModule() (*Module, error) {
+func (c *compiler) compileModule() (*Module, error) {
 	c.appendHeader()
 	for i := range len(c.ast.Statement) {
 		c.compileStmt(c.ast.Statement[i])
@@ -76,7 +76,7 @@ func (c *Compiler) compileModule() (*Module, error) {
 	return c.module, nil
 }
 
-func (c *Compiler) compileSubModule() (*Module, error) {
+func (c *compiler) compileSubModule() (*Module, error) {
 	for i := range len(c.ast.Statement) {
 		c.compileStmt(c.ast.Statement[i])
 	}
@@ -86,7 +86,7 @@ func (c *Compiler) compileSubModule() (*Module, error) {
 	return c.module, nil
 }
 
-func (c *Compiler) compileStmt(node ast.Node) {
+func (c *compiler) compileStmt(node ast.Node) {
 	switch n := node.(type) {
 	case *ast.Mut:
 		to, sIdent := c.refScope(n.Indentifier)
@@ -501,7 +501,7 @@ func (c *Compiler) compileStmt(node ast.Node) {
 	}
 }
 
-func (c *Compiler) compileExpr(node ast.Node, isRoot bool) (int, int) {
+func (c *compiler) compileExpr(node ast.Node, isRoot bool) (int, int) {
 	switch n := node.(type) {
 	case *ast.Integer:
 		return c.kb.IntegerIndex(n.Value), rKonst
@@ -1036,7 +1036,7 @@ func (c *Compiler) compileExpr(node ast.Node, isRoot bool) (int, int) {
 	}
 }
 
-func (c *Compiler) compileConditional(n *ast.If, shouldJumpOutside bool) {
+func (c *compiler) compileConditional(n *ast.If, shouldJumpOutside bool) {
 	idx, scope := c.compileExpr(n.Condition, false)
 	if scope == rKonst {
 		switch v := (*c.kb.Konstants)[idx].(type) {
@@ -1059,14 +1059,14 @@ func (c *Compiler) compileConditional(n *ast.If, shouldJumpOutside bool) {
 	}
 }
 
-func (c *Compiler) skipBlock(block ast.Node) {
+func (c *compiler) skipBlock(block ast.Node) {
 	addr := len(c.currentFn.Code)
 	c.emitJump(0)
 	c.compileStmt(block)
 	c.currentFn.Code[addr] |= uint64(len(c.currentFn.Code))
 }
 
-func (c *Compiler) compileBlockAndCheckJump(block ast.Node, shouldJumpOutside bool) {
+func (c *compiler) compileBlockAndCheckJump(block ast.Node, shouldJumpOutside bool) {
 	c.compileStmt(block)
 	if shouldJumpOutside {
 		c.jumps = append(c.jumps, len(c.currentFn.Code))
@@ -1074,7 +1074,7 @@ func (c *Compiler) compileBlockAndCheckJump(block ast.Node, shouldJumpOutside bo
 	}
 }
 
-func (c *Compiler) cleanUpLoopScope(init int, isWhileLoop bool) {
+func (c *compiler) cleanUpLoopScope(init int, isWhileLoop bool) {
 	hasBreaks := len(c.breakJumps)
 	lastElem := len(c.breakCount) - 1
 	count := c.breakCount[lastElem]
@@ -1101,26 +1101,26 @@ func (c *Compiler) cleanUpLoopScope(init int, isWhileLoop bool) {
 	c.continueCount = c.continueCount[:lastElem]
 }
 
-func (c *Compiler) startLoopScope() {
+func (c *compiler) startLoopScope() {
 	c.breakCount = append(c.breakCount, 0)
 	c.continueCount = append(c.continueCount, 0)
 }
 
-func (c *Compiler) startFuncScope() int {
+func (c *compiler) startFuncScope() int {
 	r := c.rAlloc
 	c.rAlloc = 0
 	c.level++
 	return r
 }
 
-func (c *Compiler) leaveFuncScope() {
+func (c *compiler) leaveFuncScope() {
 	c.sb.clearLocals(c.level, c.scope)
 	c.fn = c.fn[:c.level]
 	c.level--
 	c.currentFn = c.fn[c.level]
 }
 
-func (c *Compiler) integrateKonst(val Value) (int, int) {
+func (c *compiler) integrateKonst(val Value) (int, int) {
 	switch e := val.(type) {
 	case Integer:
 		return c.kb.IntegerIndex(int64(e)), rKonst
@@ -1135,7 +1135,7 @@ func (c *Compiler) integrateKonst(val Value) (int, int) {
 	}
 }
 
-func (c *Compiler) exprToReg(i, s int) {
+func (c *compiler) exprToReg(i, s int) {
 	switch s {
 	case rLoc:
 		if i != c.rAlloc {
@@ -1150,7 +1150,7 @@ func (c *Compiler) exprToReg(i, s int) {
 	}
 }
 
-func (c *Compiler) compileBinaryExpr(n *ast.BinaryExpr, isRoot bool) (int, int) {
+func (c *compiler) compileBinaryExpr(n *ast.BinaryExpr, isRoot bool) (int, int) {
 	lidx, lscope := c.compileExpr(n.Lhs, false)
 	lreg := c.rAlloc
 	switch lscope {
@@ -1321,7 +1321,7 @@ func (c *Compiler) compileBinaryExpr(n *ast.BinaryExpr, isRoot bool) (int, int) 
 	return lreg, rLoc
 }
 
-func (c *Compiler) compileBinaryEq(n *ast.BinaryExpr, isRoot bool) (int, int) {
+func (c *compiler) compileBinaryEq(n *ast.BinaryExpr, isRoot bool) (int, int) {
 	lidx, lscope := c.compileExpr(n.Lhs, false)
 	lreg := c.rAlloc
 	switch lscope {

@@ -8,9 +8,9 @@ import (
 )
 
 type Interpreter struct {
-	parser   *Parser
-	compiler *Compiler
-	vm       *VM
+	parser   *parser
+	compiler *compiler
+	vm       *vM
 }
 
 func NewInterpreter(modulePath string, stdlib map[string]func() Value) (*Interpreter, error) {

@@ -25,7 +25,7 @@ type frame struct {
 	ret    int
 }
 
-type VM struct {
+type vM struct {
 	Frames [frameSize]frame
 	Stack  [stackSize]Value
 	Module *Module
@@ -33,12 +33,12 @@ type VM struct {
 	fp     int
 }
 
-func newVM(m *Module, libLoaders map[string]func() Value) (*VM, error) {
+func newVM(m *Module, libLoaders map[string]func() Value) (*vM, error) {
 	stdlibLoader = libLoaders
-	return &VM{Module: m}, checkISACompatibility(m)
+	return &vM{Module: m}, checkISACompatibility(m)
 }
 
-func (vm *VM) run() (Result, error) {
+func (vm *vM) run() (Result, error) {
 	vm.Frame = &vm.Frames[vm.fp]
 	vm.Frame.code = vm.Module.MainFunction.CoreFn.Code
 	vm.Frame.lambda = vm.Module.MainFunction
@@ -325,7 +325,7 @@ func (vm *VM) run() (Result, error) {
 	}
 }
 
-func (vm *VM) processSlice(mode, sliceable uint64) (Value, error) {
+func (vm *vM) processSlice(mode, sliceable uint64) (Value, error) {
 	val := vm.Frame.stack[sliceable]
 	switch v := val.(type) {
 	case *List:

@@ -10,7 +10,7 @@ import (
 	"github.com/ever-eduardo/vida/verror"
 )
 
-type Parser struct {
+type parser struct {
 	err     verror.VidaError
 	current token.TokenInfo
 	next    token.TokenInfo
@@ -19,8 +19,8 @@ type Parser struct {
 	ok      bool
 }
 
-func newParser(src []byte, moduleName string) *Parser {
-	p := Parser{
+func newParser(src []byte, moduleName string) *parser {
+	p := parser{
 		lexer: lexer.New(src, moduleName),
 		ok:    true,
 		ast:   &ast.Ast{},
@@ -30,7 +30,7 @@ func newParser(src []byte, moduleName string) *Parser {
 	return &p
 }
 
-func (p *Parser) parse() (*ast.Ast, error) {
+func (p *parser) parse() (*ast.Ast, error) {
 	for p.ok {
 		switch p.current.Token {
 		case token.IDENTIFIER:
@@ -70,7 +70,7 @@ func (p *Parser) parse() (*ast.Ast, error) {
 	return nil, p.err
 }
 
-func (p *Parser) mutOrCall(statements *[]ast.Node) ast.Node {
+func (p *parser) mutOrCall(statements *[]ast.Node) ast.Node {
 	if p.next.Token == token.DOT ||
 		p.next.Token == token.LBRACKET ||
 		p.next.Token == token.LPAREN ||
@@ -86,7 +86,7 @@ func (p *Parser) mutOrCall(statements *[]ast.Node) ast.Node {
 	return &ast.Mut{Indentifier: i, Expr: e}
 }
 
-func (p *Parser) localStmt() ast.Node {
+func (p *parser) localStmt() ast.Node {
 	p.advance()
 	p.expect(token.IDENTIFIER)
 	i := p.current.Lit
@@ -98,7 +98,7 @@ func (p *Parser) localStmt() ast.Node {
 	return &ast.Loc{Identifier: i, Expr: e}
 }
 
-func (p *Parser) global() ast.Node {
+func (p *parser) global() ast.Node {
 	p.advance()
 	p.expect(token.IDENTIFIER)
 	i := p.current.Lit
@@ -110,7 +110,7 @@ func (p *Parser) global() ast.Node {
 	return &ast.Let{Indentifier: i, Expr: e}
 }
 
-func (p *Parser) block(isInsideLoop bool) ast.Node {
+func (p *parser) block(isInsideLoop bool) ast.Node {
 	block := &ast.Block{}
 	p.advance()
 	for p.current.Token != token.RCURLY {
@@ -161,7 +161,7 @@ func (p *Parser) block(isInsideLoop bool) ast.Node {
 	return block
 }
 
-func (p *Parser) mutateDataStructureOrCall(statements *[]ast.Node) ast.Node {
+func (p *parser) mutateDataStructureOrCall(statements *[]ast.Node) ast.Node {
 	*statements = append(*statements, &ast.ReferenceStmt{Value: p.current.Lit})
 	var i ast.Node
 Loop:
@@ -282,7 +282,7 @@ assignment:
 	return &ast.ISet{Index: i, Expr: e}
 }
 
-func (p *Parser) forLoop() ast.Node {
+func (p *parser) forLoop() ast.Node {
 	p.advance()
 	if p.current.Token == token.IN {
 		p.advance()
@@ -328,7 +328,7 @@ func (p *Parser) forLoop() ast.Node {
 	return &ast.For{Init: &ast.Integer{Value: 0}, End: init, Id: id, Step: &ast.Integer{Value: 1}, Block: block}
 }
 
-func (p *Parser) iterforLoop(key string) ast.Node {
+func (p *parser) iterforLoop(key string) ast.Node {
 	p.advance()
 	p.expect(token.IDENTIFIER)
 	v := p.current.Lit
@@ -343,7 +343,7 @@ func (p *Parser) iterforLoop(key string) ast.Node {
 	return &ast.IFor{Key: key, Value: v, Expr: e, Block: b}
 }
 
-func (p *Parser) ifStmt(isInsideLoop bool) ast.Node {
+func (p *parser) ifStmt(isInsideLoop bool) ast.Node {
 	p.advance()
 	c := p.expression(token.LowestPrec)
 	p.advance()
@@ -370,7 +370,7 @@ func (p *Parser) ifStmt(isInsideLoop bool) ast.Node {
 	return branch
 }
 
-func (p *Parser) loop() ast.Node {
+func (p *parser) loop() ast.Node {
 	p.advance()
 	c := p.expression(token.LowestPrec)
 	p.advance()
@@ -380,17 +380,17 @@ func (p *Parser) loop() ast.Node {
 	return &ast.While{Condition: c, Block: b}
 }
 
-func (p *Parser) breakStmt() ast.Node {
+func (p *parser) breakStmt() ast.Node {
 	p.advance()
 	return &ast.Break{}
 }
 
-func (p *Parser) continueStmt() ast.Node {
+func (p *parser) continueStmt() ast.Node {
 	p.advance()
 	return &ast.Continue{}
 }
 
-func (p *Parser) expression(precedence int) ast.Node {
+func (p *parser) expression(precedence int) ast.Node {
 	e := p.prefix()
 	for p.next.Token.IsBinaryOperator() && p.next.Token.Precedence() > precedence {
 		p.advance()
@@ -402,7 +402,7 @@ func (p *Parser) expression(precedence int) ast.Node {
 	return e
 }
 
-func (p *Parser) prefix() ast.Node {
+func (p *parser) prefix() ast.Node {
 	switch p.current.Token {
 	case token.NOT, token.SUB, token.ADD, token.TILDE:
 		t := p.current.Token
@@ -413,7 +413,7 @@ func (p *Parser) prefix() ast.Node {
 	return p.primary()
 }
 
-func (p *Parser) primary() ast.Node {
+func (p *parser) primary() ast.Node {
 	e := p.operand()
 Loop:
 	for p.next.Token == token.LBRACKET ||
@@ -445,7 +445,7 @@ Loop:
 	return e
 }
 
-func (p *Parser) operand() ast.Node {
+func (p *parser) operand() ast.Node {
 	switch p.current.Token {
 	case token.INTEGER:
 		if i, err := strconv.ParseUint(p.current.Lit, 0, 64); err == nil {
@@ -601,21 +601,21 @@ func (p *Parser) operand() ast.Node {
 	}
 }
 
-func (p *Parser) ret() ast.Node {
+func (p *parser) ret() ast.Node {
 	p.advance()
 	e := p.expression(token.LowestPrec)
 	p.advance()
 	return &ast.Ret{Expr: e}
 }
 
-func (p *Parser) export() ast.Node {
+func (p *parser) export() ast.Node {
 	p.advance()
 	e := p.expression(token.LowestPrec)
 	p.advance()
 	return &ast.Export{Expr: e}
 }
 
-func (p *Parser) callExpr(e ast.Node) ast.Node {
+func (p *parser) callExpr(e ast.Node) ast.Node {
 	p.advance()
 	var args []ast.Node
 	var ellipsis int
@@ -648,7 +648,7 @@ afterParen:
 	return &ast.CallExpr{Fun: e, Args: args, Ellipsis: ellipsis}
 }
 
-func (p *Parser) methodCallExpr(e ast.Node) ast.Node {
+func (p *parser) methodCallExpr(e ast.Node) ast.Node {
 	p.advance()
 	var args []ast.Node
 	var ellipsis int
@@ -686,7 +686,7 @@ afterParen:
 	return &ast.MethodCallExpr{Args: args, Obj: e, Prop: prop, Ellipsis: ellipsis}
 }
 
-func (p *Parser) indexOrSlice(e ast.Node) ast.Node {
+func (p *parser) indexOrSlice(e ast.Node) ast.Node {
 	p.advance()
 	var index [2]ast.Node
 	mode := 2
@@ -720,11 +720,11 @@ func (p *Parser) indexOrSlice(e ast.Node) ast.Node {
 	}
 }
 
-func (p *Parser) selector(e ast.Node) ast.Node {
+func (p *parser) selector(e ast.Node) ast.Node {
 	return &ast.Select{Selectable: e, Selector: &ast.Property{Value: p.current.Lit}}
 }
 
-func (p *Parser) expect(tok token.Token) {
+func (p *parser) expect(tok token.Token) {
 	if p.current.Token != tok && p.ok {
 		p.ok = false
 		message := fmt.Sprintf("Expected token %v and got token %v", tok, p.current.Token)
@@ -732,7 +732,7 @@ func (p *Parser) expect(tok token.Token) {
 	}
 }
 
-func (p *Parser) advance() token.Token {
+func (p *parser) advance() token.Token {
 	p.current.Line, p.current.Token, p.current.Lit = p.next.Line, p.next.Token, p.next.Lit
 	p.next.Line, p.next.Token, p.next.Lit = p.lexer.Next()
 	return p.current.Token
