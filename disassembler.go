@@ -17,7 +17,7 @@ func PrintBytecode(m *Module, moduleName string) string {
 		s = printInstr(m.MainFunction.CoreFn.Code[i], uint64(i), false)
 		sb.WriteString(s)
 	}
-	for idx, v := range m.Konstants {
+	for idx, v := range *m.Konstants {
 		if f, ok := v.(*CoreFunction); ok {
 			sb.WriteString(fmt.Sprintf("\n\nFunction %v/%v/%v", idx, f.Arity, f.Free))
 			var s string
@@ -27,7 +27,7 @@ func PrintBytecode(m *Module, moduleName string) string {
 			}
 		}
 	}
-	sb.WriteString(printKonstants(m.Konstants))
+	sb.WriteString(printKonstants(*m.Konstants))
 	return sb.String()
 }
 

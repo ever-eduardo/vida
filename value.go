@@ -766,27 +766,6 @@ func (o *Object) UpdateKeys() {
 	o.Keys = keys
 }
 
-type Module struct {
-	Konstants    []Value
-	Store        []Value
-	Name         string
-	MainFunction *Function
-}
-
-func newModule(name string) *Module {
-	m := Module{
-		Konstants:    make([]Value, 0),
-		Store:        loadCoreLib(),
-		MainFunction: &Function{CoreFn: &CoreFunction{}},
-		Name:         name,
-	}
-	return &m
-}
-
-func (m Module) String() string {
-	return fmt.Sprintf("Module <%v/>", m.Name)
-}
-
 type freeInfo struct {
 	Index   int
 	IsLocal Bool

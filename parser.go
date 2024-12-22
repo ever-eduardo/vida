@@ -52,7 +52,11 @@ func (p *Parser) parse() (*ast.Ast, error) {
 			for p.current.Token == token.COMMENT {
 				p.advance()
 			}
+		case token.EXPORT:
+			p.ast.Statement = append(p.ast.Statement, p.export())
+			return p.ast, nil
 		case token.EOF:
+			p.ast.Statement = append(p.ast.Statement, &ast.Ret{Expr: &ast.Nil{}})
 			return p.ast, nil
 		default:
 			if p.current.Token == token.UNEXPECTED {
@@ -576,6 +580,20 @@ func (p *Parser) operand() ast.Node {
 		block.(*ast.Block).Statement = append(block.(*ast.Block).Statement, &ast.Ret{Expr: &ast.Nil{}})
 		f.Body = block
 		return f
+	case token.IMPORT:
+		i := &ast.Import{}
+		p.advance()
+		p.expect(token.LPAREN)
+		e := p.expression(token.LowestPrec)
+		switch expr := e.(type) {
+		case *ast.String:
+			i.Path = expr.Value
+			return i
+		default:
+			p.err = verror.New(p.lexer.ModuleName, "Expected string literal", verror.SyntaxErrMsg, p.current.Line)
+			p.ok = false
+			return &ast.Nil{}
+		}
 	default:
 		p.err = verror.New(p.lexer.ModuleName, "Expected expression", verror.SyntaxErrMsg, p.current.Line)
 		p.ok = false
@@ -588,6 +606,13 @@ func (p *Parser) ret() ast.Node {
 	e := p.expression(token.LowestPrec)
 	p.advance()
 	return &ast.Ret{Expr: e}
+}
+
+func (p *Parser) export() ast.Node {
+	p.advance()
+	e := p.expression(token.LowestPrec)
+	p.advance()
+	return &ast.Export{Expr: e}
 }
 
 func (p *Parser) callExpr(e ast.Node) ast.Node {

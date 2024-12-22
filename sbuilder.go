@@ -13,9 +13,10 @@ type symbolBuilder struct {
 	index     int
 }
 
-func newSymbolBuilder() *symbolBuilder {
+func newSymbolBuilder(initialIndex int) *symbolBuilder {
 	sb := &symbolBuilder{
 		GlobalSet: make(map[string]int),
+		index:     initialIndex,
 	}
 	for _, v := range coreLibNames {
 		sb.addGlobal(v)

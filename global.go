@@ -28,11 +28,8 @@ var coreLibNames = []string{
 	"isError",
 }
 
-const initialStoreSize = 32
-
-func loadCoreLib() []Value {
-	clib := make([]Value, 0, initialStoreSize)
-	clib = append(clib,
+func loadCoreLib(store *[]Value) {
+	*store = append(*store,
 		GFn(gfnPrint),
 		GFn(gfnLen),
 		GFn(gfnAppend),
@@ -47,7 +44,6 @@ func loadCoreLib() []Value {
 		GFn(gfnError),
 		GFn(gfnExcept),
 		GFn(gfnIsError))
-	return clib
 }
 
 func gfnPrint(args ...Value) (Value, error) {

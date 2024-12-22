@@ -55,16 +55,16 @@ func (vm *VM) run() (Result, error) {
 		switch op {
 		case storeG:
 			if P == 1 {
-				vm.Module.Store[B] = vm.Module.Konstants[A]
+				(*vm.Module.Store)[B] = (*vm.Module.Konstants)[A]
 			} else {
-				vm.Module.Store[B] = vm.Frame.stack[A]
+				(*vm.Module.Store)[B] = vm.Frame.stack[A]
 			}
 		case loadG:
-			vm.Frame.stack[B] = vm.Module.Store[A]
+			vm.Frame.stack[B] = (*vm.Module.Store)[A]
 		case loadF:
 			vm.Frame.stack[B] = vm.Frame.lambda.Free[A]
 		case loadK:
-			vm.Frame.stack[B] = vm.Module.Konstants[A]
+			vm.Frame.stack[B] = (*vm.Module.Konstants)[A]
 		case move:
 			vm.Frame.stack[B] = vm.Frame.stack[A]
 		case storeF:
@@ -76,7 +76,7 @@ func (vm *VM) run() (Result, error) {
 		case jump:
 			ip = int(B)
 		case binopG:
-			val, err := vm.Module.Store[A].Binop(P>>shift16, vm.Module.Store[P&clean16])
+			val, err := (*vm.Module.Store)[A].Binop(P>>shift16, (*vm.Module.Store)[P&clean16])
 			if err != nil {
 				return Failure, verror.New(vm.Module.Name, "Runtime error", verror.RunTimeErrMsg, math.MaxUint16)
 			}
@@ -88,13 +88,13 @@ func (vm *VM) run() (Result, error) {
 			}
 			vm.Frame.stack[B] = val
 		case binopK:
-			val, err := vm.Frame.stack[P&clean16].Binop(P>>shift16, vm.Module.Konstants[A])
+			val, err := vm.Frame.stack[P&clean16].Binop(P>>shift16, (*vm.Module.Konstants)[A])
 			if err != nil {
 				return Failure, verror.New(vm.Module.Name, "Runtime error", verror.RunTimeErrMsg, math.MaxUint16)
 			}
 			vm.Frame.stack[B] = val
 		case binopQ:
-			val, err := vm.Module.Konstants[A].Binop(P>>shift16, vm.Frame.stack[P&clean16])
+			val, err := (*vm.Module.Konstants)[A].Binop(P>>shift16, vm.Frame.stack[P&clean16])
 			if err != nil {
 				return Failure, verror.New(vm.Module.Name, "Runtime error", verror.RunTimeErrMsg, math.MaxUint16)
 			}
@@ -106,19 +106,19 @@ func (vm *VM) run() (Result, error) {
 			}
 			vm.Frame.stack[B] = val
 		case eqG:
-			val := vm.Module.Store[A].Equals(vm.Module.Store[P&clean16])
+			val := (*vm.Module.Store)[A].Equals((*vm.Module.Store)[P&clean16])
 			if P>>shift16 == uint64(token.NEQ) {
 				val = !val
 			}
 			vm.Frame.stack[B] = val
 		case eqK:
-			val := vm.Frame.stack[P&clean16].Equals(vm.Module.Konstants[A])
+			val := vm.Frame.stack[P&clean16].Equals((*vm.Module.Konstants)[A])
 			if P>>shift16 == uint64(token.NEQ) {
 				val = !val
 			}
 			vm.Frame.stack[B] = val
 		case eqQ:
-			val := vm.Module.Konstants[A].Equals(vm.Frame.stack[P&clean16])
+			val := (*vm.Module.Konstants)[A].Equals(vm.Frame.stack[P&clean16])
 			if P>>shift16 == uint64(token.NEQ) {
 				val = !val
 			}
@@ -135,7 +135,7 @@ func (vm *VM) run() (Result, error) {
 			if P>>shift16 == 0 {
 				val, err = vm.Frame.stack[P].IGet(vm.Frame.stack[A])
 			} else {
-				val, err = vm.Frame.stack[P&clean16].IGet(vm.Module.Konstants[A])
+				val, err = vm.Frame.stack[P&clean16].IGet((*vm.Module.Konstants)[A])
 			}
 			if err != nil {
 				return Failure, verror.New(vm.Module.Name, "Runtime error", verror.RunTimeErrMsg, math.MaxUint16)
@@ -146,7 +146,7 @@ func (vm *VM) run() (Result, error) {
 			if P>>shift16 == 0 {
 				err = vm.Frame.stack[P].ISet(vm.Frame.stack[A], vm.Frame.stack[B])
 			} else {
-				err = vm.Frame.stack[P&clean16].ISet(vm.Frame.stack[A], vm.Module.Konstants[B])
+				err = vm.Frame.stack[P&clean16].ISet(vm.Frame.stack[A], (*vm.Module.Konstants)[B])
 			}
 			if err != nil {
 				return Failure, verror.New(vm.Module.Name, "Runtime error", verror.RunTimeErrMsg, math.MaxUint16)
@@ -154,9 +154,9 @@ func (vm *VM) run() (Result, error) {
 		case iSetK:
 			var err error
 			if P>>shift16 == 0 {
-				err = vm.Frame.stack[P].ISet(vm.Module.Konstants[A], vm.Frame.stack[B])
+				err = vm.Frame.stack[P].ISet((*vm.Module.Konstants)[A], vm.Frame.stack[B])
 			} else {
-				err = vm.Frame.stack[P&clean16].ISet(vm.Module.Konstants[A], vm.Module.Konstants[B])
+				err = vm.Frame.stack[P&clean16].ISet((*vm.Module.Konstants)[A], (*vm.Module.Konstants)[B])
 			}
 			if err != nil {
 				return Failure, verror.New(vm.Module.Name, "Runtime error", verror.RunTimeErrMsg, math.MaxUint16)
@@ -225,7 +225,7 @@ func (vm *VM) run() (Result, error) {
 				continue
 			}
 		case fun:
-			fn := &Function{CoreFn: vm.Module.Konstants[A].(*CoreFunction)}
+			fn := &Function{CoreFn: (*vm.Module.Konstants)[A].(*CoreFunction)}
 			if fn.CoreFn.Free > 0 {
 				var free []Value
 				for i := 0; i < fn.CoreFn.Free; i++ {

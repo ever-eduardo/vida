@@ -23,7 +23,7 @@ func NewInterpreter(modulePath string, stdlib map[string]func() Value) (*Interpr
 	if err != nil {
 		return nil, err
 	}
-	c := newCompiler(rAst, modulePath)
+	c := newMainCompiler(rAst, modulePath)
 	m, err := c.compileModule()
 	if err != nil {
 		return nil, err
@@ -51,7 +51,7 @@ func NewDebugger(modulePath string, stdlib map[string]func() Value) (*Interprete
 	}
 	fmt.Println(ast.PrintAST(rAst))
 	fmt.Scanf(" ")
-	c := newCompiler(rAst, modulePath)
+	c := newMainCompiler(rAst, modulePath)
 	m, err := c.compileModule()
 	if err != nil {
 		return nil, err
@@ -67,6 +67,39 @@ func NewDebugger(modulePath string, stdlib map[string]func() Value) (*Interprete
 		compiler: c,
 		vm:       vm,
 	}, nil
+}
+
+func PrintAST(modulePath string) error {
+	src, err := readModule(modulePath)
+	if err != nil {
+		return err
+	}
+	p := newParser(src, modulePath)
+	rAst, err := p.parse()
+	if err != nil {
+		return err
+	}
+	fmt.Println(ast.PrintAST(rAst))
+	return nil
+}
+
+func PrintMachineCode(modulePath string) error {
+	src, err := readModule(modulePath)
+	if err != nil {
+		return err
+	}
+	p := newParser(src, modulePath)
+	rAst, err := p.parse()
+	if err != nil {
+		return err
+	}
+	c := newMainCompiler(rAst, modulePath)
+	m, err := c.compileModule()
+	if err != nil {
+		return err
+	}
+	fmt.Println(PrintBytecode(m, m.Name))
+	return nil
 }
 
 func (i *Interpreter) Run() (Result, error) {

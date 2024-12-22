@@ -306,6 +306,18 @@ func printAST(node Node, sb *strings.Builder, level int) {
 		sb.WriteString("Ret")
 		sb.WriteRune(nl)
 		printAST(n.Expr, sb, twoLevels+twoLevels+oneLevel)
+	case *Export:
+		sb.WriteRune(nl)
+		buildIndent(sb, level+oneLevel)
+		sb.WriteString("Export")
+		sb.WriteRune(nl)
+		printAST(n.Expr, sb, twoLevels+twoLevels+oneLevel)
+	case *Import:
+		buildIndent(sb, level+oneLevel)
+		sb.WriteString("Import")
+		sb.WriteRune(nl)
+		buildIndent(sb, level+twoLevels)
+		sb.WriteString(n.Path)
 	case *CallExpr:
 		buildIndent(sb, level+oneLevel)
 		sb.WriteString("CallExpr")

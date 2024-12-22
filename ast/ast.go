@@ -172,6 +172,14 @@ type Ret struct {
 	Expr Node
 }
 
+type Export struct {
+	Expr Node
+}
+
+type Import struct {
+	Path string
+}
+
 type CallExpr struct {
 	Args     []Node
 	Fun      Node
@@ -232,6 +240,8 @@ func (n *Break) _node()           {}
 func (n *Continue) _node()        {}
 func (n *Fun) _node()             {}
 func (n *Ret) _node()             {}
+func (n *Import) _node()          {}
+func (n *Export) _node()          {}
 func (n *CallExpr) _node()        {}
 func (n *CallStmt) _node()        {}
 func (n *MethodCallStmt) _node()  {}

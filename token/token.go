@@ -71,6 +71,8 @@ const (
 	IN
 	FUN
 	RET
+	IMPORT
+	EXPORT
 	keyword_end
 )
 
@@ -130,6 +132,8 @@ var Tokens = [...]string{
 	IN:         "in",
 	FUN:        "fn",
 	RET:        "ret",
+	IMPORT:     "import",
+	EXPORT:     "export",
 }
 
 type TokenInfo struct {

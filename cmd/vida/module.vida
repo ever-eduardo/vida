@@ -1,0 +1,10 @@
+let alpha = {}
+alpha.alpha = "Alpha Module"
+alpha.gamma = "Gamma Module"
+loc some1 = import("some")
+loc some2 = import("some")
+export {
+    alpha = alpha,
+    some1 = some1,
+    some2 = some2
+}

@@ -9,10 +9,10 @@ const a uint64 = 'a'
 
 const major uint64 = 0
 const minor uint64 = 3
-const patch uint64 = 3
+const patch uint64 = 5
 const inception uint64 = 24
 const header uint64 = v<<56 | i<<48 | d<<40 | a<<32 | major<<24 | minor<<16 | patch<<8 | inception
-const name = "Vida 🌱🌻🐝 Programming Language"
+const name = "Vida 🌱🐝🌻 Programming Language"
 
 func Name() string {
 	return name

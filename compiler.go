@@ -18,6 +18,7 @@ type Compiler struct {
 	module        *Module
 	kb            *KonstBuilder
 	sb            *symbolBuilder
+	moduleMap     map[string]int
 	scope         int
 	level         int
 	rAlloc        int
@@ -25,14 +26,30 @@ type Compiler struct {
 	fromRefStmt   bool
 	mutLoc        bool
 	hadError      bool
+	isSubcompiler bool
 }
 
-func newCompiler(ast *ast.Ast, moduleName string) *Compiler {
+func newMainCompiler(ast *ast.Ast, moduleName string) *Compiler {
 	c := &Compiler{
-		ast:    ast,
-		module: newModule(moduleName),
-		kb:     newKonstBuilder(),
-		sb:     newSymbolBuilder(),
+		ast:       ast,
+		module:    newMainModule(moduleName),
+		kb:        newKonstBuilder(),
+		sb:        newSymbolBuilder(0),
+		moduleMap: make(map[string]int),
+	}
+	c.fn = append(c.fn, c.module.MainFunction.CoreFn)
+	c.currentFn = c.module.MainFunction.CoreFn
+	return c
+}
+
+func newSubCompiler(ast *ast.Ast, moduleName string, kb *KonstBuilder, store *[]Value, moduleMap map[string]int, initialIndex int) *Compiler {
+	c := &Compiler{
+		ast:           ast,
+		module:        newSubModule(moduleName, store),
+		kb:            kb,
+		sb:            newSymbolBuilder(initialIndex),
+		isSubcompiler: true,
+		moduleMap:     moduleMap,
 	}
 	c.fn = append(c.fn, c.module.MainFunction.CoreFn)
 	c.currentFn = c.module.MainFunction.CoreFn
@@ -49,6 +66,16 @@ func (c *Compiler) compileModule() (*Module, error) {
 	}
 	c.module.Konstants = c.kb.Konstants
 	c.appendEnd()
+	return c.module, nil
+}
+
+func (c *Compiler) compileSubModule() (*Module, error) {
+	for i := range len(c.ast.Statement) {
+		c.compileStmt(c.ast.Statement[i])
+	}
+	if c.hadError {
+		return nil, verror.ErrCompilation
+	}
 	return c.module, nil
 }
 
@@ -111,7 +138,7 @@ func (c *Compiler) compileStmt(node ast.Node) {
 	case *ast.Let:
 		to, isPresent := c.sb.addGlobal(n.Indentifier)
 		if !isPresent {
-			c.module.Store = append(c.module.Store, NilValue)
+			*c.module.Store = append(*c.module.Store, NilValue)
 		}
 		from, scope := c.compileExpr(n.Expr, true)
 		switch scope {
@@ -235,7 +262,7 @@ func (c *Compiler) compileStmt(node ast.Node) {
 		init := len(c.currentFn.Code)
 		idx, scope := c.compileExpr(n.Condition, true)
 		if scope == rKonst {
-			switch v := c.kb.Konstants[idx].(type) {
+			switch v := (*c.kb.Konstants)[idx].(type) {
 			case Nil:
 				c.skipBlock(n.Block)
 				c.cleanUpLoopScope(init, true)
@@ -418,12 +445,11 @@ func (c *Compiler) compileStmt(node ast.Node) {
 		c.rAlloc -= locals
 		c.scope--
 	case *ast.Ret:
-		if c.level == 0 {
-			c.hadError = true
+		if c.level != 0 {
+			i, s := c.compileExpr(n.Expr, true)
+			c.exprToReg(i, s)
+			c.emitRet(c.rAlloc)
 		}
-		i, s := c.compileExpr(n.Expr, true)
-		c.exprToReg(i, s)
-		c.emitRet(c.rAlloc)
 	case *ast.CallStmt:
 		callable := c.rAlloc
 		if c.fromRefStmt {
@@ -459,6 +485,12 @@ func (c *Compiler) compileStmt(node ast.Node) {
 		c.rAlloc = obj
 		c.fromRefStmt = false
 		c.emitCall(obj, len(n.Args)+1, n.Ellipsis, 2)
+	case *ast.Export:
+		if c.isSubcompiler {
+			i, s := c.compileExpr(n.Expr, true)
+			c.exprToReg(i, s)
+			c.emitRet(c.rAlloc)
+		}
 	}
 }
 
@@ -480,7 +512,7 @@ func (c *Compiler) compileExpr(node ast.Node, isRoot bool) (int, int) {
 	case *ast.PrefixExpr:
 		from, scope := c.compileExpr(n.Expr, false)
 		if scope == rKonst {
-			if val, err := c.kb.Konstants[from].Prefix(uint64(n.Op)); err == nil {
+			if val, err := (*c.kb.Konstants)[from].Prefix(uint64(n.Op)); err == nil {
 				return c.integrateKonst(val)
 			} else {
 				c.hadError = true
@@ -955,6 +987,37 @@ func (c *Compiler) compileExpr(node ast.Node, isRoot bool) (int, int) {
 		c.rAlloc = reg
 		c.emitCall(reg, len(n.Args)+1, n.Ellipsis, 2)
 		return reg, rLoc
+	case *ast.Import:
+		if v, isPresent := c.moduleMap[n.Path]; isPresent {
+			println("===> INSIDE")
+			c.emitFun(v, c.rAlloc)
+			c.emitCall(c.rAlloc, 0, 0, 1)
+			return c.rAlloc, rLoc
+		}
+		src, err := readModule(n.Path + vidaFileExtension)
+		if err != nil {
+			c.hadError = true
+			return 0, rGlob
+		}
+		p := newParser(src, n.Path)
+		moduleAST, err := p.parse()
+		if err != nil {
+			c.hadError = true
+			return 0, rGlob
+		}
+		subCompiler := newSubCompiler(moduleAST, n.Path, c.kb, c.module.Store, c.moduleMap, len(*c.module.Store))
+		m, err := subCompiler.compileSubModule()
+		c.sb.index = len(*c.module.Store)
+		if err != nil {
+			c.hadError = true
+			return 0, rGlob
+		}
+		fnIndex := c.kb.FunctionIndex(m.MainFunction.CoreFn)
+		println("===> OUTSIDE")
+		c.moduleMap[n.Path] = fnIndex
+		c.emitFun(fnIndex, c.rAlloc)
+		c.emitCall(c.rAlloc, 0, 0, 1)
+		return c.rAlloc, rLoc
 	default:
 		return 0, rGlob
 	}
@@ -963,7 +1026,7 @@ func (c *Compiler) compileExpr(node ast.Node, isRoot bool) (int, int) {
 func (c *Compiler) compileConditional(n *ast.If, shouldJumpOutside bool) {
 	idx, scope := c.compileExpr(n.Condition, false)
 	if scope == rKonst {
-		switch v := c.kb.Konstants[idx].(type) {
+		switch v := (*c.kb.Konstants)[idx].(type) {
 		case Nil:
 			c.skipBlock(n.Block)
 			return
@@ -1082,7 +1145,7 @@ func (c *Compiler) compileBinaryExpr(n *ast.BinaryExpr, isRoot bool) (int, int) 
 		ridx, rscope := c.compileExpr(n.Rhs, false)
 		switch rscope {
 		case rKonst:
-			if val, err := c.kb.Konstants[lidx].Binop(uint64(n.Op), c.kb.Konstants[ridx]); err == nil {
+			if val, err := (*c.kb.Konstants)[lidx].Binop(uint64(n.Op), (*c.kb.Konstants)[ridx]); err == nil {
 				return c.integrateKonst(val)
 			} else {
 				c.hadError = true
@@ -1253,7 +1316,7 @@ func (c *Compiler) compileBinaryEq(n *ast.BinaryExpr, isRoot bool) (int, int) {
 		ridx, rscope := c.compileExpr(n.Rhs, false)
 		switch rscope {
 		case rKonst:
-			val := c.kb.Konstants[lidx].Equals(c.kb.Konstants[ridx])
+			val := (*c.kb.Konstants)[lidx].Equals((*c.kb.Konstants)[ridx])
 			if n.Op == token.NEQ {
 				val = !val
 			}

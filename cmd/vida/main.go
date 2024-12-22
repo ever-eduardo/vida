@@ -15,10 +15,19 @@ func main() {
 	// defer pprof.StopCPUProfile()
 	clear()
 	println(vida.Name(), vida.Version())
-	debug := false
+	debug := true
+	ast := false
+	code := false
 	module := "sketchpad.vida"
 	if debug {
-		debugPath(module)
+		switch {
+		case ast:
+			printAST(module)
+		case code:
+			printMachineCode(module)
+		default:
+			debugPath(module)
+		}
 	} else {
 		normalPath(module)
 	}
@@ -38,6 +47,16 @@ func normalPath(modulePath string) {
 	r, err := i.MeasureRunTime()
 	handleError(err)
 	fmt.Println(r)
+}
+
+func printAST(modulePath string) {
+	err := vida.PrintAST(modulePath)
+	handleError(err)
+}
+
+func printMachineCode(modulePath string) {
+	err := vida.PrintMachineCode(modulePath)
+	handleError(err)
 }
 
 func handleError(err error) {
