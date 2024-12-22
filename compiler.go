@@ -995,7 +995,7 @@ func (c *compiler) compileExpr(node ast.Node, isRoot bool) (int, int) {
 		c.emitCall(reg, len(n.Args)+1, n.Ellipsis, 2)
 		return reg, rLoc
 	case *ast.Import:
-		if _, alreadyImported := c.depMap[n.Path]; alreadyImported {
+		if _, isCycle := c.depMap[n.Path]; isCycle {
 			c.hadError = true
 			return 0, rGlob
 		} else {

@@ -53,10 +53,10 @@ func (l *Lexer) next() {
 			r, w = utf8.DecodeRune(l.src[l.leadPointer:])
 			if r == utf8.RuneError && w == 1 {
 				r = unexpected
-				l.LexicalError = verror.New(l.ModuleName, fmt.Sprintf("The file %v is not has not correct utf-8 encoding", l.ModuleName), verror.FileErrMsg, l.line)
+				l.LexicalError = verror.New(l.ModuleName, fmt.Sprintf("the file %v is not utf-8 encoding correct", l.ModuleName), verror.FileErrType, l.line)
 			} else if r == bom && l.pointer > 0 {
 				r = unexpected
-				l.LexicalError = verror.New(l.ModuleName, fmt.Sprintf("The file %v has a bom in an expectec place", l.ModuleName), verror.FileErrMsg, l.line)
+				l.LexicalError = verror.New(l.ModuleName, fmt.Sprintf("the file %v has a bom in an unexpected place", l.ModuleName), verror.FileErrType, l.line)
 			}
 		}
 		l.c = r
@@ -133,7 +133,7 @@ func (l *Lexer) scanComment() token.Token {
 			return token.COMMENT
 		}
 	}
-	l.LexicalError = verror.New(l.ModuleName, "Unterminated comment ", verror.LexicalErrMsg, l.line)
+	l.LexicalError = verror.New(l.ModuleName, fmt.Sprintf("the file %v has an unterminated comment", l.ModuleName), verror.LexicalErrType, l.line)
 	return token.UNEXPECTED
 }
 
@@ -143,7 +143,7 @@ func (l *Lexer) scanString() (token.Token, string) {
 		ch := l.c
 		if ch == '\n' || ch < 0 {
 			l.c = unexpected
-			l.LexicalError = verror.New(l.ModuleName, fmt.Sprintf("The file %v has an unterminated string literal", l.ModuleName), verror.FileErrMsg, l.line)
+			l.LexicalError = verror.New(l.ModuleName, fmt.Sprintf("the file %v has an unterminated string literal", l.ModuleName), verror.FileErrType, l.line)
 			return token.UNEXPECTED, ""
 		}
 		l.next()
@@ -164,7 +164,7 @@ func (l *Lexer) scanRawString() (token.Token, string) {
 		ch := l.c
 		if ch < 0 {
 			l.c = unexpected
-			l.LexicalError = verror.New(l.ModuleName, fmt.Sprintf("The file %v has an unterminated string literal", l.ModuleName), verror.FileErrMsg, l.line)
+			l.LexicalError = verror.New(l.ModuleName, fmt.Sprintf("the file %v has an unterminated string literal", l.ModuleName), verror.FileErrType, l.line)
 			return token.UNEXPECTED, ""
 		}
 		l.next()
@@ -341,7 +341,7 @@ func (l *Lexer) Next() (line uint, tok token.Token, lit string) {
 				tok = token.NEQ
 			} else {
 				tok = token.UNEXPECTED
-				l.LexicalError = verror.New(l.ModuleName, "Unexpected symbol "+string('!'), verror.LexicalErrMsg, l.line)
+				l.LexicalError = verror.New(l.ModuleName, "found an unrecognized character '!'", verror.LexicalErrType, l.line)
 			}
 		case '<':
 			if l.c == '=' {
@@ -388,7 +388,7 @@ func (l *Lexer) Next() (line uint, tok token.Token, lit string) {
 		default:
 			tok = token.UNEXPECTED
 			lit = string(ch)
-			l.LexicalError = verror.New(l.ModuleName, "Unexpected symbol "+lit, verror.LexicalErrMsg, l.line)
+			l.LexicalError = verror.New(l.ModuleName, fmt.Sprintf("found an unrecognized character '%v'", lit), verror.LexicalErrType, l.line)
 		}
 	}
 	return

@@ -78,25 +78,25 @@ func (vm *vM) run() (Result, error) {
 		case binopG:
 			val, err := (*vm.Module.Store)[A].Binop(P>>shift16, (*vm.Module.Store)[P&clean16])
 			if err != nil {
-				return Failure, verror.New(vm.Module.Name, "Runtime error", verror.RunTimeErrMsg, math.MaxUint16)
+				return Failure, verror.New(vm.Module.Name, "Runtime error", verror.RunTimeErrType, math.MaxUint16)
 			}
 			vm.Frame.stack[B] = val
 		case binop:
 			val, err := vm.Frame.stack[A].Binop(P>>shift16, vm.Frame.stack[P&clean16])
 			if err != nil {
-				return Failure, verror.New(vm.Module.Name, "Runtime error", verror.RunTimeErrMsg, math.MaxUint16)
+				return Failure, verror.New(vm.Module.Name, "Runtime error", verror.RunTimeErrType, math.MaxUint16)
 			}
 			vm.Frame.stack[B] = val
 		case binopK:
 			val, err := vm.Frame.stack[P&clean16].Binop(P>>shift16, (*vm.Module.Konstants)[A])
 			if err != nil {
-				return Failure, verror.New(vm.Module.Name, "Runtime error", verror.RunTimeErrMsg, math.MaxUint16)
+				return Failure, verror.New(vm.Module.Name, "Runtime error", verror.RunTimeErrType, math.MaxUint16)
 			}
 			vm.Frame.stack[B] = val
 		case binopQ:
 			val, err := (*vm.Module.Konstants)[A].Binop(P>>shift16, vm.Frame.stack[P&clean16])
 			if err != nil {
-				return Failure, verror.New(vm.Module.Name, "Runtime error", verror.RunTimeErrMsg, math.MaxUint16)
+				return Failure, verror.New(vm.Module.Name, "Runtime error", verror.RunTimeErrType, math.MaxUint16)
 			}
 			vm.Frame.stack[B] = val
 		case eq:
@@ -126,7 +126,7 @@ func (vm *vM) run() (Result, error) {
 		case prefix:
 			val, err := vm.Frame.stack[A].Prefix(P)
 			if err != nil {
-				return Failure, verror.New(vm.Module.Name, "Runtime error", verror.RunTimeErrMsg, math.MaxUint16)
+				return Failure, verror.New(vm.Module.Name, "Runtime error", verror.RunTimeErrType, math.MaxUint16)
 			}
 			vm.Frame.stack[B] = val
 		case iGet:
@@ -138,7 +138,7 @@ func (vm *vM) run() (Result, error) {
 				val, err = vm.Frame.stack[P&clean16].IGet((*vm.Module.Konstants)[A])
 			}
 			if err != nil {
-				return Failure, verror.New(vm.Module.Name, "Runtime error", verror.RunTimeErrMsg, math.MaxUint16)
+				return Failure, verror.New(vm.Module.Name, "Runtime error", verror.RunTimeErrType, math.MaxUint16)
 			}
 			vm.Frame.stack[B] = val
 		case iSet:
@@ -149,7 +149,7 @@ func (vm *vM) run() (Result, error) {
 				err = vm.Frame.stack[P&clean16].ISet(vm.Frame.stack[A], (*vm.Module.Konstants)[B])
 			}
 			if err != nil {
-				return Failure, verror.New(vm.Module.Name, "Runtime error", verror.RunTimeErrMsg, math.MaxUint16)
+				return Failure, verror.New(vm.Module.Name, "Runtime error", verror.RunTimeErrType, math.MaxUint16)
 			}
 		case iSetK:
 			var err error
@@ -159,12 +159,12 @@ func (vm *vM) run() (Result, error) {
 				err = vm.Frame.stack[P&clean16].ISet((*vm.Module.Konstants)[A], (*vm.Module.Konstants)[B])
 			}
 			if err != nil {
-				return Failure, verror.New(vm.Module.Name, "Runtime error", verror.RunTimeErrMsg, math.MaxUint16)
+				return Failure, verror.New(vm.Module.Name, "Runtime error", verror.RunTimeErrType, math.MaxUint16)
 			}
 		case slice:
 			val, err := vm.processSlice(P, A)
 			if err != nil {
-				return Failure, verror.New(vm.Module.Name, "Runtime error", verror.RunTimeErrMsg, math.MaxUint16)
+				return Failure, verror.New(vm.Module.Name, "Runtime error", verror.RunTimeErrType, math.MaxUint16)
 			}
 			vm.Frame.stack[B] = val
 		case list:
@@ -319,8 +319,8 @@ func (vm *vM) run() (Result, error) {
 		case end:
 			return Success, nil
 		default:
-			message := fmt.Sprintf("Unknown vm instruction %v", ip)
-			return Failure, verror.New(vm.Module.Name, message, verror.SyntaxErrMsg, math.MaxUint16)
+			message := fmt.Sprintf("unknown runtime opcode %v", op)
+			return Failure, verror.New(vm.Module.Name, message, verror.RunTimeErrType, math.MaxUint16)
 		}
 	}
 }
@@ -478,5 +478,5 @@ func checkISACompatibility(m *Module) error {
 	if majorFromCode == major {
 		return nil
 	}
-	return verror.New(m.Name, "The module was compiled with another ABI version", verror.FileErrMsg, 0)
+	return verror.New(m.Name, "The module was compiled with another ABI version", verror.FileErrType, 0)
 }

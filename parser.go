@@ -62,7 +62,7 @@ func (p *parser) parse() (*ast.Ast, error) {
 			if p.current.Token == token.UNEXPECTED {
 				p.err = p.lexer.LexicalError
 			} else {
-				p.err = verror.New(p.lexer.ModuleName, "Expected high level statement", verror.SyntaxErrMsg, p.current.Line)
+				p.err = verror.New(p.lexer.ModuleName, "expected high level statement", verror.SyntaxErrType, p.current.Line)
 			}
 			return nil, p.err
 		}
@@ -133,7 +133,7 @@ func (p *parser) block(isInsideLoop bool) ast.Node {
 			if isInsideLoop {
 				block.Statement = append(block.Statement, p.breakStmt())
 			} else {
-				p.err = verror.New(p.lexer.ModuleName, "Break outside loop", verror.SyntaxErrMsg, p.current.Line)
+				p.err = verror.New(p.lexer.ModuleName, "found a break keyword outside of a loop", verror.SyntaxErrType, p.current.Line)
 				p.ok = false
 				return block
 			}
@@ -141,7 +141,7 @@ func (p *parser) block(isInsideLoop bool) ast.Node {
 			if isInsideLoop {
 				block.Statement = append(block.Statement, p.continueStmt())
 			} else {
-				p.err = verror.New(p.lexer.ModuleName, "Continue outside loop", verror.SyntaxErrMsg, p.current.Line)
+				p.err = verror.New(p.lexer.ModuleName, "found a continue keyword outside of a loop", verror.SyntaxErrType, p.current.Line)
 				p.ok = false
 				return block
 			}
@@ -153,7 +153,7 @@ func (p *parser) block(isInsideLoop bool) ast.Node {
 				p.advance()
 			}
 		default:
-			p.err = verror.New(p.lexer.ModuleName, "Expected statement Block", verror.SyntaxErrMsg, p.current.Line)
+			p.err = verror.New(p.lexer.ModuleName, "expected a block statement", verror.SyntaxErrType, p.current.Line)
 			p.ok = false
 			return block
 		}
@@ -430,7 +430,7 @@ Loop:
 			case token.IDENTIFIER:
 				e = p.selector(e)
 			default:
-				p.err = verror.New(p.lexer.ModuleName, "Expected identifier", verror.SyntaxErrMsg, p.current.Line)
+				p.err = verror.New(p.lexer.ModuleName, "expected an identifier", verror.SyntaxErrType, p.current.Line)
 				p.ok = false
 				return &ast.Nil{}
 			}
@@ -451,7 +451,7 @@ func (p *parser) operand() ast.Node {
 		if i, err := strconv.ParseUint(p.current.Lit, 0, 64); err == nil {
 			return &ast.Integer{Value: int64(i)}
 		} else {
-			p.err = verror.New(p.lexer.ModuleName, "Integer value could not be processed", verror.SyntaxErrMsg, p.current.Line)
+			p.err = verror.New(p.lexer.ModuleName, "the integer literal could not be processed", verror.SyntaxErrType, p.current.Line)
 			p.ok = false
 			return &ast.Nil{}
 		}
@@ -459,13 +459,13 @@ func (p *parser) operand() ast.Node {
 		if f, err := strconv.ParseFloat(p.current.Lit, 64); err == nil {
 			return &ast.Float{Value: f}
 		}
-		p.err = verror.New(p.lexer.ModuleName, "Float value could not be processed", verror.SyntaxErrMsg, p.current.Line)
+		p.err = verror.New(p.lexer.ModuleName, "the float literal could not be processed", verror.SyntaxErrType, p.current.Line)
 		p.ok = false
 		return &ast.Nil{}
 	case token.STRING:
 		s, e := strconv.Unquote(p.current.Lit)
 		if e != nil {
-			p.err = verror.New(p.lexer.ModuleName, "String value could not be processed", verror.SyntaxErrMsg, p.current.Line)
+			p.err = verror.New(p.lexer.ModuleName, "the string literal could not be processed", verror.SyntaxErrType, p.current.Line)
 			p.ok = false
 			return &ast.Nil{}
 		}
@@ -535,7 +535,7 @@ func (p *parser) operand() ast.Node {
 	case token.LPAREN:
 		p.advance()
 		if p.current.Token == token.RPAREN {
-			p.err = verror.New(p.lexer.ModuleName, "Expected expression", verror.SyntaxErrMsg, p.current.Line)
+			p.err = verror.New(p.lexer.ModuleName, "expected an expression after left parenthesis", verror.SyntaxErrType, p.current.Line)
 			p.ok = false
 			return &ast.Nil{}
 		}
@@ -590,12 +590,12 @@ func (p *parser) operand() ast.Node {
 			i.Path = expr.Value
 			return i
 		default:
-			p.err = verror.New(p.lexer.ModuleName, "Expected string literal", verror.SyntaxErrMsg, p.current.Line)
+			p.err = verror.New(p.lexer.ModuleName, "expected an string literal inside an import function", verror.SyntaxErrType, p.current.Line)
 			p.ok = false
 			return &ast.Nil{}
 		}
 	default:
-		p.err = verror.New(p.lexer.ModuleName, "Expected expression", verror.SyntaxErrMsg, p.current.Line)
+		p.err = verror.New(p.lexer.ModuleName, "expected an expression", verror.SyntaxErrType, p.current.Line)
 		p.ok = false
 		return &ast.Nil{}
 	}
@@ -727,8 +727,8 @@ func (p *parser) selector(e ast.Node) ast.Node {
 func (p *parser) expect(tok token.Token) {
 	if p.current.Token != tok && p.ok {
 		p.ok = false
-		message := fmt.Sprintf("Expected token %v and got token %v", tok, p.current.Token)
-		p.err = verror.New(p.lexer.ModuleName, message, verror.SyntaxErrMsg, p.current.Line)
+		message := fmt.Sprintf("expected a token of type %v but got a token of type %v", tok, p.current.Token)
+		p.err = verror.New(p.lexer.ModuleName, message, verror.SyntaxErrType, p.current.Line)
 	}
 }
 

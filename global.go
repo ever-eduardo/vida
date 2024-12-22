@@ -91,18 +91,21 @@ func gfnFormat(args ...Value) (Value, error) {
 }
 
 func gfnAssert(args ...Value) (Value, error) {
-	if len(args) == 1 {
+	argsLength := len(args)
+	if argsLength == 1 {
 		if args[0].Boolean() {
 			return NilValue, nil
-		} else {
-			return NilValue, verror.ErrAssertionFailure
 		}
-	} else if len(args) > 1 {
+		err := fmt.Errorf("%s", fmt.Sprintf("\n\n[%v]\n\n", verror.AssertionErrType))
+		return NilValue, err
+	}
+	if argsLength > 1 {
 		if args[0].Boolean() {
 			return NilValue, nil
-		} else {
-			return NilValue, fmt.Errorf("%v: %v", verror.ErrAssertionFailure, args[1].String())
 		}
+		err := fmt.Errorf("%s", fmt.Sprintf("\n\n[%v]\n   Message  : %v\n\n", verror.AssertionErrType, args[1].String()))
+		return NilValue, err
+
 	}
 	return NilValue, nil
 }
@@ -185,9 +188,11 @@ func gfnLoadLib(args ...Value) (Value, error) {
 
 func gfnExcept(args ...Value) (Value, error) {
 	if len(args) > 0 {
-		return NilValue, fmt.Errorf("%v: %v", verror.Exception, args[0].String())
+		err := fmt.Errorf("%s", fmt.Sprintf("\n\n[%v]\n   Message  : %v\n\n", verror.ExceptionErrType, args[0].String()))
+		return NilValue, err
 	}
-	return NilValue, fmt.Errorf("%v", verror.Exception)
+	err := fmt.Errorf("%s", fmt.Sprintf("\n\n[%v]\n\n", verror.ExceptionErrType))
+	return NilValue, err
 }
 
 func gfnError(args ...Value) (Value, error) {
