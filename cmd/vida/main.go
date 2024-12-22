@@ -15,7 +15,7 @@ func main() {
 	// defer pprof.StopCPUProfile()
 	clear()
 	println(vida.Name(), vida.Version())
-	debug := true
+	debug := false
 	ast := false
 	code := false
 	module := "sketchpad.vida"

@@ -1,7 +1,2 @@
-let alpha = "Alpha Main"
-loc mod1 = import("module")
-loc mod2 = import("module")
-loc mod3 = import("module")
-print(mod1.alpha)
-print(mod2.alpha)
-print(mod3.alpha)
+let cycle = import("sketchpad")
+print(cycle)

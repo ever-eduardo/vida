@@ -19,6 +19,7 @@ type Compiler struct {
 	kb            *KonstBuilder
 	sb            *symbolBuilder
 	moduleMap     map[string]int
+	depMap        map[string]struct{}
 	scope         int
 	level         int
 	rAlloc        int
@@ -29,20 +30,25 @@ type Compiler struct {
 	isSubcompiler bool
 }
 
+var dummy = struct{}{}
+
 func newMainCompiler(ast *ast.Ast, moduleName string) *Compiler {
+	dm := make(map[string]struct{})
+	dm[moduleName] = dummy
 	c := &Compiler{
 		ast:       ast,
 		module:    newMainModule(moduleName),
 		kb:        newKonstBuilder(),
 		sb:        newSymbolBuilder(0),
 		moduleMap: make(map[string]int),
+		depMap:    dm,
 	}
 	c.fn = append(c.fn, c.module.MainFunction.CoreFn)
 	c.currentFn = c.module.MainFunction.CoreFn
 	return c
 }
 
-func newSubCompiler(ast *ast.Ast, moduleName string, kb *KonstBuilder, store *[]Value, moduleMap map[string]int, initialIndex int) *Compiler {
+func newSubCompiler(ast *ast.Ast, moduleName string, kb *KonstBuilder, store *[]Value, moduleMap map[string]int, depMap map[string]struct{}, initialIndex int) *Compiler {
 	c := &Compiler{
 		ast:           ast,
 		module:        newSubModule(moduleName, store),
@@ -50,6 +56,7 @@ func newSubCompiler(ast *ast.Ast, moduleName string, kb *KonstBuilder, store *[]
 		sb:            newSymbolBuilder(initialIndex),
 		isSubcompiler: true,
 		moduleMap:     moduleMap,
+		depMap:        depMap,
 	}
 	c.fn = append(c.fn, c.module.MainFunction.CoreFn)
 	c.currentFn = c.module.MainFunction.CoreFn
@@ -988,8 +995,14 @@ func (c *Compiler) compileExpr(node ast.Node, isRoot bool) (int, int) {
 		c.emitCall(reg, len(n.Args)+1, n.Ellipsis, 2)
 		return reg, rLoc
 	case *ast.Import:
+		if _, alreadyImported := c.depMap[n.Path]; alreadyImported {
+			c.hadError = true
+			return 0, rGlob
+		} else {
+			c.depMap[n.Path] = dummy
+		}
 		if v, isPresent := c.moduleMap[n.Path]; isPresent {
-			println("===> INSIDE")
+			delete(c.depMap, n.Path)
 			c.emitFun(v, c.rAlloc)
 			c.emitCall(c.rAlloc, 0, 0, 1)
 			return c.rAlloc, rLoc
@@ -1005,7 +1018,7 @@ func (c *Compiler) compileExpr(node ast.Node, isRoot bool) (int, int) {
 			c.hadError = true
 			return 0, rGlob
 		}
-		subCompiler := newSubCompiler(moduleAST, n.Path, c.kb, c.module.Store, c.moduleMap, len(*c.module.Store))
+		subCompiler := newSubCompiler(moduleAST, n.Path, c.kb, c.module.Store, c.moduleMap, c.depMap, len(*c.module.Store))
 		m, err := subCompiler.compileSubModule()
 		c.sb.index = len(*c.module.Store)
 		if err != nil {
@@ -1013,8 +1026,8 @@ func (c *Compiler) compileExpr(node ast.Node, isRoot bool) (int, int) {
 			return 0, rGlob
 		}
 		fnIndex := c.kb.FunctionIndex(m.MainFunction.CoreFn)
-		println("===> OUTSIDE")
 		c.moduleMap[n.Path] = fnIndex
+		delete(c.depMap, n.Path)
 		c.emitFun(fnIndex, c.rAlloc)
 		c.emitCall(c.rAlloc, 0, 0, 1)
 		return c.rAlloc, rLoc
