@@ -80,25 +80,25 @@ func (vm *vM) debug() (Result, error) {
 		case binopG:
 			val, err := (*vm.Module.Store)[A].Binop(P>>shift16, (*vm.Module.Store)[P&clean16])
 			if err != nil {
-				return Failure, verror.New(vm.Module.Name, "Runtime error", verror.RunTimeErrType, math.MaxUint16)
+				return Failure, verror.New(vm.Module.Name, err.Error(), verror.RunTimeErrType, math.MaxUint16)
 			}
 			vm.Frame.stack[B] = val
 		case binop:
 			val, err := vm.Frame.stack[A].Binop(P>>shift16, vm.Frame.stack[P&clean16])
 			if err != nil {
-				return Failure, verror.New(vm.Module.Name, "Runtime error", verror.RunTimeErrType, math.MaxUint16)
+				return Failure, verror.New(vm.Module.Name, err.Error(), verror.RunTimeErrType, math.MaxUint16)
 			}
 			vm.Frame.stack[B] = val
 		case binopK:
 			val, err := vm.Frame.stack[P&clean16].Binop(P>>shift16, (*vm.Module.Konstants)[A])
 			if err != nil {
-				return Failure, verror.New(vm.Module.Name, "Runtime error", verror.RunTimeErrType, math.MaxUint16)
+				return Failure, verror.New(vm.Module.Name, err.Error(), verror.RunTimeErrType, math.MaxUint16)
 			}
 			vm.Frame.stack[B] = val
 		case binopQ:
 			val, err := (*vm.Module.Konstants)[A].Binop(P>>shift16, vm.Frame.stack[P&clean16])
 			if err != nil {
-				return Failure, verror.New(vm.Module.Name, "Runtime error", verror.RunTimeErrType, math.MaxUint16)
+				return Failure, verror.New(vm.Module.Name, err.Error(), verror.RunTimeErrType, math.MaxUint16)
 			}
 			vm.Frame.stack[B] = val
 		case eq:
@@ -128,7 +128,7 @@ func (vm *vM) debug() (Result, error) {
 		case prefix:
 			val, err := vm.Frame.stack[A].Prefix(P)
 			if err != nil {
-				return Failure, verror.New(vm.Module.Name, "Runtime error", verror.RunTimeErrType, math.MaxUint16)
+				return Failure, verror.New(vm.Module.Name, err.Error(), verror.RunTimeErrType, math.MaxUint16)
 			}
 			vm.Frame.stack[B] = val
 		case iGet:
@@ -140,7 +140,7 @@ func (vm *vM) debug() (Result, error) {
 				val, err = vm.Frame.stack[P&clean16].IGet((*vm.Module.Konstants)[A])
 			}
 			if err != nil {
-				return Failure, verror.New(vm.Module.Name, "Runtime error", verror.RunTimeErrType, math.MaxUint16)
+				return Failure, verror.New(vm.Module.Name, err.Error(), verror.RunTimeErrType, math.MaxUint16)
 			}
 			vm.Frame.stack[B] = val
 		case iSet:
@@ -151,7 +151,7 @@ func (vm *vM) debug() (Result, error) {
 				err = vm.Frame.stack[P&clean16].ISet(vm.Frame.stack[A], (*vm.Module.Konstants)[B])
 			}
 			if err != nil {
-				return Failure, verror.New(vm.Module.Name, "Runtime error", verror.RunTimeErrType, math.MaxUint16)
+				return Failure, verror.New(vm.Module.Name, err.Error(), verror.RunTimeErrType, math.MaxUint16)
 			}
 		case iSetK:
 			var err error
@@ -161,12 +161,12 @@ func (vm *vM) debug() (Result, error) {
 				err = vm.Frame.stack[P&clean16].ISet((*vm.Module.Konstants)[A], (*vm.Module.Konstants)[B])
 			}
 			if err != nil {
-				return Failure, verror.New(vm.Module.Name, "Runtime error", verror.RunTimeErrType, math.MaxUint16)
+				return Failure, verror.New(vm.Module.Name, err.Error(), verror.RunTimeErrType, math.MaxUint16)
 			}
 		case slice:
 			val, err := vm.processSlice(P, A)
 			if err != nil {
-				return Failure, verror.New(vm.Module.Name, "Runtime error", verror.RunTimeErrType, math.MaxUint16)
+				return Failure, verror.New(vm.Module.Name, err.Error(), verror.RunTimeErrType, math.MaxUint16)
 			}
 			vm.Frame.stack[B] = val
 		case list:

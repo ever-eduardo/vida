@@ -6,11 +6,11 @@ import (
 )
 
 const (
-	FileErrType        = "file"
-	LexicalErrType     = "lexical"
-	SyntaxErrType      = "syntactic"
-	CompilationErrType = "compilation"
-	RunTimeErrType     = "runtime"
+	FileErrType        = "File"
+	LexicalErrType     = "Lexical"
+	SyntaxErrType      = "Syntax"
+	CompilationErrType = "Compilation"
+	RunTimeErrType     = "Runtime"
 	AssertionErrType   = "Assertion Failure"
 	ExceptionErrType   = "Exception"
 )
@@ -25,12 +25,12 @@ type VidaError struct {
 func (e VidaError) Error() string {
 	switch e.ErrType {
 	case ExceptionErrType, AssertionErrType:
-		return fmt.Sprintf("\n\n[%v]\n   Module  : %v\n   Line    : %v\n   Message : %v\n\n", e.ErrType, e.ModuleName, e.Line, e.Message)
+		return fmt.Sprintf("\n\n  [%v]\n   Module    : %v\n   Near line : %v\n   Message   : %v\n\n", e.ErrType, e.ModuleName, e.Line, e.Message)
 	default:
 		if e.Line == 0 {
-			return fmt.Sprintf("\n\n[Error]\n   Type    : %v\n   Module  : %v\n   Message : %v\n\n", e.ErrType, e.ModuleName, e.Message)
+			return fmt.Sprintf("\n\n  [%v Error]\n   Module  : %v\n   Message : %v\n\n", e.ErrType, e.ModuleName, e.Message)
 		}
-		return fmt.Sprintf("\n\n[Error]\n   Type    : %v\n   Module  : %v\n   Line    : %v\n   Message : %v\n\n", e.ErrType, e.ModuleName, e.Line, e.Message)
+		return fmt.Sprintf("\n\n  [%v Error]\n   Module    : %v\n   Near line : %v\n   Message   : %v\n\n", e.ErrType, e.ModuleName, e.Line, e.Message)
 	}
 }
 

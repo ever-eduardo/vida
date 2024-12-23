@@ -53,10 +53,10 @@ func (l *Lexer) next() {
 			r, w = utf8.DecodeRune(l.src[l.leadPointer:])
 			if r == utf8.RuneError && w == 1 {
 				r = unexpected
-				l.LexicalError = verror.New(l.ModuleName, fmt.Sprintf("the file %v is not utf-8 encoding correct", l.ModuleName), verror.FileErrType, l.line)
+				l.LexicalError = verror.New(l.ModuleName, "module is not utf-8 encoded", verror.FileErrType, l.line)
 			} else if r == bom && l.pointer > 0 {
 				r = unexpected
-				l.LexicalError = verror.New(l.ModuleName, fmt.Sprintf("the file %v has a bom in an unexpected place", l.ModuleName), verror.FileErrType, l.line)
+				l.LexicalError = verror.New(l.ModuleName, "Bom found in an unexpected place", verror.FileErrType, l.line)
 			}
 		}
 		l.c = r
@@ -124,16 +124,13 @@ func (l *Lexer) scanComment() token.Token {
 	l.next()
 	for l.c >= 0 {
 		ch := l.c
-		if ch == '\n' {
-			l.line++
-		}
 		l.next()
 		if ch == '*' && l.c == '/' {
 			l.next()
 			return token.COMMENT
 		}
 	}
-	l.LexicalError = verror.New(l.ModuleName, fmt.Sprintf("the file %v has an unterminated comment", l.ModuleName), verror.LexicalErrType, l.line)
+	l.LexicalError = verror.New(l.ModuleName, "unterminated comment", verror.LexicalErrType, l.line)
 	return token.UNEXPECTED
 }
 
@@ -143,7 +140,7 @@ func (l *Lexer) scanString() (token.Token, string) {
 		ch := l.c
 		if ch == '\n' || ch < 0 {
 			l.c = unexpected
-			l.LexicalError = verror.New(l.ModuleName, fmt.Sprintf("the file %v has an unterminated string literal", l.ModuleName), verror.FileErrType, l.line)
+			l.LexicalError = verror.New(l.ModuleName, "unterminated string literal", verror.FileErrType, l.line)
 			return token.UNEXPECTED, ""
 		}
 		l.next()
@@ -164,7 +161,7 @@ func (l *Lexer) scanRawString() (token.Token, string) {
 		ch := l.c
 		if ch < 0 {
 			l.c = unexpected
-			l.LexicalError = verror.New(l.ModuleName, fmt.Sprintf("the file %v has an unterminated string literal", l.ModuleName), verror.FileErrType, l.line)
+			l.LexicalError = verror.New(l.ModuleName, "unterminated string literal", verror.FileErrType, l.line)
 			return token.UNEXPECTED, ""
 		}
 		l.next()
