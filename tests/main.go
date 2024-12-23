@@ -13,7 +13,7 @@ func main() {
 	fmt.Println(vida.Name(), vida.Version())
 	basePath := "./"
 	modules, err := os.ReadDir(basePath)
-	handleError(err)
+	handleError(err, basePath)
 	count := 0
 	for _, v := range modules {
 		if !v.IsDir() && v.Name() != "main.go" && v.Name() != "tests.exe" {
@@ -28,15 +28,16 @@ func main() {
 
 func executeModule(modulePath string) {
 	i, err := vida.NewInterpreter(modulePath, stdlib.LoadStdlib())
-	handleError(err)
+	handleError(err, modulePath)
 	r, err := i.MeasureRunTime()
-	handleError(err)
+	handleError(err, modulePath)
 	fmt.Println(r)
 }
 
-func handleError(err error) {
+func handleError(err error, modulePath string) {
 	if err != nil {
 		fmt.Println(err)
+		fmt.Println(modulePath)
 		os.Exit(0)
 	}
 }

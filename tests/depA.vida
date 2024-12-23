@@ -1,0 +1,20 @@
+
+loc depC = import("depC")
+
+depC.fourTimesPi = fn self => self.Pi * 4
+
+depC.fourTimesTau = fn self => self.Tau * 4
+
+assert(
+    depC.Pi == 3.141592653589793 or 
+    depC.Pi <= 3.141592653589793 or
+    depC.Pi >= 3.141592653589793
+)
+
+assert(
+    depC.Tau == 6.283185307179586 or
+    depC.Tau <= 6.283185307179586 or
+    depC.Tau >= 6.283185307179586
+)
+
+export depC
