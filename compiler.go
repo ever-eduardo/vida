@@ -455,7 +455,7 @@ func (c *compiler) compileStmt(node ast.Node) {
 		c.rAlloc -= locals
 		c.scope--
 	case *ast.Ret:
-		if c.level != 0 {
+		if c.level != 0 || c.isSubcompiler {
 			i, s := c.compileExpr(n.Expr, true)
 			c.exprToReg(i, s)
 			c.emitRet(c.rAlloc)
