@@ -9,6 +9,7 @@ import (
 func generateMath() vida.Value {
 	m := &vida.Object{Value: make(map[string]vida.Value)}
 	m.Value["pi"] = vida.Float(math.Pi)
+	m.Value["tau"] = vida.Float(math.Pi * 2)
 	m.Value["phi"] = vida.Float(math.Phi)
 	m.Value["e"] = vida.Float(math.E)
 	m.Value["inf"] = mathInf(math.Inf)
