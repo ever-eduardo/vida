@@ -12,6 +12,7 @@ type compiler struct {
 	breakCount    []int
 	continueJumps []int
 	continueCount []int
+	errMsg        string
 	fn            []*CoreFunction
 	currentFn     *CoreFunction
 	ast           *ast.Ast
@@ -65,11 +66,12 @@ func newSubCompiler(ast *ast.Ast, moduleName string, kb *konstBuilder, store *[]
 
 func (c *compiler) compileModule() (*Module, error) {
 	c.appendHeader()
-	for i := range len(c.ast.Statement) {
+	var i int
+	for i = range len(c.ast.Statement) {
 		c.compileStmt(c.ast.Statement[i])
-	}
-	if c.hadError {
-		return nil, verror.ErrCompilation
+		if c.hadError {
+			return nil, verror.New(c.module.Name, c.errMsg, verror.CompilationErrType, c.ast.Line[i])
+		}
 	}
 	c.module.Konstants = c.kb.Konstants
 	c.appendEnd()
@@ -77,11 +79,12 @@ func (c *compiler) compileModule() (*Module, error) {
 }
 
 func (c *compiler) compileSubModule() (*Module, error) {
-	for i := range len(c.ast.Statement) {
+	var i int
+	for i = range len(c.ast.Statement) {
 		c.compileStmt(c.ast.Statement[i])
-	}
-	if c.hadError {
-		return nil, verror.ErrCompilation
+		if c.hadError {
+			return nil, verror.New(c.module.Name, c.errMsg, verror.CompilationErrType, c.ast.Line[i])
+		}
 	}
 	return c.module, nil
 }
@@ -523,6 +526,7 @@ func (c *compiler) compileExpr(node ast.Node, isRoot bool) (int, int) {
 				return c.integrateKonst(val)
 			} else {
 				c.hadError = true
+				c.errMsg = "cannot perform prefix operation"
 			}
 		}
 		switch scope {
@@ -997,6 +1001,7 @@ func (c *compiler) compileExpr(node ast.Node, isRoot bool) (int, int) {
 	case *ast.Import:
 		if _, isCycle := c.depMap[n.Path]; isCycle {
 			c.hadError = true
+			c.errMsg = "import cycle detected"
 			return 0, rGlob
 		} else {
 			c.depMap[n.Path] = dummy
@@ -1007,15 +1012,17 @@ func (c *compiler) compileExpr(node ast.Node, isRoot bool) (int, int) {
 			c.emitCall(c.rAlloc, 0, 0, 1)
 			return c.rAlloc, rLoc
 		}
-		src, err := readModule(n.Path + vidaFileExtension)
+		src, err := readModule(n.Path)
 		if err != nil {
 			c.hadError = true
+			c.errMsg = err.Error()
 			return 0, rGlob
 		}
 		p := newParser(src, n.Path)
 		moduleAST, err := p.parse()
 		if err != nil {
 			c.hadError = true
+			c.errMsg = err.Error()
 			return 0, rGlob
 		}
 		subCompiler := newSubCompiler(moduleAST, n.Path, c.kb, c.module.Store, c.moduleMap, c.depMap, len(*c.module.Store))
@@ -1023,6 +1030,7 @@ func (c *compiler) compileExpr(node ast.Node, isRoot bool) (int, int) {
 		c.sb.index = len(*c.module.Store)
 		if err != nil {
 			c.hadError = true
+			c.errMsg = err.Error()
 			return 0, rGlob
 		}
 		fnIndex := c.kb.FunctionIndex(m.MainFunction.CoreFn)
@@ -1162,6 +1170,7 @@ func (c *compiler) compileBinaryExpr(n *ast.BinaryExpr, isRoot bool) (int, int) 
 				return c.integrateKonst(val)
 			} else {
 				c.hadError = true
+				c.errMsg = "cannot perform binary operation"
 			}
 		case rGlob:
 			c.emitLoadG(ridx, lreg)

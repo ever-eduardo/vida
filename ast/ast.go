@@ -8,6 +8,7 @@ type Node interface {
 
 type Ast struct {
 	Statement []Node
+	Line      []uint
 }
 
 type Loc struct {

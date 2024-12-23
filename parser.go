@@ -32,6 +32,7 @@ func newParser(src []byte, moduleName string) *parser {
 
 func (p *parser) parse() (*ast.Ast, error) {
 	for p.ok {
+		p.ast.Line = append(p.ast.Line, p.current.Line)
 		switch p.current.Token {
 		case token.IDENTIFIER:
 			p.ast.Statement = append(p.ast.Statement, p.mutOrCall(&p.ast.Statement))
@@ -54,7 +55,10 @@ func (p *parser) parse() (*ast.Ast, error) {
 			}
 		case token.EXPORT:
 			p.ast.Statement = append(p.ast.Statement, p.export())
-			return p.ast, nil
+			if p.ok {
+				return p.ast, nil
+			}
+			return nil, p.err
 		case token.EOF:
 			p.ast.Statement = append(p.ast.Statement, &ast.Ret{Expr: &ast.Nil{}})
 			return p.ast, nil
@@ -587,7 +591,7 @@ func (p *parser) operand() ast.Node {
 		e := p.expression(token.LowestPrec)
 		switch expr := e.(type) {
 		case *ast.String:
-			i.Path = expr.Value
+			i.Path = expr.Value + vidaFileExtension
 			return i
 		default:
 			p.err = verror.New(p.lexer.ModuleName, "expected an string literal inside an import function", verror.SyntaxErrType, p.current.Line)
