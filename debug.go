@@ -181,21 +181,21 @@ func (vm *vM) debug() (Result, error) {
 			vm.Frame.stack[B] = &Object{Value: make(map[string]Value)}
 		case forSet:
 			if _, isInteger := vm.Frame.stack[B].(Integer); !isInteger {
-				return Failure, verror.ErrRuntime
+				return Failure, verror.ErrExpectedInteger
 			}
 			if _, isInteger := vm.Frame.stack[B+1].(Integer); !isInteger {
-				return Failure, verror.ErrRuntime
+				return Failure, verror.ErrExpectedInteger
 			}
 			if v, isInteger := vm.Frame.stack[B+2].(Integer); !isInteger {
-				return Failure, verror.ErrRuntime
+				return Failure, verror.ErrExpectedInteger
 			} else if v == 0 {
-				return Failure, verror.ErrRuntime
+				return Failure, verror.ErrExpectedIntegerDifferentFromZero
 			}
 			ip = int(A)
 		case iForSet:
 			iterable := vm.Frame.stack[A]
 			if !iterable.IsIterable() {
-				return Failure, verror.ErrRuntime
+				return Failure, verror.ErrValueNotIterable
 			}
 			vm.Frame.stack[B] = iterable.Iterator()
 			ip = int(P)
@@ -246,11 +246,11 @@ func (vm *vM) debug() (Result, error) {
 			F := P >> shift16
 			P = P & clean16
 			if !val.IsCallable() {
-				return Failure, verror.ErrRuntime
+				return Failure, verror.ErrValueNotCallable
 			}
 			if fn, ok := val.(*Function); ok {
 				if vm.fp >= frameSize {
-					return Failure, verror.ErrRuntime
+					return Failure, verror.ErrStackOverflow
 				}
 				if P != 0 {
 					if P == 1 {
@@ -260,7 +260,7 @@ func (vm *vM) debug() (Result, error) {
 								vm.Frame.stack[int(B)+int(F)+i] = v
 							}
 						} else {
-							return Failure, verror.ErrRuntime
+							return Failure, verror.ErrVariadicArgs
 						}
 					} else if P == 2 {
 						if xs, ok := vm.Frame.stack[int(B)+nargs].(*List); ok {
@@ -269,13 +269,13 @@ func (vm *vM) debug() (Result, error) {
 								vm.Frame.stack[int(B)+int(A)+i] = v
 							}
 						} else {
-							return Failure, verror.ErrRuntime
+							return Failure, verror.ErrVariadicArgs
 						}
 					}
 				}
 				if fn.CoreFn.IsVar {
 					if fn.CoreFn.Arity > nargs {
-						return Failure, verror.ErrRuntime
+						return Failure, verror.ErrNotEnoughArgs
 					}
 					init := int(B) + 1 + fn.CoreFn.Arity
 					count := nargs - fn.CoreFn.Arity
@@ -285,7 +285,7 @@ func (vm *vM) debug() (Result, error) {
 					}
 					vm.Frame.stack[init] = &List{Value: xs}
 				} else if nargs != fn.CoreFn.Arity {
-					return Failure, verror.ErrRuntime
+					return Failure, verror.ErrArity
 				}
 				if fn == vm.Frame.lambda && vm.Frame.code[ip]>>shift56 == ret {
 					for i := 0; i < nargs; i++ {
@@ -321,7 +321,7 @@ func (vm *vM) debug() (Result, error) {
 		case end:
 			return Success, nil
 		default:
-			message := fmt.Sprintf("unknown runtime opcode %v", op)
+			message := fmt.Sprintf("unknown opcode %v", op)
 			return Failure, verror.New(vm.Module.Name, message, verror.RunTimeErrType, math.MaxUint16)
 		}
 	}
