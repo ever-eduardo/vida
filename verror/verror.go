@@ -44,7 +44,10 @@ func New(moduleName string, message string, errorType string, line uint) VidaErr
 }
 
 var (
-	ErrRuntime     = errors.New(RunTimeErrType)
-	ErrStringLimit = errors.New("strings max size has been reached")
-	ErrCompilation = errors.New(CompilationErrType)
+	ErrStringLimit              = errors.New("strings max size has been reached")
+	ErrOpNotDefinedForIterators = errors.New("operation not defined for iterators")
+	ErrValueNotIndexable        = errors.New("trying to index a non indexable value")
+	ErrPrefixOpNotDefined       = errors.New("prefix operation not defined")
+	ErrBinaryOpNotDefined       = errors.New("binary operation not defined")
+	ErrDivisionByZero           = errors.New("division by zero not defined")
 )
