@@ -1395,6 +1395,7 @@ func (c *compiler) compileBinaryExpr(n *ast.BinaryExpr, isRoot bool) (int, int) 
 			}
 		}
 	case rFree:
+		c.rAlloc++
 		ridx, rscope := c.compileExpr(n.Rhs, false)
 		switch rscope {
 		case rLoc:
@@ -1402,13 +1403,14 @@ func (c *compiler) compileBinaryExpr(n *ast.BinaryExpr, isRoot bool) (int, int) 
 			if c.mutLoc && isRoot {
 				c.emitBinop(lreg, ridx, c.rDest, n.Op)
 				c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
+				c.rAlloc--
 				return c.rDest, rLoc
 			} else {
 				c.emitBinop(lreg, ridx, lreg, n.Op)
 				c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
+				c.rAlloc--
 			}
 		case rGlob:
-			c.rAlloc++
 			c.emitLoadF(lidx, lreg)
 			c.emitLoadG(ridx, c.rAlloc)
 			if c.mutLoc && isRoot {
@@ -1426,13 +1428,14 @@ func (c *compiler) compileBinaryExpr(n *ast.BinaryExpr, isRoot bool) (int, int) 
 			if c.mutLoc && isRoot {
 				c.emitBinopK(ridx, lreg, c.rDest, n.Op)
 				c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
+				c.rAlloc--
 				return c.rDest, rLoc
 			} else {
 				c.emitBinopK(ridx, lreg, lreg, n.Op)
 				c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
+				c.rAlloc--
 			}
 		case rFree:
-			c.rAlloc++
 			c.emitLoadF(lidx, lreg)
 			c.emitLoadF(ridx, c.rAlloc)
 			if c.mutLoc && isRoot {
