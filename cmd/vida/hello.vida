@@ -1,0 +1,7 @@
+loc a = "hello"
+loc b = nil
+loc f = fn => a + fmt("%v", b)
+
+loc world = import("world")
+
+export {concat = f, value = world}

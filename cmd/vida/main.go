@@ -29,7 +29,7 @@ func main() {
 			debugPath(module)
 		}
 	} else {
-		normalPath(module)
+		measuredPath(module)
 	}
 }
 
@@ -41,11 +41,14 @@ func debugPath(modulePath string) {
 	fmt.Println(r)
 }
 
-func normalPath(modulePath string) {
+func measuredPath(modulePath string) {
 	i, err := vida.NewInterpreter(modulePath, stdlib.LoadStdlib())
 	handleError(err)
 	r, err := i.MeasureRunTime()
-	handleError(err)
+	if err != nil {
+		i.PrintCallStack()
+		handleError(err)
+	}
 	fmt.Println(r)
 }
 

@@ -1,2 +1,10 @@
-let cycle = import("sketchpad")
-print(cycle)
+
+loc a = 100
+loc b = 100
+
+loc r = a + b
+
+loc hello = import("hello")
+
+r = hello.concat()
+print(hello.value)
