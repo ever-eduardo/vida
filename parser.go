@@ -622,7 +622,11 @@ func (p *parser) operand() ast.Node {
 		}
 	default:
 		if p.ok {
-			p.err = verror.New(p.lexer.ModuleName, "expected an expression", verror.SyntaxErrType, p.current.Line)
+			if p.lexer.LexicalError.Message == "" {
+				p.err = verror.New(p.lexer.ModuleName, "expected a valid expression", verror.SyntaxErrType, p.current.Line)
+			} else {
+				p.err = verror.New(p.lexer.ModuleName, p.lexer.LexicalError.Error(), verror.SyntaxErrType, p.current.Line)
+			}
 			p.ok = false
 		}
 		return &ast.Nil{}
