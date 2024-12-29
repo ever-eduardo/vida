@@ -140,18 +140,17 @@ func (l *Lexer) scanString() (token.Token, string) {
 		ch := l.c
 		if ch == '\n' || ch < 0 {
 			l.c = unexpected
-			l.LexicalError = verror.New(l.ModuleName, "unterminated string literal", verror.FileErrType, l.line)
+			l.LexicalError = verror.New(l.ModuleName, "unterminated string literal", verror.LexicalErrType, l.line)
 			return token.UNEXPECTED, ""
 		}
 		l.next()
 		if ch == '"' {
-			break
+			return token.STRING, string(l.src[init:l.pointer])
 		}
 		if ch == '\\' && l.c == '"' {
 			l.next()
 		}
 	}
-	return token.STRING, string(l.src[init:l.pointer])
 }
 
 func (l *Lexer) scanRawString() (token.Token, string) {
@@ -161,22 +160,21 @@ func (l *Lexer) scanRawString() (token.Token, string) {
 		ch := l.c
 		if ch < 0 {
 			l.c = unexpected
-			l.LexicalError = verror.New(l.ModuleName, "unterminated string literal", verror.FileErrType, l.line)
+			l.LexicalError = verror.New(l.ModuleName, "unterminated string literal", verror.LexicalErrType, l.line)
 			return token.UNEXPECTED, ""
 		}
 		l.next()
 		if ch == '`' {
-			break
+			lit := l.src[init:l.pointer]
+			if hasCR {
+				lit = stripCR(lit)
+			}
+			return token.STRING, string(lit)
 		}
 		if ch == 'r' {
 			hasCR = true
 		}
 	}
-	lit := l.src[init:l.pointer]
-	if hasCR {
-		lit = stripCR(lit)
-	}
-	return token.STRING, string(lit)
 }
 
 func stripCR(b []byte) []byte {
@@ -383,9 +381,11 @@ func (l *Lexer) Next() (line uint, tok token.Token, lit string) {
 		case '&':
 			tok = token.BAND
 		default:
-			tok = token.UNEXPECTED
-			lit = string(ch)
-			l.LexicalError = verror.New(l.ModuleName, fmt.Sprintf("found an unrecognized character '%v'", lit), verror.LexicalErrType, l.line)
+			if tok != token.UNEXPECTED {
+				tok = token.UNEXPECTED
+				lit = string(ch)
+				l.LexicalError = verror.New(l.ModuleName, fmt.Sprintf("found an unrecognized character '%v'", lit), verror.LexicalErrType, l.line)
+			}
 		}
 	}
 	return
