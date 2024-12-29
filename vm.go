@@ -2,7 +2,6 @@ package vida
 
 import (
 	"fmt"
-	"math"
 
 	"github.com/ever-eduardo/vida/token"
 	"github.com/ever-eduardo/vida/verror"
@@ -79,30 +78,25 @@ func (vm *vM) run() (Result, error) {
 		case binopG:
 			val, err := (*vm.Module.Store)[A].Binop(P>>shift16, (*vm.Module.Store)[P&clean16])
 			if err != nil {
-				modName := vm.Frame.lambda.CoreFn.ModuleName
-				return Failure, verror.New(modName, err.Error(), verror.RunTimeErrType, vm.ErrInfo[modName][ip])
+				return vm.createError(ip, err)
 			}
 			vm.Frame.stack[B] = val
 		case binop:
 			val, err := vm.Frame.stack[A].Binop(P>>shift16, vm.Frame.stack[P&clean16])
 			if err != nil {
-				modName := vm.Frame.lambda.CoreFn.ModuleName
-				vm.Frame.ip = ip
-				return Failure, verror.New(modName, err.Error(), verror.RunTimeErrType, vm.ErrInfo[modName][ip])
+				return vm.createError(ip, err)
 			}
 			vm.Frame.stack[B] = val
 		case binopK:
 			val, err := vm.Frame.stack[P&clean16].Binop(P>>shift16, (*vm.Module.Konstants)[A])
 			if err != nil {
-				modName := vm.Frame.lambda.CoreFn.ModuleName
-				return Failure, verror.New(modName, err.Error(), verror.RunTimeErrType, vm.ErrInfo[modName][ip])
+				return vm.createError(ip, err)
 			}
 			vm.Frame.stack[B] = val
 		case binopQ:
 			val, err := (*vm.Module.Konstants)[A].Binop(P>>shift16, vm.Frame.stack[P&clean16])
 			if err != nil {
-				modName := vm.Frame.lambda.CoreFn.ModuleName
-				return Failure, verror.New(modName, err.Error(), verror.RunTimeErrType, vm.ErrInfo[modName][ip])
+				return vm.createError(ip, err)
 			}
 			vm.Frame.stack[B] = val
 		case eq:
@@ -132,8 +126,7 @@ func (vm *vM) run() (Result, error) {
 		case prefix:
 			val, err := vm.Frame.stack[A].Prefix(P)
 			if err != nil {
-				modName := vm.Frame.lambda.CoreFn.ModuleName
-				return Failure, verror.New(modName, err.Error(), verror.RunTimeErrType, vm.ErrInfo[modName][ip])
+				return vm.createError(ip, err)
 			}
 			vm.Frame.stack[B] = val
 		case iGet:
@@ -145,7 +138,7 @@ func (vm *vM) run() (Result, error) {
 				val, err = vm.Frame.stack[P&clean16].IGet((*vm.Module.Konstants)[A])
 			}
 			if err != nil {
-				return Failure, verror.New(vm.Frame.lambda.CoreFn.ModuleName, err.Error(), verror.RunTimeErrType, math.MaxUint16)
+				return vm.createError(ip, err)
 			}
 			vm.Frame.stack[B] = val
 		case iSet:
@@ -156,7 +149,7 @@ func (vm *vM) run() (Result, error) {
 				err = vm.Frame.stack[P&clean16].ISet(vm.Frame.stack[A], (*vm.Module.Konstants)[B])
 			}
 			if err != nil {
-				return Failure, verror.New(vm.Frame.lambda.CoreFn.ModuleName, err.Error(), verror.RunTimeErrType, math.MaxUint16)
+				return vm.createError(ip, err)
 			}
 		case iSetK:
 			var err error
@@ -166,12 +159,12 @@ func (vm *vM) run() (Result, error) {
 				err = vm.Frame.stack[P&clean16].ISet((*vm.Module.Konstants)[A], (*vm.Module.Konstants)[B])
 			}
 			if err != nil {
-				return Failure, verror.New(vm.Frame.lambda.CoreFn.ModuleName, err.Error(), verror.RunTimeErrType, math.MaxUint16)
+				return vm.createError(ip, err)
 			}
 		case slice:
 			val, err := vm.processSlice(P, A)
 			if err != nil {
-				return Failure, verror.New(vm.Frame.lambda.CoreFn.ModuleName, err.Error(), verror.RunTimeErrType, math.MaxUint16)
+				return vm.createError(ip, err)
 			}
 			vm.Frame.stack[B] = val
 		case list:
@@ -186,21 +179,21 @@ func (vm *vM) run() (Result, error) {
 			vm.Frame.stack[B] = &Object{Value: make(map[string]Value)}
 		case forSet:
 			if _, isInteger := vm.Frame.stack[B].(Integer); !isInteger {
-				return Failure, verror.ErrExpectedInteger
+				return vm.createError(ip, verror.ErrExpectedInteger)
 			}
 			if _, isInteger := vm.Frame.stack[B+1].(Integer); !isInteger {
-				return Failure, verror.ErrExpectedInteger
+				return vm.createError(ip, verror.ErrExpectedInteger)
 			}
 			if v, isInteger := vm.Frame.stack[B+2].(Integer); !isInteger {
-				return Failure, verror.ErrExpectedInteger
+				return vm.createError(ip, verror.ErrExpectedInteger)
 			} else if v == 0 {
-				return Failure, verror.ErrExpectedIntegerDifferentFromZero
+				return vm.createError(ip, verror.ErrExpectedIntegerDifferentFromZero)
 			}
 			ip = int(A)
 		case iForSet:
 			iterable := vm.Frame.stack[A]
 			if !iterable.IsIterable() {
-				return Failure, verror.ErrValueNotIterable
+				return vm.createError(ip, verror.ErrValueNotIterable)
 			}
 			vm.Frame.stack[B] = iterable.Iterator()
 			ip = int(P)
@@ -251,11 +244,11 @@ func (vm *vM) run() (Result, error) {
 			F := P >> shift16
 			P = P & clean16
 			if !val.IsCallable() {
-				return Failure, verror.ErrValueNotCallable
+				return vm.createError(ip, verror.ErrValueNotCallable)
 			}
 			if fn, ok := val.(*Function); ok {
 				if vm.fp >= frameSize {
-					return Failure, verror.ErrStackOverflow
+					return vm.createError(ip, verror.ErrStackOverflow)
 				}
 				if P != 0 {
 					if P == 1 {
@@ -265,7 +258,7 @@ func (vm *vM) run() (Result, error) {
 								vm.Frame.stack[int(B)+int(F)+i] = v
 							}
 						} else {
-							return Failure, verror.ErrVariadicArgs
+							return vm.createError(ip, verror.ErrVariadicArgs)
 						}
 					} else if P == 2 {
 						if xs, ok := vm.Frame.stack[int(B)+nargs].(*List); ok {
@@ -274,13 +267,13 @@ func (vm *vM) run() (Result, error) {
 								vm.Frame.stack[int(B)+int(A)+i] = v
 							}
 						} else {
-							return Failure, verror.ErrVariadicArgs
+							return vm.createError(ip, verror.ErrVariadicArgs)
 						}
 					}
 				}
 				if fn.CoreFn.IsVar {
 					if fn.CoreFn.Arity > nargs {
-						return Failure, verror.ErrNotEnoughArgs
+						return vm.createError(ip, verror.ErrNotEnoughArgs)
 					}
 					init := int(B) + 1 + fn.CoreFn.Arity
 					count := nargs - fn.CoreFn.Arity
@@ -290,7 +283,7 @@ func (vm *vM) run() (Result, error) {
 					}
 					vm.Frame.stack[init] = &List{Value: xs}
 				} else if nargs != fn.CoreFn.Arity {
-					return Failure, verror.ErrArity
+					return vm.createError(ip, verror.ErrArity)
 				}
 				if fn == vm.Frame.lambda && vm.Frame.code[ip]>>shift56 == ret {
 					for i := 0; i < nargs; i++ {
@@ -312,7 +305,7 @@ func (vm *vM) run() (Result, error) {
 			} else if fn, ok := val.(GFn); ok {
 				v, err := fn(vm.Frame.stack[B+1 : B+A+1]...)
 				if err != nil {
-					return Failure, err
+					return vm.createError(ip, err)
 				}
 				vm.Frame.stack[B] = v
 			}
@@ -327,7 +320,7 @@ func (vm *vM) run() (Result, error) {
 			return Success, nil
 		default:
 			message := fmt.Sprintf("unknown opcode %v", op)
-			return Failure, verror.New(vm.Frame.lambda.CoreFn.ModuleName, message, verror.RunTimeErrType, math.MaxUint16)
+			return Failure, verror.New(vm.Frame.lambda.CoreFn.ModuleName, message, verror.RunTimeErrType, 0)
 		}
 	}
 }
@@ -487,6 +480,12 @@ func (vm *vM) printCallStack() {
 			println("MAP", k, v)
 		}
 	}
+}
+
+func (vm *vM) createError(ip int, err error) (Result, error) {
+	modName := vm.Frame.lambda.CoreFn.ModuleName
+	vm.Frame.ip = ip
+	return Failure, verror.New(modName, err.Error(), verror.RunTimeErrType, vm.ErrInfo[modName][ip])
 }
 
 func checkISACompatibility(m *Module) error {
