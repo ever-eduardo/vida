@@ -77,7 +77,7 @@ const (
 )
 
 var Tokens = [...]string{
-	UNEXPECTED: "Unexpected",
+	UNEXPECTED: "Unrecognizable character",
 	EOF:        "EOF",
 	COMMENT:    "Comment",
 	IDENTIFIER: "Identifier",

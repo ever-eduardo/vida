@@ -21,6 +21,8 @@ type compiler struct {
 	sb            *symbolBuilder
 	moduleMap     map[string]int
 	depMap        map[string]struct{}
+	linesMap      map[string]map[int]uint
+	lineErr       uint
 	scope         int
 	level         int
 	rAlloc        int
@@ -36,6 +38,8 @@ var dummy = struct{}{}
 func newMainCompiler(ast *ast.Ast, moduleName string) *compiler {
 	dm := make(map[string]struct{})
 	dm[moduleName] = dummy
+	lm := make(map[string]map[int]uint)
+	lm[moduleName] = make(map[int]uint)
 	c := &compiler{
 		ast:       ast,
 		module:    newMainModule(moduleName),
@@ -43,13 +47,15 @@ func newMainCompiler(ast *ast.Ast, moduleName string) *compiler {
 		sb:        newSymbolBuilder(0),
 		moduleMap: make(map[string]int),
 		depMap:    dm,
+		linesMap:  lm,
 	}
 	c.fn = append(c.fn, c.module.MainFunction.CoreFn)
 	c.currentFn = c.module.MainFunction.CoreFn
 	return c
 }
 
-func newSubCompiler(ast *ast.Ast, moduleName string, kb *konstBuilder, store *[]Value, moduleMap map[string]int, depMap map[string]struct{}, initialIndex int) *compiler {
+func newSubCompiler(ast *ast.Ast, moduleName string, kb *konstBuilder, store *[]Value, moduleMap map[string]int, depMap map[string]struct{}, lm map[string]map[int]uint, initialIndex int) *compiler {
+	lm[moduleName] = make(map[int]uint)
 	c := &compiler{
 		ast:           ast,
 		module:        newSubModule(moduleName, store),
@@ -58,6 +64,7 @@ func newSubCompiler(ast *ast.Ast, moduleName string, kb *konstBuilder, store *[]
 		isSubcompiler: true,
 		moduleMap:     moduleMap,
 		depMap:        depMap,
+		linesMap:      lm,
 	}
 	c.fn = append(c.fn, c.module.MainFunction.CoreFn)
 	c.currentFn = c.module.MainFunction.CoreFn
@@ -70,7 +77,7 @@ func (c *compiler) compileModule() (*Module, error) {
 	for i = range len(c.ast.Statement) {
 		c.compileStmt(c.ast.Statement[i])
 		if c.hadError {
-			return nil, verror.New(c.module.Name, c.errMsg, verror.CompilationErrType, c.ast.Line[i])
+			return nil, verror.New(c.module.MainFunction.CoreFn.ModuleName, c.errMsg, verror.CompilationErrType, c.lineErr)
 		}
 	}
 	c.module.Konstants = c.kb.Konstants
@@ -79,11 +86,10 @@ func (c *compiler) compileModule() (*Module, error) {
 }
 
 func (c *compiler) compileSubModule() (*Module, error) {
-	var i int
-	for i = range len(c.ast.Statement) {
+	for i := range len(c.ast.Statement) {
 		c.compileStmt(c.ast.Statement[i])
 		if c.hadError {
-			return nil, verror.New(c.module.Name, c.errMsg, verror.CompilationErrType, c.ast.Line[i])
+			return nil, verror.New(c.module.MainFunction.CoreFn.ModuleName, c.errMsg, verror.CompilationErrType, c.lineErr)
 		}
 	}
 	return c.module, nil
@@ -224,6 +230,7 @@ func (c *compiler) compileStmt(node ast.Node) {
 
 		c.rAlloc++
 		c.emitForSet(ireg, 0)
+		c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 		loop := len(c.currentFn.Code)
 
 		c.compileStmt(n.Block)
@@ -255,6 +262,7 @@ func (c *compiler) compileStmt(node ast.Node) {
 		c.exprToReg(i, s)
 
 		c.emitIForSet(0, c.rAlloc, ireg)
+		c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 		loop := len(c.currentFn.Code)
 
 		c.compileStmt(n.Block)
@@ -336,6 +344,7 @@ func (c *compiler) compileStmt(node ast.Node) {
 			c.emitLoadF(j, c.rAlloc)
 			c.emitIGet(i, c.rAlloc, i, 0)
 		}
+		c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 		if !c.fromRefStmt {
 			c.rAlloc--
 		}
@@ -359,6 +368,7 @@ func (c *compiler) compileStmt(node ast.Node) {
 			c.emitLoadF(j, c.rAlloc)
 			c.emitIGet(i, c.rAlloc, i, 0)
 		}
+		c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 		if !c.fromRefStmt {
 			c.rAlloc--
 		}
@@ -386,6 +396,7 @@ func (c *compiler) compileStmt(node ast.Node) {
 				c.emitLoadF(k, c.rAlloc)
 				c.emitISet(i, j, c.rAlloc, 0)
 			}
+			c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 			c.rAlloc--
 		case rGlob:
 			c.rAlloc++
@@ -404,6 +415,7 @@ func (c *compiler) compileStmt(node ast.Node) {
 				c.emitLoadF(k, c.rAlloc+1)
 				c.emitISet(i, c.rAlloc, c.rAlloc+1, 0)
 			}
+			c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 			c.rAlloc -= 2
 		case rKonst:
 			c.rAlloc++
@@ -424,6 +436,7 @@ func (c *compiler) compileStmt(node ast.Node) {
 				c.emitISetK(i, j, c.rAlloc, 0)
 				c.rAlloc--
 			}
+			c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 			c.rAlloc--
 		case rFree:
 			c.rAlloc++
@@ -442,6 +455,7 @@ func (c *compiler) compileStmt(node ast.Node) {
 				c.emitLoadF(k, c.rAlloc+1)
 				c.emitISet(i, c.rAlloc, c.rAlloc+1, 0)
 			}
+			c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 			c.rAlloc -= 2
 		}
 		c.rAlloc--
@@ -475,6 +489,7 @@ func (c *compiler) compileStmt(node ast.Node) {
 		c.rAlloc = callable
 		c.fromRefStmt = false
 		c.emitCall(callable, len(n.Args), n.Ellipsis, 1)
+		c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 	case *ast.MethodCallStmt:
 		obj := c.rAlloc
 		if c.fromRefStmt {
@@ -487,6 +502,7 @@ func (c *compiler) compileStmt(node ast.Node) {
 		j, t := c.compileExpr(n.Prop, true)
 		c.exprToReg(j, t)
 		c.emitIGet(obj+1, obj+2, obj, 0)
+		c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 		for _, v := range n.Args {
 			i, s := c.compileExpr(v, true)
 			c.exprToReg(i, s)
@@ -495,6 +511,7 @@ func (c *compiler) compileStmt(node ast.Node) {
 		c.rAlloc = obj
 		c.fromRefStmt = false
 		c.emitCall(obj, len(n.Args)+1, n.Ellipsis, 2)
+		c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 	case *ast.Export:
 		if c.isSubcompiler {
 			i, s := c.compileExpr(n.Expr, true)
@@ -527,25 +544,31 @@ func (c *compiler) compileExpr(node ast.Node, isRoot bool) (int, int) {
 			} else {
 				c.hadError = true
 				c.errMsg = "cannot perform prefix operation"
+				c.lineErr = n.Line
 			}
 		}
 		switch scope {
 		case rGlob:
 			c.emitLoadG(from, c.rAlloc)
 			c.emitPrefix(c.rAlloc, c.rAlloc, n.Op)
+			c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 		case rLoc:
 			if c.mutLoc && isRoot {
 				c.emitPrefix(from, c.rDest, n.Op)
+				c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 				return c.rDest, rLoc
 			} else {
 				c.emitPrefix(from, c.rAlloc, n.Op)
+				c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 			}
 		case rKonst:
 			c.emitLoadK(from, c.rAlloc)
 			c.emitPrefix(c.rAlloc, c.rAlloc, n.Op)
+			c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 		case rFree:
 			c.emitLoadF(from, c.rAlloc)
 			c.emitPrefix(c.rAlloc, c.rAlloc, n.Op)
+			c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 		}
 		return c.rAlloc, rLoc
 	case *ast.Boolean:
@@ -606,6 +629,7 @@ func (c *compiler) compileExpr(node ast.Node, isRoot bool) (int, int) {
 				c.emitISetK(objAddr, k, c.rAlloc, 0)
 				c.rAlloc--
 			}
+			c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 			c.rAlloc--
 		}
 		return objAddr, rLoc
@@ -624,39 +648,47 @@ func (c *compiler) compileExpr(node ast.Node, isRoot bool) (int, int) {
 			case rLoc:
 				if c.mutLoc && isRoot {
 					c.emitIGet(i, j, c.rDest, 0)
+					c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 					c.rAlloc--
 					return c.rDest, rLoc
 				} else {
 					c.emitIGet(i, j, lreg, 0)
+					c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 					c.rAlloc--
 				}
 			case rGlob:
 				c.emitLoadG(j, c.rAlloc)
 				if c.mutLoc && isRoot {
 					c.emitIGet(i, c.rAlloc, c.rDest, 0)
+					c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 					c.rAlloc--
 					return c.rDest, rLoc
 				} else {
 					c.emitIGet(i, c.rAlloc, lreg, 0)
+					c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 					c.rAlloc--
 				}
 			case rKonst:
 				if c.mutLoc && isRoot {
 					c.emitIGet(i, j, c.rDest, 1)
+					c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 					c.rAlloc--
 					return c.rDest, rLoc
 				} else {
 					c.emitIGet(i, j, lreg, 1)
+					c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 					c.rAlloc--
 				}
 			case rFree:
 				c.emitLoadF(j, c.rAlloc)
 				if c.mutLoc && isRoot {
 					c.emitIGet(i, c.rAlloc, c.rDest, 0)
+					c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 					c.rAlloc--
 					return c.rDest, rLoc
 				} else {
 					c.emitIGet(i, c.rAlloc, lreg, 0)
+					c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 					c.rAlloc--
 				}
 			}
@@ -669,10 +701,12 @@ func (c *compiler) compileExpr(node ast.Node, isRoot bool) (int, int) {
 				c.emitLoadG(i, lreg)
 				if c.mutLoc && isRoot {
 					c.emitIGet(lreg, c.rAlloc, c.rDest, 0)
+					c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 					c.rAlloc--
 					return c.rDest, rLoc
 				} else {
 					c.emitIGet(lreg, c.rAlloc, lreg, 0)
+					c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 					c.rAlloc--
 				}
 			case rGlob:
@@ -680,20 +714,24 @@ func (c *compiler) compileExpr(node ast.Node, isRoot bool) (int, int) {
 				c.emitLoadG(j, lreg+1)
 				if c.mutLoc && isRoot {
 					c.emitIGet(lreg, lreg+1, c.rDest, 0)
+					c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 					c.rAlloc--
 					return c.rDest, rLoc
 				} else {
 					c.emitIGet(lreg, lreg+1, lreg, 0)
+					c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 					c.rAlloc--
 				}
 			case rKonst:
 				c.emitLoadG(i, lreg)
 				if c.mutLoc && isRoot {
 					c.emitIGet(lreg, j, c.rDest, 1)
+					c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 					c.rAlloc--
 					return c.rDest, rLoc
 				} else {
 					c.emitIGet(lreg, j, lreg, 1)
+					c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 					c.rAlloc--
 				}
 			case rFree:
@@ -701,10 +739,12 @@ func (c *compiler) compileExpr(node ast.Node, isRoot bool) (int, int) {
 				c.emitLoadF(j, lreg+1)
 				if c.mutLoc && isRoot {
 					c.emitIGet(lreg, lreg+1, c.rDest, 0)
+					c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 					c.rAlloc--
 					return c.rDest, rLoc
 				} else {
 					c.emitIGet(lreg, lreg+1, lreg, 0)
+					c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 					c.rAlloc--
 				}
 			}
@@ -717,10 +757,12 @@ func (c *compiler) compileExpr(node ast.Node, isRoot bool) (int, int) {
 				c.emitLoadF(i, lreg)
 				if c.mutLoc && isRoot {
 					c.emitIGet(lreg, c.rAlloc, c.rDest, 0)
+					c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 					c.rAlloc--
 					return c.rDest, rLoc
 				} else {
 					c.emitIGet(lreg, c.rAlloc, lreg, 0)
+					c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 					c.rAlloc--
 				}
 			case rGlob:
@@ -728,19 +770,23 @@ func (c *compiler) compileExpr(node ast.Node, isRoot bool) (int, int) {
 				c.emitLoadG(j, lreg+1)
 				if c.mutLoc && isRoot {
 					c.emitIGet(lreg, lreg+1, c.rDest, 0)
+					c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 					c.rAlloc--
 				} else {
 					c.emitIGet(lreg, lreg+1, lreg, 0)
+					c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 					c.rAlloc--
 				}
 			case rKonst:
 				c.emitLoadF(i, lreg)
 				if c.mutLoc && isRoot {
 					c.emitIGet(lreg, j, c.rDest, 1)
+					c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 					c.rAlloc--
 					return c.rDest, rLoc
 				} else {
 					c.emitIGet(lreg, j, lreg, 1)
+					c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 					c.rAlloc--
 				}
 			case rFree:
@@ -748,10 +794,12 @@ func (c *compiler) compileExpr(node ast.Node, isRoot bool) (int, int) {
 				c.emitLoadF(j, lreg+1)
 				if c.mutLoc && isRoot {
 					c.emitIGet(lreg, lreg+1, c.rDest, 0)
+					c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 					c.rAlloc--
 					return c.rDest, rLoc
 				} else {
 					c.emitIGet(lreg, lreg+1, lreg, 0)
+					c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 					c.rAlloc--
 				}
 			}
@@ -768,39 +816,47 @@ func (c *compiler) compileExpr(node ast.Node, isRoot bool) (int, int) {
 			case rLoc:
 				if c.mutLoc && isRoot {
 					c.emitIGet(i, j, c.rDest, 0)
+					c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 					c.rAlloc--
 					return c.rDest, rLoc
 				} else {
 					c.emitIGet(i, j, lreg, 0)
+					c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 					c.rAlloc--
 				}
 			case rGlob:
 				c.emitLoadG(j, c.rAlloc)
 				if c.mutLoc && isRoot {
 					c.emitIGet(i, c.rAlloc, c.rDest, 0)
+					c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 					c.rAlloc--
 					return c.rDest, rLoc
 				} else {
 					c.emitIGet(i, c.rAlloc, lreg, 0)
+					c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 					c.rAlloc--
 				}
 			case rKonst:
 				if c.mutLoc && isRoot {
 					c.emitIGet(i, j, c.rDest, 1)
+					c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 					c.rAlloc--
 					return c.rDest, rLoc
 				} else {
 					c.emitIGet(i, j, lreg, 1)
+					c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 					c.rAlloc--
 				}
 			case rFree:
 				c.emitLoadF(j, c.rAlloc)
 				if c.mutLoc && isRoot {
 					c.emitIGet(i, c.rAlloc, c.rDest, 0)
+					c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 					c.rAlloc--
 					return c.rDest, rLoc
 				} else {
 					c.emitIGet(i, c.rAlloc, lreg, 0)
+					c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 					c.rAlloc--
 				}
 			}
@@ -813,10 +869,12 @@ func (c *compiler) compileExpr(node ast.Node, isRoot bool) (int, int) {
 				c.emitLoadG(i, lreg)
 				if c.mutLoc && isRoot {
 					c.emitIGet(lreg, c.rAlloc, c.rDest, 0)
+					c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 					c.rAlloc--
 					return c.rDest, rLoc
 				} else {
 					c.emitIGet(lreg, c.rAlloc, lreg, 0)
+					c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 					c.rAlloc--
 				}
 			case rGlob:
@@ -824,20 +882,24 @@ func (c *compiler) compileExpr(node ast.Node, isRoot bool) (int, int) {
 				c.emitLoadG(j, lreg+1)
 				if c.mutLoc && isRoot {
 					c.emitIGet(lreg, lreg+1, c.rDest, 0)
+					c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 					c.rAlloc--
 					return c.rDest, rLoc
 				} else {
 					c.emitIGet(lreg, lreg+1, lreg, 0)
+					c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 					c.rAlloc--
 				}
 			case rKonst:
 				c.emitLoadG(i, lreg)
 				if c.mutLoc && isRoot {
 					c.emitIGet(lreg, j, c.rDest, 1)
+					c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 					c.rAlloc--
 					return c.rDest, rLoc
 				} else {
 					c.emitIGet(lreg, j, lreg, 1)
+					c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 					c.rAlloc--
 				}
 			case rFree:
@@ -845,10 +907,12 @@ func (c *compiler) compileExpr(node ast.Node, isRoot bool) (int, int) {
 				c.emitLoadF(j, lreg+1)
 				if c.mutLoc && isRoot {
 					c.emitIGet(lreg, lreg+1, c.rDest, 0)
+					c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 					c.rAlloc--
 					return c.rDest, rLoc
 				} else {
 					c.emitIGet(lreg, lreg+1, lreg, 0)
+					c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 					c.rAlloc--
 				}
 			}
@@ -861,10 +925,12 @@ func (c *compiler) compileExpr(node ast.Node, isRoot bool) (int, int) {
 				c.emitLoadF(i, lreg)
 				if c.mutLoc && isRoot {
 					c.emitIGet(lreg, c.rAlloc, c.rDest, 0)
+					c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 					c.rAlloc--
 					return c.rDest, rLoc
 				} else {
 					c.emitIGet(lreg, c.rAlloc, lreg, 0)
+					c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 					c.rAlloc--
 				}
 			case rGlob:
@@ -872,19 +938,23 @@ func (c *compiler) compileExpr(node ast.Node, isRoot bool) (int, int) {
 				c.emitLoadG(j, lreg+1)
 				if c.mutLoc && isRoot {
 					c.emitIGet(lreg, lreg+1, c.rDest, 0)
+					c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 					c.rAlloc--
 				} else {
 					c.emitIGet(lreg, lreg+1, lreg, 0)
+					c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 					c.rAlloc--
 				}
 			case rKonst:
 				c.emitLoadF(i, lreg)
 				if c.mutLoc && isRoot {
 					c.emitIGet(lreg, j, c.rDest, 1)
+					c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 					c.rAlloc--
 					return c.rDest, rLoc
 				} else {
 					c.emitIGet(lreg, j, lreg, 1)
+					c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 					c.rAlloc--
 				}
 			case rFree:
@@ -892,10 +962,12 @@ func (c *compiler) compileExpr(node ast.Node, isRoot bool) (int, int) {
 				c.emitLoadF(j, lreg+1)
 				if c.mutLoc && isRoot {
 					c.emitIGet(lreg, lreg+1, c.rDest, 0)
+					c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 					c.rAlloc--
 					return c.rDest, rLoc
 				} else {
 					c.emitIGet(lreg, lreg+1, lreg, 0)
+					c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 					c.rAlloc--
 				}
 			}
@@ -908,9 +980,11 @@ func (c *compiler) compileExpr(node ast.Node, isRoot bool) (int, int) {
 		case vcv:
 			if c.mutLoc && isRoot {
 				c.emitSlice(n.Mode, c.rAlloc, c.rDest)
+				c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 				return c.rDest, rLoc
 			} else {
 				c.emitSlice(n.Mode, c.rAlloc, c.rAlloc)
+				c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 			}
 		case vce:
 			c.rAlloc++
@@ -919,9 +993,11 @@ func (c *compiler) compileExpr(node ast.Node, isRoot bool) (int, int) {
 			c.rAlloc--
 			if c.mutLoc && isRoot {
 				c.emitSlice(n.Mode, c.rAlloc, c.rDest)
+				c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 				return c.rDest, rLoc
 			} else {
 				c.emitSlice(n.Mode, c.rAlloc, c.rAlloc)
+				c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 			}
 		case ecv:
 			c.rAlloc++
@@ -930,9 +1006,11 @@ func (c *compiler) compileExpr(node ast.Node, isRoot bool) (int, int) {
 			c.rAlloc--
 			if c.mutLoc && isRoot {
 				c.emitSlice(n.Mode, c.rAlloc, c.rDest)
+				c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 				return c.rDest, rLoc
 			} else {
 				c.emitSlice(n.Mode, c.rAlloc, c.rAlloc)
+				c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 			}
 		case ece:
 			c.rAlloc++
@@ -944,14 +1022,16 @@ func (c *compiler) compileExpr(node ast.Node, isRoot bool) (int, int) {
 			c.rAlloc -= 2
 			if c.mutLoc && isRoot {
 				c.emitSlice(n.Mode, c.rAlloc, c.rDest)
+				c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 				return c.rDest, rLoc
 			} else {
 				c.emitSlice(n.Mode, c.rAlloc, c.rAlloc)
+				c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 			}
 		}
 		return c.rAlloc, rLoc
 	case *ast.Fun:
-		fn := &CoreFunction{}
+		fn := &CoreFunction{ModuleName: c.module.MainFunction.CoreFn.ModuleName}
 		c.fn = append(c.fn, fn)
 		c.emitFun(c.kb.FunctionIndex(fn), c.rAlloc)
 		c.currentFn = fn
@@ -980,6 +1060,7 @@ func (c *compiler) compileExpr(node ast.Node, isRoot bool) (int, int) {
 		}
 		c.rAlloc = reg
 		c.emitCall(reg, len(n.Args), n.Ellipsis, 1)
+		c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 		return reg, rLoc
 	case *ast.MethodCallExpr:
 		reg := c.rAlloc
@@ -990,6 +1071,7 @@ func (c *compiler) compileExpr(node ast.Node, isRoot bool) (int, int) {
 		j, t := c.compileExpr(n.Prop, false)
 		c.exprToReg(j, t)
 		c.emitIGet(reg+1, reg+2, reg, 0)
+		c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 		for _, v := range n.Args {
 			i, s := c.compileExpr(v, false)
 			c.exprToReg(i, s)
@@ -997,11 +1079,13 @@ func (c *compiler) compileExpr(node ast.Node, isRoot bool) (int, int) {
 		}
 		c.rAlloc = reg
 		c.emitCall(reg, len(n.Args)+1, n.Ellipsis, 2)
+		c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 		return reg, rLoc
 	case *ast.Import:
 		if _, isCycle := c.depMap[n.Path]; isCycle {
 			c.hadError = true
 			c.errMsg = "import cycle detected"
+			c.lineErr = n.Line
 			return 0, rGlob
 		} else {
 			c.depMap[n.Path] = dummy
@@ -1010,12 +1094,14 @@ func (c *compiler) compileExpr(node ast.Node, isRoot bool) (int, int) {
 			delete(c.depMap, n.Path)
 			c.emitFun(v, c.rAlloc)
 			c.emitCall(c.rAlloc, 0, 0, 1)
+			c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 			return c.rAlloc, rLoc
 		}
 		src, err := readModule(n.Path)
 		if err != nil {
 			c.hadError = true
 			c.errMsg = err.Error()
+			c.lineErr = n.Line
 			return 0, rGlob
 		}
 		p := newParser(src, n.Path)
@@ -1023,14 +1109,16 @@ func (c *compiler) compileExpr(node ast.Node, isRoot bool) (int, int) {
 		if err != nil {
 			c.hadError = true
 			c.errMsg = err.Error()
+			c.lineErr = n.Line
 			return 0, rGlob
 		}
-		subCompiler := newSubCompiler(moduleAST, n.Path, c.kb, c.module.Store, c.moduleMap, c.depMap, len(*c.module.Store))
+		subCompiler := newSubCompiler(moduleAST, n.Path, c.kb, c.module.Store, c.moduleMap, c.depMap, c.linesMap, len(*c.module.Store))
 		m, err := subCompiler.compileSubModule()
 		c.sb.index = len(*c.module.Store)
 		if err != nil {
 			c.hadError = true
 			c.errMsg = err.Error()
+			c.lineErr = n.Line
 			return 0, rGlob
 		}
 		fnIndex := c.kb.FunctionIndex(m.MainFunction.CoreFn)
@@ -1038,6 +1126,7 @@ func (c *compiler) compileExpr(node ast.Node, isRoot bool) (int, int) {
 		delete(c.depMap, n.Path)
 		c.emitFun(fnIndex, c.rAlloc)
 		c.emitCall(c.rAlloc, 0, 0, 1)
+		c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 		return c.rAlloc, rLoc
 	default:
 		return 0, rGlob
@@ -1171,29 +1260,36 @@ func (c *compiler) compileBinaryExpr(n *ast.BinaryExpr, isRoot bool) (int, int) 
 			} else {
 				c.hadError = true
 				c.errMsg = "cannot perform binary operation"
+				c.lineErr = n.Line
 			}
 		case rGlob:
 			c.emitLoadG(ridx, lreg)
 			if c.mutLoc && isRoot {
 				c.emitBinopQ(lidx, lreg, c.rDest, n.Op)
+				c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 				return c.rDest, rLoc
 			} else {
 				c.emitBinopQ(lidx, lreg, lreg, n.Op)
+				c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 			}
 		case rLoc:
 			if c.mutLoc && isRoot {
 				c.emitBinopQ(lidx, ridx, c.rDest, n.Op)
+				c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 				return c.rDest, rLoc
 			} else {
 				c.emitBinopQ(lidx, ridx, lreg, n.Op)
+				c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 			}
 		case rFree:
 			c.emitLoadF(ridx, lreg)
 			if c.mutLoc && isRoot {
 				c.emitBinopQ(lidx, lreg, c.rDest, n.Op)
+				c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 				return c.rDest, rLoc
 			} else {
 				c.emitBinopQ(lidx, lreg, lreg, n.Op)
+				c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 			}
 		}
 	case rGlob:
@@ -1202,17 +1298,21 @@ func (c *compiler) compileBinaryExpr(n *ast.BinaryExpr, isRoot bool) (int, int) 
 		case rGlob:
 			if c.mutLoc && isRoot {
 				c.emitBinopG(lidx, ridx, c.rDest, n.Op)
+				c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 				return c.rDest, rLoc
 			} else {
 				c.emitBinopG(lidx, ridx, lreg, n.Op)
+				c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 			}
 		case rKonst:
 			c.emitLoadG(lidx, lreg)
 			if c.mutLoc && isRoot {
 				c.emitBinopK(ridx, lreg, c.rDest, n.Op)
+				c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 				return c.rDest, rLoc
 			} else {
 				c.emitBinopK(ridx, lreg, lreg, n.Op)
+				c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 			}
 		case rLoc:
 			c.emitMove(ridx, lreg)
@@ -1220,10 +1320,12 @@ func (c *compiler) compileBinaryExpr(n *ast.BinaryExpr, isRoot bool) (int, int) 
 			c.emitLoadG(lidx, c.rAlloc)
 			if c.mutLoc && isRoot {
 				c.emitBinop(c.rAlloc, lreg, c.rDest, n.Op)
+				c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 				c.rAlloc--
 				return c.rDest, rLoc
 			} else {
 				c.emitBinop(c.rAlloc, lreg, lreg, n.Op)
+				c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 				c.rAlloc--
 			}
 		case rFree:
@@ -1232,10 +1334,12 @@ func (c *compiler) compileBinaryExpr(n *ast.BinaryExpr, isRoot bool) (int, int) 
 			c.emitLoadF(ridx, c.rAlloc)
 			if c.mutLoc && isRoot {
 				c.emitBinop(lreg, c.rAlloc, c.rDest, n.Op)
+				c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 				c.rAlloc--
 				return c.rDest, rLoc
 			} else {
 				c.emitBinop(lreg, c.rAlloc, lreg, n.Op)
+				c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 				c.rAlloc--
 			}
 		}
@@ -1246,39 +1350,47 @@ func (c *compiler) compileBinaryExpr(n *ast.BinaryExpr, isRoot bool) (int, int) 
 		case rLoc:
 			if c.mutLoc && isRoot {
 				c.emitBinop(lidx, ridx, c.rDest, n.Op)
+				c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 				c.rAlloc--
 				return c.rDest, rLoc
 			} else {
 				c.emitBinop(lidx, ridx, lreg, n.Op)
+				c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 				c.rAlloc--
 			}
 		case rGlob:
 			c.emitLoadG(ridx, c.rAlloc)
 			if c.mutLoc && isRoot {
 				c.emitBinop(lidx, c.rAlloc, c.rDest, n.Op)
+				c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 				c.rAlloc--
 				return c.rDest, rLoc
 			} else {
 				c.emitBinop(lidx, c.rAlloc, lreg, n.Op)
+				c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 				c.rAlloc--
 			}
 		case rKonst:
 			if c.mutLoc && isRoot {
 				c.emitBinopK(ridx, lidx, c.rDest, n.Op)
+				c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 				c.rAlloc--
 				return c.rDest, rLoc
 			} else {
 				c.emitBinopK(ridx, lidx, lreg, n.Op)
+				c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 				c.rAlloc--
 			}
 		case rFree:
 			c.emitLoadF(ridx, c.rAlloc)
 			if c.mutLoc && isRoot {
 				c.emitBinop(lidx, c.rAlloc, c.rDest, n.Op)
+				c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 				c.rAlloc--
 				return c.rDest, rLoc
 			} else {
 				c.emitBinop(lidx, c.rAlloc, lreg, n.Op)
+				c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 				c.rAlloc--
 			}
 		}
@@ -1289,9 +1401,11 @@ func (c *compiler) compileBinaryExpr(n *ast.BinaryExpr, isRoot bool) (int, int) 
 			c.emitLoadF(lidx, lreg)
 			if c.mutLoc && isRoot {
 				c.emitBinop(lreg, ridx, c.rDest, n.Op)
+				c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 				return c.rDest, rLoc
 			} else {
 				c.emitBinop(lreg, ridx, lreg, n.Op)
+				c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 			}
 		case rGlob:
 			c.rAlloc++
@@ -1299,19 +1413,23 @@ func (c *compiler) compileBinaryExpr(n *ast.BinaryExpr, isRoot bool) (int, int) 
 			c.emitLoadG(ridx, c.rAlloc)
 			if c.mutLoc && isRoot {
 				c.emitBinop(lreg, c.rAlloc, c.rDest, n.Op)
+				c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 				c.rAlloc--
 				return c.rDest, rLoc
 			} else {
 				c.emitBinop(lreg, c.rAlloc, lreg, n.Op)
+				c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 				c.rAlloc--
 			}
 		case rKonst:
 			c.emitLoadF(lidx, lreg)
 			if c.mutLoc && isRoot {
 				c.emitBinopK(ridx, lreg, c.rDest, n.Op)
+				c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 				return c.rDest, rLoc
 			} else {
 				c.emitBinopK(ridx, lreg, lreg, n.Op)
+				c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 			}
 		case rFree:
 			c.rAlloc++
@@ -1319,10 +1437,12 @@ func (c *compiler) compileBinaryExpr(n *ast.BinaryExpr, isRoot bool) (int, int) 
 			c.emitLoadF(ridx, c.rAlloc)
 			if c.mutLoc && isRoot {
 				c.emitBinop(lreg, c.rAlloc, c.rDest, n.Op)
+				c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 				c.rAlloc--
 				return c.rDest, rLoc
 			} else {
 				c.emitBinop(lreg, c.rAlloc, lreg, n.Op)
+				c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 				c.rAlloc--
 			}
 		}

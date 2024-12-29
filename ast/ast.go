@@ -8,7 +8,6 @@ type Node interface {
 
 type Ast struct {
 	Statement []Node
-	Line      []uint
 }
 
 type Loc struct {
@@ -73,17 +72,20 @@ type Pair struct {
 
 type Object struct {
 	Pairs []*Pair
+	Line  uint
 }
 
 type PrefixExpr struct {
 	Expr Node
 	Op   token.Token
+	Line uint
 }
 
 type BinaryExpr struct {
-	Lhs Node
-	Rhs Node
-	Op  token.Token
+	Lhs  Node
+	Rhs  Node
+	Op   token.Token
+	Line uint
 }
 
 type Block struct {
@@ -93,10 +95,12 @@ type Block struct {
 type IGet struct {
 	Indexable Node
 	Index     Node
+	Line      uint
 }
 
 type IGetStmt struct {
 	Index Node
+	Line  uint
 }
 
 type Slice struct {
@@ -104,20 +108,24 @@ type Slice struct {
 	First Node
 	Last  Node
 	Mode  int
+	Line  uint
 }
 
 type Select struct {
 	Selectable Node
 	Selector   Node
+	Line       uint
 }
 
 type SelectStmt struct {
 	Selector Node
+	Line     uint
 }
 
 type ISet struct {
 	Index Node
 	Expr  Node
+	Line  uint
 }
 
 type For struct {
@@ -126,6 +134,7 @@ type For struct {
 	Step  Node
 	Id    string
 	Block Node
+	Line  uint
 }
 
 type ForState struct {
@@ -137,6 +146,7 @@ type IFor struct {
 	Value string
 	Expr  Node
 	Block Node
+	Line  uint
 }
 
 type Branch struct {
@@ -179,23 +189,27 @@ type Export struct {
 
 type Import struct {
 	Path string
+	Line uint
 }
 
 type CallExpr struct {
 	Args     []Node
 	Fun      Node
 	Ellipsis int
+	Line     uint
 }
 
 type CallStmt struct {
 	Args     []Node
 	Ellipsis int
+	Line     uint
 }
 
 type MethodCallStmt struct {
 	Args     []Node
 	Prop     Node
 	Ellipsis int
+	Line     uint
 }
 
 type MethodCallExpr struct {
@@ -203,6 +217,7 @@ type MethodCallExpr struct {
 	Prop     Node
 	Obj      Node
 	Ellipsis int
+	Line     uint
 }
 
 func (ast *Ast) _node()           {}

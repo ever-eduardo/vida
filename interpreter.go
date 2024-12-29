@@ -28,7 +28,7 @@ func NewInterpreter(modulePath string, stdlib map[string]func() Value) (*Interpr
 	if err != nil {
 		return nil, err
 	}
-	vm, err := newVM(m, stdlib)
+	vm, err := newVM(m, stdlib, c.linesMap)
 	if err != nil {
 		return nil, err
 	}
@@ -56,9 +56,9 @@ func NewDebugger(modulePath string, stdlib map[string]func() Value) (*Interprete
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println(PrintBytecode(m, m.Name))
+	fmt.Println(PrintBytecode(m, m.MainFunction.CoreFn.ModuleName))
 	fmt.Scanf(" ")
-	vm, err := newVM(m, stdlib)
+	vm, err := newVM(m, stdlib, c.linesMap)
 	if err != nil {
 		return nil, err
 	}
@@ -98,7 +98,7 @@ func PrintMachineCode(modulePath string) error {
 	if err != nil {
 		return err
 	}
-	fmt.Println(PrintBytecode(m, m.Name))
+	fmt.Println(PrintBytecode(m, m.MainFunction.CoreFn.ModuleName))
 	return nil
 }
 
@@ -116,4 +116,8 @@ func (i *Interpreter) MeasureRunTime() (Result, error) {
 
 func (i *Interpreter) Debug() (Result, error) {
 	return i.vm.debug()
+}
+
+func (i *Interpreter) PrintCallStack() {
+	i.vm.printCallStack()
 }

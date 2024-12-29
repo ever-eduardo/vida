@@ -5,7 +5,6 @@ import (
 )
 
 type Module struct {
-	Name         string
 	Store        *[]Value
 	Konstants    *[]Value
 	MainFunction *Function
@@ -17,8 +16,7 @@ func newMainModule(name string) *Module {
 	m := Module{
 		Konstants:    nil,
 		Store:        store,
-		MainFunction: &Function{CoreFn: &CoreFunction{}},
-		Name:         name,
+		MainFunction: &Function{CoreFn: &CoreFunction{ModuleName: name}},
 	}
 	return &m
 }
@@ -28,12 +26,11 @@ func newSubModule(name string, store *[]Value) *Module {
 	m := Module{
 		Konstants:    nil,
 		Store:        store,
-		MainFunction: &Function{CoreFn: &CoreFunction{}},
-		Name:         name,
+		MainFunction: &Function{CoreFn: &CoreFunction{ModuleName: name}},
 	}
 	return &m
 }
 
 func (m Module) String() string {
-	return fmt.Sprintf("Module name = [%v]", m.Name)
+	return fmt.Sprintf("Module [%v]", m.MainFunction.CoreFn.ModuleName)
 }

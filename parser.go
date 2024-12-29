@@ -32,7 +32,6 @@ func newParser(src []byte, moduleName string) *parser {
 
 func (p *parser) parse() (*ast.Ast, error) {
 	for p.ok {
-		p.ast.Line = append(p.ast.Line, p.current.Line)
 		switch p.current.Token {
 		case token.IDENTIFIER:
 			p.ast.Statement = append(p.ast.Statement, p.mutOrCall(&p.ast.Statement))
@@ -189,7 +188,7 @@ Loop:
 			if p.next.Token == token.ASSIGN {
 				goto assignment
 			}
-			*statements = append(*statements, &ast.IGetStmt{Index: i})
+			*statements = append(*statements, &ast.IGetStmt{Index: i, Line: p.current.Line})
 		case token.DOT:
 			p.advance()
 			p.expect(token.IDENTIFIER)
@@ -228,19 +227,21 @@ Loop:
 			}
 		afterParen:
 			p.expect(token.RPAREN)
+			line := p.current.Line
 			if p.next.Token != token.LBRACKET &&
 				p.next.Token != token.DOT &&
 				p.next.Token != token.LPAREN &&
 				p.next.Token != token.COLON {
 				p.advance()
-				return &ast.CallStmt{Args: args, Ellipsis: ellipsis}
+				return &ast.CallStmt{Args: args, Ellipsis: ellipsis, Line: line}
 			}
-			*statements = append(*statements, &ast.CallStmt{Args: args, Ellipsis: ellipsis})
+			*statements = append(*statements, &ast.CallStmt{Args: args, Ellipsis: ellipsis, Line: line})
 		case token.COLON:
 			var args []ast.Node
 			var ellipsis int
 			p.advance()
 			p.expect(token.IDENTIFIER)
+			line := p.current.Line
 			prop := &ast.Property{Value: p.current.Lit}
 			p.advance()
 			p.expect(token.LPAREN)
@@ -276,9 +277,9 @@ Loop:
 				p.next.Token != token.LPAREN &&
 				p.next.Token != token.COLON {
 				p.advance()
-				return &ast.MethodCallStmt{Args: args, Prop: prop, Ellipsis: ellipsis}
+				return &ast.MethodCallStmt{Args: args, Prop: prop, Ellipsis: ellipsis, Line: line}
 			}
-			*statements = append(*statements, &ast.MethodCallStmt{Args: args, Prop: prop, Ellipsis: ellipsis})
+			*statements = append(*statements, &ast.MethodCallStmt{Args: args, Prop: prop, Ellipsis: ellipsis, Line: line})
 		default:
 			break Loop
 		}
@@ -289,10 +290,11 @@ assignment:
 	p.advance()
 	e := p.expression(token.LowestPrec)
 	p.advance()
-	return &ast.ISet{Index: i, Expr: e}
+	return &ast.ISet{Index: i, Expr: e, Line: p.current.Line}
 }
 
 func (p *parser) forLoop() ast.Node {
+	line := p.current.Line
 	p.advance()
 	if p.current.Token == token.IN {
 		p.advance()
@@ -302,7 +304,7 @@ func (p *parser) forLoop() ast.Node {
 		b := p.block(true)
 		p.advance()
 		id := "*_"
-		return &ast.IFor{Key: id, Value: id, Expr: e, Block: b}
+		return &ast.IFor{Key: id, Value: id, Expr: e, Block: b, Line: line}
 	}
 	p.expect(token.IDENTIFIER)
 	id := p.current.Lit
@@ -330,15 +332,16 @@ func (p *parser) forLoop() ast.Node {
 		p.expect(token.LCURLY)
 		block := p.block(true)
 		p.advance()
-		return &ast.For{Init: init, End: end, Id: id, Step: step, Block: block}
+		return &ast.For{Init: init, End: end, Id: id, Step: step, Block: block, Line: line}
 	}
 	p.expect(token.LCURLY)
 	block := p.block(true)
 	p.advance()
-	return &ast.For{Init: &ast.Integer{Value: 0}, End: init, Id: id, Step: &ast.Integer{Value: 1}, Block: block}
+	return &ast.For{Init: &ast.Integer{Value: 0}, End: init, Id: id, Step: &ast.Integer{Value: 1}, Block: block, Line: line}
 }
 
 func (p *parser) iterforLoop(key string) ast.Node {
+	line := p.current.Line
 	p.advance()
 	p.expect(token.IDENTIFIER)
 	v := p.current.Lit
@@ -350,7 +353,7 @@ func (p *parser) iterforLoop(key string) ast.Node {
 	p.expect(token.LCURLY)
 	b := p.block(true)
 	p.advance()
-	return &ast.IFor{Key: key, Value: v, Expr: e, Block: b}
+	return &ast.IFor{Key: key, Value: v, Expr: e, Block: b, Line: line}
 }
 
 func (p *parser) ifStmt(isInsideLoop bool) ast.Node {
@@ -401,13 +404,14 @@ func (p *parser) continueStmt() ast.Node {
 }
 
 func (p *parser) expression(precedence int) ast.Node {
+	line := p.current.Line
 	e := p.prefix()
 	for p.next.Token.IsBinaryOperator() && p.next.Token.Precedence() > precedence {
 		p.advance()
 		op := p.current.Token
 		p.advance()
 		r := p.expression(op.Precedence())
-		e = &ast.BinaryExpr{Op: op, Lhs: e, Rhs: r}
+		e = &ast.BinaryExpr{Op: op, Lhs: e, Rhs: r, Line: line}
 	}
 	return e
 }
@@ -418,7 +422,7 @@ func (p *parser) prefix() ast.Node {
 		t := p.current.Token
 		p.advance()
 		e := p.prefix()
-		return &ast.PrefixExpr{Op: t, Expr: e}
+		return &ast.PrefixExpr{Op: t, Expr: e, Line: p.current.Line}
 	}
 	return p.primary()
 }
@@ -519,7 +523,7 @@ func (p *parser) operand() ast.Node {
 		p.expect(token.RBRACKET)
 		return xs
 	case token.LCURLY:
-		obj := &ast.Object{}
+		obj := &ast.Object{Line: p.current.Line}
 		p.advance()
 		for p.current.Token != token.RCURLY {
 			p.expect(token.IDENTIFIER)
@@ -601,7 +605,7 @@ func (p *parser) operand() ast.Node {
 		f.Body = block
 		return f
 	case token.IMPORT:
-		i := &ast.Import{}
+		i := &ast.Import{Line: p.current.Line}
 		p.advance()
 		p.expect(token.LPAREN)
 		e := p.expression(token.LowestPrec)
@@ -640,6 +644,7 @@ func (p *parser) export() ast.Node {
 }
 
 func (p *parser) callExpr(e ast.Node) ast.Node {
+	line := p.current.Line
 	p.advance()
 	var args []ast.Node
 	var ellipsis int
@@ -669,7 +674,7 @@ func (p *parser) callExpr(e ast.Node) ast.Node {
 	}
 afterParen:
 	p.expect(token.RPAREN)
-	return &ast.CallExpr{Fun: e, Args: args, Ellipsis: ellipsis}
+	return &ast.CallExpr{Fun: e, Args: args, Ellipsis: ellipsis, Line: line}
 }
 
 func (p *parser) methodCallExpr(e ast.Node) ast.Node {
@@ -677,6 +682,7 @@ func (p *parser) methodCallExpr(e ast.Node) ast.Node {
 	var args []ast.Node
 	var ellipsis int
 	p.expect(token.IDENTIFIER)
+	line := p.current.Line
 	prop := &ast.Property{Value: p.current.Lit}
 	p.advance()
 	p.expect(token.LPAREN)
@@ -707,7 +713,7 @@ func (p *parser) methodCallExpr(e ast.Node) ast.Node {
 	}
 afterParen:
 	p.expect(token.RPAREN)
-	return &ast.MethodCallExpr{Args: args, Obj: e, Prop: prop, Ellipsis: ellipsis}
+	return &ast.MethodCallExpr{Args: args, Obj: e, Prop: prop, Ellipsis: ellipsis, Line: line}
 }
 
 func (p *parser) indexOrSlice(e ast.Node) ast.Node {
@@ -736,11 +742,13 @@ func (p *parser) indexOrSlice(e ast.Node) ast.Node {
 			First: index[0],
 			Last:  index[1],
 			Mode:  mode,
+			Line:  p.current.Line,
 		}
 	}
 	return &ast.IGet{
 		Indexable: e,
 		Index:     index[0],
+		Line:      p.current.Line,
 	}
 }
 

@@ -26,16 +26,17 @@ type frame struct {
 }
 
 type vM struct {
-	Frames [frameSize]frame
-	Stack  [stackSize]Value
-	Module *Module
-	Frame  *frame
-	fp     int
+	Frames  [frameSize]frame
+	Stack   [stackSize]Value
+	Module  *Module
+	Frame   *frame
+	ErrInfo map[string]map[int]uint
+	fp      int
 }
 
-func newVM(m *Module, libLoaders map[string]func() Value) (*vM, error) {
+func newVM(m *Module, libLoaders map[string]func() Value, errInfo map[string]map[int]uint) (*vM, error) {
 	stdlibLoader = libLoaders
-	return &vM{Module: m}, checkISACompatibility(m)
+	return &vM{Module: m, ErrInfo: errInfo}, checkISACompatibility(m)
 }
 
 func (vm *vM) run() (Result, error) {
@@ -78,25 +79,30 @@ func (vm *vM) run() (Result, error) {
 		case binopG:
 			val, err := (*vm.Module.Store)[A].Binop(P>>shift16, (*vm.Module.Store)[P&clean16])
 			if err != nil {
-				return Failure, verror.New(vm.Module.Name, err.Error(), verror.RunTimeErrType, math.MaxUint16)
+				modName := vm.Frame.lambda.CoreFn.ModuleName
+				return Failure, verror.New(modName, err.Error(), verror.RunTimeErrType, vm.ErrInfo[modName][ip])
 			}
 			vm.Frame.stack[B] = val
 		case binop:
 			val, err := vm.Frame.stack[A].Binop(P>>shift16, vm.Frame.stack[P&clean16])
 			if err != nil {
-				return Failure, verror.New(vm.Module.Name, err.Error(), verror.RunTimeErrType, math.MaxUint16)
+				modName := vm.Frame.lambda.CoreFn.ModuleName
+				vm.Frame.ip = ip
+				return Failure, verror.New(modName, err.Error(), verror.RunTimeErrType, vm.ErrInfo[modName][ip])
 			}
 			vm.Frame.stack[B] = val
 		case binopK:
 			val, err := vm.Frame.stack[P&clean16].Binop(P>>shift16, (*vm.Module.Konstants)[A])
 			if err != nil {
-				return Failure, verror.New(vm.Module.Name, err.Error(), verror.RunTimeErrType, math.MaxUint16)
+				modName := vm.Frame.lambda.CoreFn.ModuleName
+				return Failure, verror.New(modName, err.Error(), verror.RunTimeErrType, vm.ErrInfo[modName][ip])
 			}
 			vm.Frame.stack[B] = val
 		case binopQ:
 			val, err := (*vm.Module.Konstants)[A].Binop(P>>shift16, vm.Frame.stack[P&clean16])
 			if err != nil {
-				return Failure, verror.New(vm.Module.Name, err.Error(), verror.RunTimeErrType, math.MaxUint16)
+				modName := vm.Frame.lambda.CoreFn.ModuleName
+				return Failure, verror.New(modName, err.Error(), verror.RunTimeErrType, vm.ErrInfo[modName][ip])
 			}
 			vm.Frame.stack[B] = val
 		case eq:
@@ -126,7 +132,8 @@ func (vm *vM) run() (Result, error) {
 		case prefix:
 			val, err := vm.Frame.stack[A].Prefix(P)
 			if err != nil {
-				return Failure, verror.New(vm.Module.Name, err.Error(), verror.RunTimeErrType, math.MaxUint16)
+				modName := vm.Frame.lambda.CoreFn.ModuleName
+				return Failure, verror.New(modName, err.Error(), verror.RunTimeErrType, vm.ErrInfo[modName][ip])
 			}
 			vm.Frame.stack[B] = val
 		case iGet:
@@ -138,7 +145,7 @@ func (vm *vM) run() (Result, error) {
 				val, err = vm.Frame.stack[P&clean16].IGet((*vm.Module.Konstants)[A])
 			}
 			if err != nil {
-				return Failure, verror.New(vm.Module.Name, err.Error(), verror.RunTimeErrType, math.MaxUint16)
+				return Failure, verror.New(vm.Frame.lambda.CoreFn.ModuleName, err.Error(), verror.RunTimeErrType, math.MaxUint16)
 			}
 			vm.Frame.stack[B] = val
 		case iSet:
@@ -149,7 +156,7 @@ func (vm *vM) run() (Result, error) {
 				err = vm.Frame.stack[P&clean16].ISet(vm.Frame.stack[A], (*vm.Module.Konstants)[B])
 			}
 			if err != nil {
-				return Failure, verror.New(vm.Module.Name, err.Error(), verror.RunTimeErrType, math.MaxUint16)
+				return Failure, verror.New(vm.Frame.lambda.CoreFn.ModuleName, err.Error(), verror.RunTimeErrType, math.MaxUint16)
 			}
 		case iSetK:
 			var err error
@@ -159,12 +166,12 @@ func (vm *vM) run() (Result, error) {
 				err = vm.Frame.stack[P&clean16].ISet((*vm.Module.Konstants)[A], (*vm.Module.Konstants)[B])
 			}
 			if err != nil {
-				return Failure, verror.New(vm.Module.Name, err.Error(), verror.RunTimeErrType, math.MaxUint16)
+				return Failure, verror.New(vm.Frame.lambda.CoreFn.ModuleName, err.Error(), verror.RunTimeErrType, math.MaxUint16)
 			}
 		case slice:
 			val, err := vm.processSlice(P, A)
 			if err != nil {
-				return Failure, verror.New(vm.Module.Name, err.Error(), verror.RunTimeErrType, math.MaxUint16)
+				return Failure, verror.New(vm.Frame.lambda.CoreFn.ModuleName, err.Error(), verror.RunTimeErrType, math.MaxUint16)
 			}
 			vm.Frame.stack[B] = val
 		case list:
@@ -320,7 +327,7 @@ func (vm *vM) run() (Result, error) {
 			return Success, nil
 		default:
 			message := fmt.Sprintf("unknown opcode %v", op)
-			return Failure, verror.New(vm.Module.Name, message, verror.RunTimeErrType, math.MaxUint16)
+			return Failure, verror.New(vm.Frame.lambda.CoreFn.ModuleName, message, verror.RunTimeErrType, math.MaxUint16)
 		}
 	}
 }
@@ -473,10 +480,19 @@ func (vm *vM) processSlice(mode, sliceable uint64) (Value, error) {
 	return NilValue, verror.ErrSlice
 }
 
+func (vm *vM) printCallStack() {
+	for i := vm.fp; i >= 0; i-- {
+		println("fp", i, "ip", vm.Frames[i].ip, "module", vm.Frames[i].lambda.CoreFn.ModuleName, "line", vm.ErrInfo[vm.Frames[i].lambda.CoreFn.ModuleName][vm.Frames[i].ip])
+		for k, v := range vm.ErrInfo[vm.Frames[i].lambda.CoreFn.ModuleName] {
+			println("MAP", k, v)
+		}
+	}
+}
+
 func checkISACompatibility(m *Module) error {
 	majorFromCode := (m.MainFunction.CoreFn.Code[0] >> 24) & 255
 	if majorFromCode == major {
 		return nil
 	}
-	return verror.New(m.Name, "The module was compiled with another ABI version", verror.FileErrType, 0)
+	return verror.New(m.MainFunction.CoreFn.ModuleName, "The module was compiled with another ABI version", verror.FileErrType, 0)
 }

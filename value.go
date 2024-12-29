@@ -773,11 +773,12 @@ type freeInfo struct {
 }
 
 type CoreFunction struct {
-	Code  []uint64
-	Info  []freeInfo
-	Free  int
-	Arity int
-	IsVar bool
+	Code       []uint64
+	Info       []freeInfo
+	Free       int
+	Arity      int
+	IsVar      bool
+	ModuleName string
 }
 
 func (c *CoreFunction) Boolean() Bool {
@@ -824,7 +825,7 @@ func (c *CoreFunction) Type() string {
 }
 
 func (f CoreFunction) String() string {
-	return fmt.Sprintf("[a = %v, v = %v, f = %v, i = %v]", f.Arity, f.IsVar, f.Free, f.Info)
+	return fmt.Sprintf("[a = %v, v = %v, f = %v, i = %v, mod = %v]", f.Arity, f.IsVar, f.Free, f.Info, f.ModuleName)
 }
 
 func (f *CoreFunction) Clone() Value {
