@@ -166,7 +166,7 @@ func printMachineCode(args []string) {
 
 func handleError(err error) {
 	if err != nil {
-		fmt.Printf("Error\n%v\n\n\n", err)
+		fmt.Printf("\n\n%v\n\n\n", err)
 		os.Exit(0)
 	}
 }

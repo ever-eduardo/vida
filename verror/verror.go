@@ -43,6 +43,22 @@ func New(moduleName string, message string, errorType string, line uint) VidaErr
 	}
 }
 
+type StackFrameInfo struct {
+	ModuleName string
+	Line       uint
+}
+
+func NewStackFrameInfo(moduleName string, line uint) StackFrameInfo {
+	return StackFrameInfo{
+		ModuleName: moduleName,
+		Line:       line,
+	}
+}
+
+func (sfi StackFrameInfo) Error() string {
+	return fmt.Sprintf("   Module    : %v\n   Near line : %v\n", sfi.ModuleName, sfi.Line)
+}
+
 var (
 	ErrStringLimit                      = errors.New("strings max size has been reached")
 	ErrOpNotDefinedForIterators         = errors.New("operation not defined for iterators")

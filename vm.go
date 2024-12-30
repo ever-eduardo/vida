@@ -474,11 +474,12 @@ func (vm *vM) processSlice(mode, sliceable uint64) (Value, error) {
 }
 
 func (vm *vM) printCallStack() {
+	fmt.Printf("\n\n  [Call Stack]\n\n")
 	for i := vm.fp; i >= 0; i-- {
-		println("fp", i, "ip", vm.Frames[i].ip, "module", vm.Frames[i].lambda.CoreFn.ModuleName, "line", vm.ErrInfo[vm.Frames[i].lambda.CoreFn.ModuleName][vm.Frames[i].ip])
-		for k, v := range vm.ErrInfo[vm.Frames[i].lambda.CoreFn.ModuleName] {
-			println("MAP", k, v)
-		}
+		modName := vm.Frames[i].lambda.CoreFn.ModuleName
+		ip := vm.Frames[i].ip
+		err := verror.NewStackFrameInfo(modName, vm.ErrInfo[modName][ip])
+		fmt.Printf("%v\n", err)
 	}
 }
 
@@ -493,5 +494,5 @@ func checkISACompatibility(m *Module) error {
 	if majorFromCode == major {
 		return nil
 	}
-	return verror.New(m.MainFunction.CoreFn.ModuleName, "The module was compiled with another ABI version", verror.FileErrType, 0)
+	return verror.New(m.MainFunction.CoreFn.ModuleName, "The module was compiled with an uncompatible interpreter version", verror.FileErrType, 0)
 }
