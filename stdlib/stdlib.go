@@ -6,5 +6,6 @@ func LoadStdlib() map[string]func() vida.Value {
 	l := make(map[string]func() vida.Value)
 	l["rand"] = generateRandom
 	l["math"] = generateMath
+	l["text"] = generateText
 	return l
 }
