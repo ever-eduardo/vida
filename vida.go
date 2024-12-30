@@ -34,8 +34,9 @@ func About() string {
 	and suitable for common tasks.
 	The language can be extended by implementing the Value interface.
 	The stdlib is implemented in such way, and you can add to the
-	stdlib all that you want for your projects.
+	stdlib all you need for your projects.
 	Contributions are welcome.
+	
 	Happy Vida coding!
 
 
