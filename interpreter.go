@@ -139,8 +139,10 @@ func (i *Interpreter) Run() (Result, error) {
 func (i *Interpreter) MeasureRunTime() (Result, error) {
 	init := time.Now()
 	r, err := i.vm.run()
-	fmt.Printf("VM time = %vs\n", time.Since(init).Seconds())
-	fmt.Printf("VM time = %v\n", time.Since(init))
+	end := time.Since(init)
+	fmt.Printf("\n\nThe interpreter has finished.\n\n")
+	fmt.Printf("Time = %vs\n", end.Seconds())
+	fmt.Printf("Time = %v\n\n", end)
 	return r, err
 }
 
