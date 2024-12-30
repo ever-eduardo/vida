@@ -2,7 +2,7 @@ module		:=	statement*
 statement	:= 	global
 			| 	local
 			|	mut
-			|	datamut
+			|	data
 			|	call
 			|	block
 			|	for
@@ -13,7 +13,7 @@ statement	:= 	global
 global		:=	'let' ident '=' expr
 local		:=	'loc' ident '=' expr
 mut			:=	iden '=' expr
-datamut		:=	ident select select* '=' expr
+data		:=	ident select select* '=' expr
 call		:=	iden select* '(' ...expr | (expr (',' expr)* (',' ...expr)?)? ')'
 block		:=	'{' statement* '}'
 loopBlock	:=	'{' statement* break* continue* '}'
