@@ -20,6 +20,7 @@ const (
 	VERSION = "version"
 	ABOUT   = "about"
 	CODE    = "code"
+	CORELIB = "corelib"
 	UNKNOWN = "unknown"
 )
 
@@ -49,6 +50,8 @@ func main() {
 			printAbout()
 		case CODE:
 			printMachineCode(args)
+		case CORELIB:
+			printCoreLib()
 		default:
 			clear()
 			printVersion()
@@ -174,7 +177,7 @@ func handleError(err error) {
 func parseCMD(cmd string) string {
 	cmd = strings.ToLower(cmd)
 	switch cmd {
-	case RUN, DEGUG, TOKENS, AST, HELP, VERSION, ABOUT, CODE, TIME:
+	case RUN, DEGUG, TOKENS, AST, HELP, VERSION, ABOUT, CODE, TIME, CORELIB:
 		return cmd
 	default:
 		return UNKNOWN
@@ -206,6 +209,7 @@ func printHelp() {
 	fmt.Printf("%-11v show this message\n", HELP)
 	fmt.Printf("%-11v show the language version\n", VERSION)
 	fmt.Printf("%-11v compile and show the compiled code\n", CODE)
+	fmt.Printf("%-11v show information about the Vida corelib\n", CORELIB)
 	fmt.Printf("%-11v show some information about Vida\n", ABOUT)
 	fmt.Println()
 }
@@ -213,6 +217,12 @@ func printHelp() {
 func printAbout() {
 	clear()
 	fmt.Println(vida.About())
+}
+
+func printCoreLib() {
+	clear()
+	printVersion()
+	vida.PrintCoreLibInformation()
 }
 
 func clear() {

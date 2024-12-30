@@ -139,7 +139,7 @@ func gfnMakeList(args ...Value) (Value, error) {
 			}
 		}
 	}
-	return NilValue, nil
+	return &List{}, nil
 }
 
 func gfnReadLine(args ...Value) (Value, error) {
@@ -208,4 +208,107 @@ func gfnIsError(args ...Value) (Value, error) {
 		return Bool(ok), nil
 	}
 	return Bool(false), nil
+}
+
+var coreLibDescription = []string{
+	`
+	Print one or more values separated by a comma.
+	Always return nil.
+	Examples: print(value), print(a, b, c) -> nil
+	`,
+	`
+	Return an integer representing the length of lists, 
+	objects or strings. In case of a string value, 
+	the function returns the number of unicode codepoints.
+	Example: len(value) -> int
+	`,
+	`
+	Append one of more values separated by comma 
+	at the end of a list.
+	Return the list passed as first argument.
+	Examples: let xs be a list, then 
+	append(xs, value), append(xs, a, b, c) -> xs
+	`,
+	`
+	Create a list. 
+	Receive 0, 1 or 2 arguments. 
+	Whith zero argumeents, return an empty list. 
+	With 1 argument n, with n of type intenger,
+	return a list of n elements initialized to nil.
+	With 2 argumeents (n, m), with n of type integer,
+	and m of any type, return a list of n elements all 
+	initialized to the m value.
+	Examples: 
+		mkls() -> [],
+		mkls(10) -> [nil, ..., nil],
+		mkls(n, v) -> [v, v, ... , v]
+	`,
+	`
+	Load a specific library from the stdlib.
+	Receive an argument n of type string, and return an object
+	containing the constants and functionality. If thee library
+	does not exist, return nil.
+	Example: load("math"), load("random")
+	`,
+	`
+	Return the type of a value as string.
+	Example: type(123) -> "int"
+	`,
+	`
+	Make an assertion about an expression, and optionally print a
+	message in case of assertion failure.
+	If the assertion fails, then it will always produce 
+	a runtime error. Otherwise, it just return a nil value.
+	Example: assert(false), assert(true)
+	`,
+	`
+	Return a string with the given format.
+	The most common verb formats are: %v, %T, %f, %d, %b, %x
+	Example: fmt("This is the number %v", 15)
+	`,
+	`
+	Show a prompt and wait for an input from the user.
+	If no prompt is given, it shows a default one.
+	Return a string representing the user input.
+	Example: input("Write something here") -> string
+	`,
+	`
+	Make a copy of value semantics values or a deep copy 
+	of a reference semantics values.
+	Example: clone(someValue)
+	`,
+	`
+	Delete a key from an object.
+	Example: let xs be an objet containing a key val, then
+	del(xs, "val") deletes the key val.
+	`,
+	`
+	Create an error value. An error value may be used to signal
+	some behavior considered an error. The boolean value of an
+	error value is always false. When an argument is give, it will
+	be the printable message for the client of the functionality
+	with the unexpected behavior.
+	Example: 
+		ret error(message)
+	        let result = f()
+		if not result {handle the error} or
+		if result {handle the returned value}
+	`,
+	`
+	Create an exception to signal some exceptional or unexpected
+	behavior. It will always generate a runtime error. 
+	When an argumentis given, it is shown in the error message.
+	Example: exception(message)
+	`,
+	`
+	Help to explicitly check for an error value.
+	Example: if isError(value) {handle the error here}
+	`,
+}
+
+func PrintCoreLibInformation() {
+	fmt.Printf("CoreLib:\n\n")
+	for i := 0; i < len(coreLibNames); i++ {
+		fmt.Printf("  %v %v\n\n", coreLibNames[i], coreLibDescription[i])
+	}
 }
