@@ -5,6 +5,8 @@ import (
 	"time"
 
 	"github.com/ever-eduardo/vida/ast"
+	"github.com/ever-eduardo/vida/lexer"
+	"github.com/ever-eduardo/vida/token"
 )
 
 type Interpreter struct {
@@ -50,6 +52,7 @@ func NewDebugger(modulePath string, stdlib map[string]func() Value) (*Interprete
 		return nil, err
 	}
 	fmt.Println(ast.PrintAST(rAst))
+	fmt.Print("\n\nPress 'Enter' to continue => ")
 	fmt.Scanf(" ")
 	c := newMainCompiler(rAst, modulePath)
 	m, err := c.compileModule()
@@ -57,6 +60,7 @@ func NewDebugger(modulePath string, stdlib map[string]func() Value) (*Interprete
 		return nil, err
 	}
 	fmt.Println(PrintBytecode(m, m.MainFunction.CoreFn.ModuleName))
+	fmt.Print("\n\nPress 'Enter' to continue => ")
 	fmt.Scanf(" ")
 	vm, err := newVM(m, stdlib, c.linesMap)
 	if err != nil {
@@ -80,6 +84,32 @@ func PrintAST(modulePath string) error {
 		return err
 	}
 	fmt.Println(ast.PrintAST(rAst))
+	return nil
+}
+
+func PrintTokens(modulePath string) error {
+	src, err := readModule(modulePath)
+	if err != nil {
+		return err
+	}
+	l := lexer.New(src, modulePath)
+	hadError := false
+	fmt.Printf("%4v %-15v %-2v\n\n", "line", "token", "repr")
+	for {
+		line, tok, lit := l.Next()
+		if l.LexicalError.Message != "" {
+			hadError = true
+			break
+		}
+		fmt.Printf("%4v %-15v %-2v\n", line, tok, lit)
+		if tok == token.EOF {
+			fmt.Println()
+			break
+		}
+	}
+	if hadError {
+		return l.LexicalError
+	}
 	return nil
 }
 
