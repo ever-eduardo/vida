@@ -150,6 +150,8 @@ func (c *compiler) compileStmt(node ast.Node) {
 			case rLoc:
 				c.emitStoreG(from, to, 0)
 			}
+		case rNotDefined:
+			c.generateReferenceError(n.Indentifier, n.Line)
 		}
 	case *ast.Let:
 		to, isPresent := c.sb.addGlobal(n.Indentifier)
@@ -322,6 +324,8 @@ func (c *compiler) compileStmt(node ast.Node) {
 			c.emitLoadG(i, c.rAlloc)
 		case rFree:
 			c.emitLoadF(i, c.rAlloc)
+		case rNotDefined:
+			c.generateReferenceError(n.Value, n.Line)
 		}
 		c.rAlloc++
 	case *ast.IGetStmt:
@@ -576,7 +580,11 @@ func (c *compiler) compileExpr(node ast.Node, isRoot bool) (int, int) {
 	case *ast.Nil:
 		return c.kb.NilIndex(), rKonst
 	case *ast.Reference:
-		return c.refScope(n.Value)
+		i, s := c.refScope(n.Value)
+		if s == rNotDefined {
+			c.generateReferenceError(n.Value, n.Line)
+		}
+		return i, s
 	case *ast.List:
 		var count int
 		for _, v := range n.ExprList {

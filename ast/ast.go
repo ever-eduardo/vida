@@ -18,6 +18,7 @@ type Loc struct {
 type Mut struct {
 	Indentifier string
 	Expr        Node
+	Line        uint
 }
 
 type Let struct {
@@ -27,10 +28,12 @@ type Let struct {
 
 type Reference struct {
 	Value string
+	Line  uint
 }
 
 type ReferenceStmt struct {
 	Value string
+	Line  uint
 }
 
 type Identifier struct {

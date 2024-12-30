@@ -1,6 +1,10 @@
 package vida
 
-import "github.com/ever-eduardo/vida/token"
+import (
+	"fmt"
+
+	"github.com/ever-eduardo/vida/token"
+)
 
 const (
 	rKonst = iota
@@ -306,4 +310,9 @@ func (c *compiler) refScope(id string) (int, int) {
 	}
 	c.hadError = true
 	return 0, rNotDefined
+}
+
+func (c *compiler) generateReferenceError(ref string, line uint) {
+	c.lineErr = line
+	c.errMsg = fmt.Sprintf("reference '%v' not found", ref)
 }

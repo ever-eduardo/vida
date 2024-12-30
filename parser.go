@@ -80,13 +80,14 @@ func (p *parser) mutOrCall(statements *[]ast.Node) ast.Node {
 		p.next.Token == token.COLON {
 		return p.mutateDataStructureOrCall(statements)
 	}
+	line := p.current.Line
 	i := p.current.Lit
 	p.advance()
 	p.expect(token.ASSIGN)
 	p.advance()
 	e := p.expression(token.LowestPrec)
 	p.advance()
-	return &ast.Mut{Indentifier: i, Expr: e}
+	return &ast.Mut{Indentifier: i, Expr: e, Line: line}
 }
 
 func (p *parser) localStmt() ast.Node {
@@ -171,7 +172,7 @@ func (p *parser) block(isInsideLoop bool) ast.Node {
 }
 
 func (p *parser) mutateDataStructureOrCall(statements *[]ast.Node) ast.Node {
-	*statements = append(*statements, &ast.ReferenceStmt{Value: p.current.Lit})
+	*statements = append(*statements, &ast.ReferenceStmt{Value: p.current.Lit, Line: p.current.Line})
 	var i ast.Node
 Loop:
 	for p.next.Token == token.LBRACKET ||
@@ -499,7 +500,7 @@ func (p *parser) operand() ast.Node {
 	case token.NIL:
 		return &ast.Nil{}
 	case token.IDENTIFIER:
-		return &ast.Reference{Value: p.current.Lit}
+		return &ast.Reference{Value: p.current.Lit, Line: p.current.Line}
 	case token.LBRACKET:
 		xs := &ast.List{}
 		p.advance()
