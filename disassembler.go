@@ -9,7 +9,7 @@ import (
 
 func PrintBytecode(m *Module, moduleName string) string {
 	clear()
-	fmt.Println("Machine Code for", moduleName)
+	fmt.Println("Compiled Code for", moduleName)
 	var sb strings.Builder
 	sb.WriteString(printHeader(m))
 	var s string
@@ -37,7 +37,7 @@ func printHeader(m *Module) string {
 	major = m.MainFunction.CoreFn.Code[0] >> 24 & 255
 	minor = m.MainFunction.CoreFn.Code[0] >> 16 & 255
 	patch = m.MainFunction.CoreFn.Code[0] >> 8 & 255
-	sb.WriteString(fmt.Sprintf("Version %v.%v.%v", major, minor, patch))
+	sb.WriteString(fmt.Sprintf("Vida Version %v.%v.%v", major, minor, patch))
 	sb.WriteRune(10)
 	sb.WriteRune(10)
 	sb.WriteString("Main\n")

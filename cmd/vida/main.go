@@ -1,11 +1,26 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/ever-eduardo/vida"
 	"github.com/ever-eduardo/vida/stdlib"
+)
+
+const (
+	RUN     = "run"
+	DEGUG   = "debug"
+	TIME    = "time"
+	TOKENS  = "tokens"
+	AST     = "ast"
+	HELP    = "help"
+	VERSION = "version"
+	ABOUT   = "about"
+	CODE    = "code"
+	UNKNOWN = "unknown"
 )
 
 func main() {
@@ -13,60 +28,191 @@ func main() {
 	// handleError(err)
 	// pprof.StartCPUProfile(f)
 	// defer pprof.StopCPUProfile()
-	clear()
-	println(vida.Name(), vida.Version())
-	debug := false
-	ast := false
-	code := false
-	module := "sketchpad.vida"
-	if debug {
-		switch {
-		case ast:
-			printAST(module)
-		case code:
-			printMachineCode(module)
+	args := os.Args
+	if len(args) > 1 {
+		switch parseCMD(args[1]) {
+		case RUN:
+			run(args)
+		case DEGUG:
+			debug(args)
+		case TIME:
+			time(args)
+		case TOKENS:
+			printTokens(args)
+		case AST:
+			printAST(args)
+		case HELP:
+			printHelp()
+		case VERSION:
+			printVersion()
+		case ABOUT:
+			printAbout()
+		case CODE:
+			printMachineCode(args)
 		default:
-			debugPath(module)
+			clear()
+			printVersion()
+			handleError(errors.New("unknown command\ntype in your cli 'vida help' for assistance"))
 		}
 	} else {
-		measuredPath(module)
+		printHelp()
 	}
 }
 
-func debugPath(modulePath string) {
-	i, err := vida.NewDebugger(modulePath, stdlib.LoadStdlib())
-	handleError(err)
-	r, err := i.Debug()
-	handleError(err)
-	fmt.Println(r)
-}
-
-func measuredPath(modulePath string) {
-	i, err := vida.NewInterpreter(modulePath, stdlib.LoadStdlib())
-	handleError(err)
-	r, err := i.MeasureRunTime()
-	if err != nil {
-		i.PrintCallStack()
-		handleError(err)
+func debug(args []string) {
+	clear()
+	largs := len(args)
+	stdlib := stdlib.LoadStdlib()
+	if largs > 2 {
+		for i := 2; i < largs; i++ {
+			printVersion()
+			i, err := vida.NewDebugger(args[i], stdlib)
+			handleError(err)
+			r, err := i.Debug()
+			handleError(err)
+			fmt.Println(r)
+		}
+	} else {
+		printVersion()
+		handleError(errorNoArgsGivenTo(DEGUG))
 	}
-	fmt.Println(r)
 }
 
-func printAST(modulePath string) {
-	err := vida.PrintAST(modulePath)
-	handleError(err)
+func run(args []string) {
+	largs := len(args)
+	stdlib := stdlib.LoadStdlib()
+	if largs > 2 {
+		for i := 2; i < largs; i++ {
+			i, err := vida.NewInterpreter(args[i], stdlib)
+			handleError(err)
+			_, err = i.Run()
+			if err != nil {
+				i.PrintCallStack()
+				handleError(err)
+			}
+		}
+	} else {
+		printVersion()
+		handleError(errorNoArgsGivenTo(RUN))
+	}
 }
 
-func printMachineCode(modulePath string) {
-	err := vida.PrintMachineCode(modulePath)
-	handleError(err)
+func time(args []string) {
+	clear()
+	printVersion()
+	largs := len(args)
+	stdlib := stdlib.LoadStdlib()
+	if largs > 2 {
+		for i := 2; i < largs; i++ {
+			i, err := vida.NewInterpreter(args[i], stdlib)
+			handleError(err)
+			r, err := i.MeasureRunTime()
+			if err != nil {
+				i.PrintCallStack()
+				handleError(err)
+			}
+			fmt.Println(r)
+		}
+	} else {
+		printVersion()
+		handleError(errorNoArgsGivenTo(TIME))
+	}
+}
+
+func printTokens(args []string) {
+	clear()
+	printVersion()
+	largs := len(args)
+	if largs > 2 {
+		for i := 2; i < largs; i++ {
+			err := vida.PrintTokens(args[i])
+			handleError(err)
+		}
+	} else {
+		printVersion()
+		handleError(errorNoArgsGivenTo(TOKENS))
+	}
+}
+
+func printAST(args []string) {
+	clear()
+	printVersion()
+	largs := len(args)
+	if largs > 2 {
+		for i := 2; i < largs; i++ {
+			err := vida.PrintAST(args[i])
+			handleError(err)
+		}
+	} else {
+		printVersion()
+		handleError(errorNoArgsGivenTo(AST))
+	}
+}
+
+func printMachineCode(args []string) {
+	clear()
+	printVersion()
+	largs := len(args)
+	if largs > 2 {
+		for i := 2; i < largs; i++ {
+			err := vida.PrintMachineCode(args[i])
+			handleError(err)
+		}
+	} else {
+		printVersion()
+		handleError(errorNoArgsGivenTo(CODE))
+	}
 }
 
 func handleError(err error) {
 	if err != nil {
-		fmt.Println(err)
+		fmt.Printf("Error\n%v\n\n\n", err)
 		os.Exit(0)
 	}
+}
+
+func parseCMD(cmd string) string {
+	cmd = strings.ToLower(cmd)
+	switch cmd {
+	case RUN, DEGUG, TOKENS, AST, HELP, VERSION, ABOUT, CODE, TIME:
+		return cmd
+	default:
+		return UNKNOWN
+	}
+}
+
+func errorNoArgsGivenTo(cmd string) error {
+	return fmt.Errorf("no arguments given to the option %v", cmd)
+}
+
+func printVersion() {
+	fmt.Printf("\n\n%v %v\n\n\n", vida.Name(), vida.Version())
+}
+
+func printHelp() {
+	clear()
+	printVersion()
+	fmt.Println("CLI")
+	fmt.Println()
+	fmt.Println("Usage: vida [command] [...arguments]")
+	fmt.Println()
+	fmt.Println("Command list")
+	fmt.Println()
+	fmt.Printf("%-11v compile and run Vida modules\n", RUN)
+	fmt.Printf("%-11v compile and run Vida modules step by step\n", DEGUG)
+	fmt.Printf("%-11v compile and run Vida modules measuring their runtime\n", TIME)
+	fmt.Printf("%-11v show the token list\n", TOKENS)
+	fmt.Printf("%-11v show the syntax tree\n", AST)
+	fmt.Printf("%-11v show this message\n", HELP)
+	fmt.Printf("%-11v show the language version\n", VERSION)
+	fmt.Printf("%-11v compile and show the compiled code\n", CODE)
+	fmt.Printf("%-11v show some information about Vida\n", ABOUT)
+	fmt.Println()
+}
+
+func printAbout() {
+	clear()
+	fmt.Println(vida.About())
 }
 
 func clear() {
