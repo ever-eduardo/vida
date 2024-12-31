@@ -45,13 +45,13 @@ loc makeData = fn N, rnd, upperLimit {
 
 loc printData = fn xs {
     for _, v in xs {
-        v:print()
+        v->print()
     }
 }
 
 
 loc less = fn v, w {
-    if v:comparedTo(w) < 0 {
+    if v->comparedTo(w) < 0 {
         ret true
     }
     ret false
