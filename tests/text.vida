@@ -1,0 +1,23 @@
+loc text = load("text")
+assert(text)
+
+loc data = "Hello, World"
+
+assert(text.hasPrefix(data, "Hell"))
+assert(not text.hasPrefix(data, "amber"))
+
+assert(text.hasSuffix(data, "ld"))
+assert(not text.hasSuffix(data, "groovy"))
+
+assert(type(text.fromCodepoint(9731, 9733, 9842, nil, true, false, 0x2f804)) == "string")
+
+assert(text.trim("¡¡¡Hello, World!!!", "!¡") == data)
+assert(text.trim("   Hello, World   ") == data)
+assert(text.trim("   Hello, World   ", nil) == data)
+assert(text.trim("Hello, World   ") == data)
+assert(text.trim("   Hello, World") == data)
+
+assert(text.split("a,b,c", ","))
+assert(text.split("a man a plan a canal panama", "a "))
+assert(text.split(" xyz ", ""))
+assert(text.split("", "Bernardo O'Higgins"))
