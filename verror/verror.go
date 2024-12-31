@@ -62,7 +62,7 @@ func (sfi StackFrameInfo) Error() string {
 var (
 	ErrStringLimit                      = errors.New("strings max size has been reached")
 	ErrOpNotDefinedForIterators         = errors.New("operation not defined for iterators")
-	ErrValueNotIndexable                = errors.New("trying to index a non indexable value")
+	ErrValueNotIndexable                = errors.New("value is not indexable")
 	ErrPrefixOpNotDefined               = errors.New("prefix operation not defined")
 	ErrBinaryOpNotDefined               = errors.New("binary operation not defined")
 	ErrDivisionByZero                   = errors.New("division by zero not defined")
@@ -74,5 +74,5 @@ var (
 	ErrArity                            = errors.New("given arguments count is different from arity definition")
 	ErrNotEnoughArgs                    = errors.New("not given enough arguments to the function")
 	ErrVariadicArgs                     = errors.New("expected a list for variradic arguments")
-	ErrSlice                            = errors.New("could not process the slice instruction")
+	ErrSlice                            = errors.New("could not process the slice")
 )
