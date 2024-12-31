@@ -758,7 +758,7 @@ func (p *parser) indexOrSlice(e ast.Node) ast.Node {
 }
 
 func (p *parser) selector(e ast.Node) ast.Node {
-	return &ast.Select{Selectable: e, Selector: &ast.Property{Value: p.current.Lit}}
+	return &ast.Select{Selectable: e, Selector: &ast.Property{Value: p.current.Lit}, Line: p.current.Line}
 }
 
 func (p *parser) expect(tok token.Token) {
