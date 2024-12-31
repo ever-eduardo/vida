@@ -77,7 +77,7 @@ func (p *parser) mutOrCall(statements *[]ast.Node) ast.Node {
 	if p.next.Token == token.DOT ||
 		p.next.Token == token.LBRACKET ||
 		p.next.Token == token.LPAREN ||
-		p.next.Token == token.COLON {
+		p.next.Token == token.METHOD_CALL {
 		return p.mutateDataStructureOrCall(statements)
 	}
 	line := p.current.Line
@@ -178,7 +178,7 @@ Loop:
 	for p.next.Token == token.LBRACKET ||
 		p.next.Token == token.DOT ||
 		p.next.Token == token.LPAREN ||
-		p.next.Token == token.COLON {
+		p.next.Token == token.METHOD_CALL {
 		p.advance()
 		switch p.current.Token {
 		case token.LBRACKET:
@@ -232,12 +232,12 @@ Loop:
 			if p.next.Token != token.LBRACKET &&
 				p.next.Token != token.DOT &&
 				p.next.Token != token.LPAREN &&
-				p.next.Token != token.COLON {
+				p.next.Token != token.METHOD_CALL {
 				p.advance()
 				return &ast.CallStmt{Args: args, Ellipsis: ellipsis, Line: line}
 			}
 			*statements = append(*statements, &ast.CallStmt{Args: args, Ellipsis: ellipsis, Line: line})
-		case token.COLON:
+		case token.METHOD_CALL:
 			var args []ast.Node
 			var ellipsis int
 			p.advance()
@@ -276,7 +276,7 @@ Loop:
 			if p.next.Token != token.LBRACKET &&
 				p.next.Token != token.DOT &&
 				p.next.Token != token.LPAREN &&
-				p.next.Token != token.COLON {
+				p.next.Token != token.METHOD_CALL {
 				p.advance()
 				return &ast.MethodCallStmt{Args: args, Prop: prop, Ellipsis: ellipsis, Line: line}
 			}
@@ -434,7 +434,7 @@ Loop:
 	for p.next.Token == token.LBRACKET ||
 		p.next.Token == token.DOT ||
 		p.next.Token == token.LPAREN ||
-		p.next.Token == token.COLON {
+		p.next.Token == token.METHOD_CALL {
 		p.advance()
 		switch p.current.Token {
 		case token.LBRACKET:
@@ -453,7 +453,7 @@ Loop:
 			}
 		case token.LPAREN:
 			e = p.callExpr(e)
-		case token.COLON:
+		case token.METHOD_CALL:
 			e = p.methodCallExpr(e)
 		default:
 			break Loop
