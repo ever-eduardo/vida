@@ -825,7 +825,7 @@ func (c *CoreFunction) Type() string {
 }
 
 func (f CoreFunction) String() string {
-	return fmt.Sprintf("[a = %v, v = %v, f = %v, i = %v, mod = %v]", f.Arity, f.IsVar, f.Free, f.Info, f.ModuleName)
+	return fmt.Sprintf("CoreFunction(arity = %v, isVar = %v, free = %v)", f.Arity, f.IsVar, f.Free)
 }
 
 func (f *CoreFunction) Clone() Value {
@@ -896,7 +896,7 @@ func (f *Function) Clone() Value {
 }
 
 func (f Function) String() string {
-	return fmt.Sprintf("Function(%v, Free = %v)", f.CoreFn, f.Free)
+	return fmt.Sprintf("Function(%p)", f.CoreFn)
 }
 
 type GFn func(args ...Value) (Value, error)
@@ -1017,7 +1017,7 @@ func (e Error) Iterator() Value {
 }
 
 func (e Error) String() string {
-	return fmt.Sprintf("Error: %v", e.Message.String())
+	return fmt.Sprintf("Error(message: %v)", e.Message.String())
 }
 
 func (e Error) Type() string {
