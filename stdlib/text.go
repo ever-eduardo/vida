@@ -15,6 +15,10 @@ func generateText() vida.Value {
 	m.Value["trimLeft"] = trimLeft()
 	m.Value["trimRight"] = trimRight()
 	m.Value["split"] = split()
+	m.Value["fields"] = fields()
+	m.Value["repeat"] = repeat()
+	m.Value["replace"] = replace()
+	m.Value["replaceAll"] = replaceAll()
 	m.UpdateKeys()
 	return m
 }
@@ -138,6 +142,66 @@ func split() vida.GFn {
 			if v, ok := args[0].(vida.String); ok {
 				return stringSliceToList(strings.Split(v.Value, "")), nil
 			}
+		}
+		return vida.NilValue, nil
+	}
+}
+
+func fields() vida.GFn {
+	return func(args ...vida.Value) (vida.Value, error) {
+		if len(args) > 0 {
+			if v, ok := args[0].(vida.String); ok {
+				return stringSliceToList(strings.Fields(v.Value)), nil
+			}
+		}
+		return vida.NilValue, nil
+	}
+}
+
+func repeat() vida.GFn {
+	return func(args ...vida.Value) (vida.Value, error) {
+		if len(args) >= 2 {
+			if v, ok := args[0].(vida.String); ok {
+				if times, ok := args[1].(vida.Integer); ok && times >= 0 {
+					return &vida.String{Value: strings.Repeat(v.Value, int(times))}, nil
+				}
+				return vida.NilValue, nil
+			}
+			return vida.NilValue, nil
+		}
+		return vida.NilValue, nil
+	}
+}
+
+func replace() vida.GFn {
+	return func(args ...vida.Value) (vida.Value, error) {
+		if len(args) > 3 {
+			if s, ok := args[0].(vida.String); ok {
+				if old, ok := args[1].(vida.String); ok {
+					if nnew, ok := args[2].(vida.String); ok {
+						if k, ok := args[3].(vida.Integer); ok {
+							return &vida.String{Value: strings.Replace(s.Value, old.Value, nnew.Value, int(k))}, nil
+						}
+					}
+				}
+			}
+			return vida.NilValue, nil
+		}
+		return vida.NilValue, nil
+	}
+}
+
+func replaceAll() vida.GFn {
+	return func(args ...vida.Value) (vida.Value, error) {
+		if len(args) > 2 {
+			if s, ok := args[0].(vida.String); ok {
+				if old, ok := args[1].(vida.String); ok {
+					if nnew, ok := args[2].(vida.String); ok {
+						return &vida.String{Value: strings.ReplaceAll(s.Value, old.Value, nnew.Value)}, nil
+					}
+				}
+			}
+			return vida.NilValue, nil
 		}
 		return vida.NilValue, nil
 	}
