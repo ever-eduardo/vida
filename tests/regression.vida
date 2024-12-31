@@ -1,6 +1,6 @@
 
 loc a = "hello"
 loc b = nil
-loc f = fn => a + fmt("%v", b)
+loc f = fn => a + format("%v", b)
 loc result = f()
 assert(result == "hellonil")

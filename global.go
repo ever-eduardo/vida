@@ -19,7 +19,7 @@ var coreLibNames = []string{
 	"load",
 	"type",
 	"assert",
-	"fmt",
+	"format",
 	"input",
 	"clone",
 	"del",
