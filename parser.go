@@ -609,18 +609,13 @@ func (p *parser) operand() ast.Node {
 		i := &ast.Import{Line: p.current.Line}
 		p.advance()
 		p.expect(token.LPAREN)
-		e := p.expression(token.LowestPrec)
-		switch expr := e.(type) {
-		case *ast.String:
-			i.Path = expr.Value + vidaFileExtension
-			return i
-		default:
-			if p.ok {
-				p.err = verror.New(p.lexer.ModuleName, "expected an string literal inside an import function", verror.SyntaxErrType, p.current.Line)
-				p.ok = false
-			}
-			return &ast.Nil{}
-		}
+		p.advance()
+		p.expect(token.STRING)
+		s, _ := strconv.Unquote(p.current.Lit)
+		i.Path = s + vidaFileExtension
+		p.advance()
+		p.expect(token.RPAREN)
+		return i
 	default:
 		if p.ok {
 			if p.lexer.LexicalError.Message == "" {
@@ -764,7 +759,7 @@ func (p *parser) selector(e ast.Node) ast.Node {
 func (p *parser) expect(tok token.Token) {
 	if p.current.Token != tok && p.ok {
 		p.ok = false
-		message := fmt.Sprintf("expected %v and got %v", tok, p.current.Token)
+		message := fmt.Sprintf("expected token '%v', but got token '%v'", tok, p.current.Token)
 		p.err = verror.New(p.lexer.ModuleName, message, verror.SyntaxErrType, p.current.Line)
 	}
 }
