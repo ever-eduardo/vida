@@ -19,6 +19,7 @@ func generateText() vida.Value {
 	m.Value["repeat"] = repeat()
 	m.Value["replace"] = replace()
 	m.Value["replaceAll"] = replaceAll()
+	m.Value["center"] = center()
 	m.UpdateKeys()
 	return m
 }
@@ -201,6 +202,58 @@ func replaceAll() vida.GFn {
 				if old, ok := args[1].(vida.String); ok {
 					if nnew, ok := args[2].(vida.String); ok {
 						return vida.String{Value: strings.ReplaceAll(s.Value, old.Value, nnew.Value)}, nil
+					}
+				}
+			}
+			return vida.NilValue, nil
+		}
+		return vida.NilValue, nil
+	}
+}
+
+func center() vida.GFn {
+	return func(args ...vida.Value) (vida.Value, error) {
+		l := len(args)
+		if l == 2 {
+			if str, ok := args[0].(vida.String); ok {
+				if width, ok := args[1].(vida.Integer); ok {
+					strlen := vida.StringLength(str)
+					if width <= strlen {
+						return str, nil
+					}
+					padding := width - strlen
+					newString := str.Value
+					sep := " "
+					for i := vida.Integer(0); i < padding; i++ {
+						if i%2 == 0 {
+							newString = newString + sep
+						} else {
+							newString = sep + newString
+						}
+					}
+					return vida.String{Value: newString}, nil
+				}
+			}
+			return vida.NilValue, nil
+		}
+		if l > 2 {
+			if str, ok := args[0].(vida.String); ok {
+				if width, ok := args[1].(vida.Integer); ok {
+					if sep, ok := args[2].(vida.String); ok {
+						strlen := vida.StringLength(str)
+						if width <= strlen {
+							return str, nil
+						}
+						padding := width - strlen
+						newString := str.Value
+						for i := vida.Integer(0); i < padding; i++ {
+							if i%2 == 0 {
+								newString = newString + sep.Value
+							} else {
+								newString = sep.Value + newString
+							}
+						}
+						return vida.String{Value: newString}, nil
 					}
 				}
 			}
