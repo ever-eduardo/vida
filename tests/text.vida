@@ -23,8 +23,6 @@ assert(text.split(" xyz ", ""))
 assert(text.split("", "Bernardo O'Higgins"))
 
 
-loc text = load("text")
-
 // Check equality
 loc checkListEquality = fn l, r {
     for i = 0, len(l) {
@@ -102,4 +100,29 @@ assert(data == "PPPePtPePrP PPPiPpPePrP PpPiPcPkPePdP PaP PpPePcPkP PoPfP PpPiPc
 data = text.replaceAll(someText, "p", "v")
 assert(data == "Peter Piver vicked a veck of vickled vevvers")
 
+// center
+
+someText = "hello"
+loc sep = "-"
+
+assert(text.center(someText, -10) == someText)
+assert(text.center(someText, 0) == someText)
+assert(text.center(someText, 1) == someText)
+assert(text.center(someText, 2) == someText)
+assert(text.center(someText, 3) == someText)
+assert(text.center(someText, 5) == someText)
+
+assert(text.center(someText, 6, sep) == "hello-")
+assert(text.center(someText, 7, sep) == "-hello-")
+assert(text.center(someText, 8, sep) == "-hello--")
+assert(text.center(someText, 9, sep) == "--hello--")
+assert(text.center(someText, 10, sep) == "--hello---")
+assert(text.center(someText, 11, sep) == "---hello---")
+
+assert(text.center(someText, 6) == "hello ")
+assert(text.center(someText, 7) == " hello ")
+assert(text.center(someText, 8) == " hello  ")
+assert(text.center(someText, 9) == "  hello  ")
+assert(text.center(someText, 10) == "  hello   ")
+assert(text.center(someText, 11) == "   hello   ")
 
