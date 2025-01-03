@@ -90,8 +90,8 @@ func run(args []string) {
 			handleError(err)
 			_, err = i.Run()
 			if err != nil {
+				printError(err)
 				i.PrintCallStack()
-				handleError(err)
 			}
 		}
 	} else {
@@ -111,8 +111,8 @@ func time(args []string) {
 			handleError(err)
 			r, err := i.MeasureRunTime()
 			if err != nil {
+				printError(err)
 				i.PrintCallStack()
-				handleError(err)
 			}
 			fmt.Println(r)
 		}
@@ -171,6 +171,12 @@ func handleError(err error) {
 	if err != nil {
 		fmt.Printf("\n\n%v\n\n\n", err)
 		os.Exit(0)
+	}
+}
+
+func printError(err error) {
+	if err != nil {
+		fmt.Printf("\n\n%v\n\n\n", err)
 	}
 }
 
