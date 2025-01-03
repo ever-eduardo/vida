@@ -176,7 +176,7 @@ func handleError(err error) {
 
 func printError(err error) {
 	if err != nil {
-		fmt.Printf("\n\n%v\n\n\n", err)
+		fmt.Printf("%v\n", err)
 	}
 }
 

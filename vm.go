@@ -474,7 +474,7 @@ func (vm *vM) processSlice(mode, sliceable uint64) (Value, error) {
 }
 
 func (vm *vM) printCallStack() {
-	fmt.Printf("\n\n  [Call Stack]\n\n")
+	fmt.Printf("  [Call Stack]\n\n")
 	for i := vm.fp; i >= 0; i-- {
 		modName := vm.Frames[i].lambda.CoreFn.ModuleName
 		ip := vm.Frames[i].ip
