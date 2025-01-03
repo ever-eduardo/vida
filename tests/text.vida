@@ -21,3 +21,85 @@ assert(text.split("a,b,c", ","))
 assert(text.split("a man a plan a canal panama", "a "))
 assert(text.split(" xyz ", ""))
 assert(text.split("", "Bernardo O'Higgins"))
+
+
+loc text = load("text")
+
+// Check equality
+loc checkListEquality = fn l, r {
+    for i = 0, len(l) {
+        assert(l[i] == r[i])
+    }
+}
+
+// words
+loc words = [
+    "philanthropy",
+    "serendipity",
+    "nebula",
+    "origin",
+    "perception",
+    "cardinality"
+]
+
+
+// hasPrefix
+assert(text.hasPrefix(words[0], "phil"))
+assert(text.hasPrefix(words[1], "ser"))
+assert(text.hasPrefix(words[2], "nebula"))
+assert(text.hasPrefix(words[3], "origin"))
+assert(text.hasPrefix(words[4], "percep"))
+assert(text.hasPrefix(words[5], "card"))
+
+// hasSuffix
+assert(text.hasSuffix(words[0], "py"))
+assert(text.hasSuffix(words[1], "pity"))
+assert(text.hasSuffix(words[2], "nebula"))
+assert(text.hasSuffix(words[3], "origin"))
+assert(text.hasSuffix(words[4], "ception"))
+assert(text.hasSuffix(words[5], "ality"))
+
+// fields
+loc data = text.fields("philanthropy serendipity nebula origin perception cardinality")
+
+checkListEquality(words, data)
+
+// split
+data = text.split("philanthropy, serendipity, nebula, origin, perception, cardinality", ", ")
+
+checkListEquality(words, data)
+
+// repeat
+loc someText = "Some Serendipity Star"
+loc factor = 1024
+data = text.repeat(someText, factor)
+assert(len(someText) * factor == len(data))
+factor = 0
+data = text.repeat(someText, factor)
+assert(len(data) == 0)
+
+// fromCodepoint
+data = text.fromCodepoint(65, 66, 67, 68, 69, 70)
+someText = "ABCDEF"
+assert(data == someText)
+
+// replace
+someText = "With or without you, I cannot live with or without you"
+data = text.replace(someText, "I", "you", -1)
+assert(data == "With or without you, you cannot live with or without you")
+
+someText = "Peter Piper picked a peck of pickled peppers"
+data = text.replace(someText, "p", "v", 2)
+assert(data == "Peter Piver vicked a peck of pickled peppers")
+
+data = text.replace(someText, "p", "v", 4)
+assert(data == "Peter Piver vicked a veck of vickled peppers")
+
+data = text.replace(someText, "", "P", -1)
+assert(data == "PPPePtPePrP PPPiPpPePrP PpPiPcPkPePdP PaP PpPePcPkP PoPfP PpPiPcPkPlPePdP PpPePpPpPePrPsP")
+
+// replaceAll
+data = text.replaceAll(someText, "p", "v")
+assert(data == "Peter Piver vicked a veck of vickled vevvers")
+
+

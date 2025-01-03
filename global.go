@@ -210,6 +210,23 @@ func gfnIsError(args ...Value) (Value, error) {
 	return Bool(false), nil
 }
 
+func generateHash(input string) (hash uint64) {
+	if len(input) == 0 {
+		return
+	}
+	for _, v := range input {
+		hash = ((hash << 5) - hash) + uint64(v)
+	}
+	return
+}
+
+func StringLength(input String) Integer {
+	if input.Runes == nil {
+		input.Runes = []rune(input.Value)
+	}
+	return Integer(len(input.Runes))
+}
+
 var coreLibDescription = []string{
 	`
 	Print one or more values separated by a comma.

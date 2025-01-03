@@ -59,7 +59,7 @@ func fromCodepoint() vida.GFn {
 				runes = append(runes, int32(v))
 			}
 		}
-		return &vida.String{Value: string(runes), Runes: runes}, nil
+		return vida.String{Value: string(runes), Runes: runes}, nil
 	}
 }
 
@@ -69,15 +69,15 @@ func trim() vida.GFn {
 		if l > 1 {
 			if v, ok := args[0].(vida.String); ok {
 				if p, ok := args[1].(vida.String); ok {
-					return &vida.String{Value: strings.Trim(v.Value, p.Value)}, nil
+					return vida.String{Value: strings.Trim(v.Value, p.Value)}, nil
 				}
-				return &vida.String{Value: strings.Trim(v.Value, " ")}, nil
+				return vida.String{Value: strings.Trim(v.Value, " ")}, nil
 			}
 			return vida.NilValue, nil
 		}
 		if l == 1 {
 			if v, ok := args[0].(vida.String); ok {
-				return &vida.String{Value: strings.Trim(v.Value, " ")}, nil
+				return vida.String{Value: strings.Trim(v.Value, " ")}, nil
 			}
 		}
 		return vida.NilValue, nil
@@ -90,15 +90,15 @@ func trimLeft() vida.GFn {
 		if l > 1 {
 			if v, ok := args[0].(vida.String); ok {
 				if p, ok := args[1].(vida.String); ok {
-					return &vida.String{Value: strings.TrimLeft(v.Value, p.Value)}, nil
+					return vida.String{Value: strings.TrimLeft(v.Value, p.Value)}, nil
 				}
-				return &vida.String{Value: strings.TrimLeft(v.Value, " ")}, nil
+				return vida.String{Value: strings.TrimLeft(v.Value, " ")}, nil
 			}
 			return vida.NilValue, nil
 		}
 		if l == 1 {
 			if v, ok := args[0].(vida.String); ok {
-				return &vida.String{Value: strings.TrimLeft(v.Value, " ")}, nil
+				return vida.String{Value: strings.TrimLeft(v.Value, " ")}, nil
 			}
 		}
 		return vida.NilValue, nil
@@ -111,15 +111,15 @@ func trimRight() vida.GFn {
 		if l > 1 {
 			if v, ok := args[0].(vida.String); ok {
 				if p, ok := args[1].(vida.String); ok {
-					return &vida.String{Value: strings.TrimRight(v.Value, p.Value)}, nil
+					return vida.String{Value: strings.TrimRight(v.Value, p.Value)}, nil
 				}
-				return &vida.String{Value: strings.TrimRight(v.Value, " ")}, nil
+				return vida.String{Value: strings.TrimRight(v.Value, " ")}, nil
 			}
 			return vida.NilValue, nil
 		}
 		if l == 1 {
 			if v, ok := args[0].(vida.String); ok {
-				return &vida.String{Value: strings.TrimRight(v.Value, " ")}, nil
+				return vida.String{Value: strings.TrimRight(v.Value, " ")}, nil
 			}
 		}
 		return vida.NilValue, nil
@@ -163,7 +163,10 @@ func repeat() vida.GFn {
 		if len(args) >= 2 {
 			if v, ok := args[0].(vida.String); ok {
 				if times, ok := args[1].(vida.Integer); ok && times >= 0 {
-					return &vida.String{Value: strings.Repeat(v.Value, int(times))}, nil
+					if vida.StringLength(v)*times > vida.MaxStringLen {
+						return vida.NilValue, nil
+					}
+					return vida.String{Value: strings.Repeat(v.Value, int(times))}, nil
 				}
 				return vida.NilValue, nil
 			}
@@ -180,7 +183,7 @@ func replace() vida.GFn {
 				if old, ok := args[1].(vida.String); ok {
 					if nnew, ok := args[2].(vida.String); ok {
 						if k, ok := args[3].(vida.Integer); ok {
-							return &vida.String{Value: strings.Replace(s.Value, old.Value, nnew.Value, int(k))}, nil
+							return vida.String{Value: strings.Replace(s.Value, old.Value, nnew.Value, int(k))}, nil
 						}
 					}
 				}
@@ -197,7 +200,7 @@ func replaceAll() vida.GFn {
 			if s, ok := args[0].(vida.String); ok {
 				if old, ok := args[1].(vida.String); ok {
 					if nnew, ok := args[2].(vida.String); ok {
-						return &vida.String{Value: strings.ReplaceAll(s.Value, old.Value, nnew.Value)}, nil
+						return vida.String{Value: strings.ReplaceAll(s.Value, old.Value, nnew.Value)}, nil
 					}
 				}
 			}
@@ -211,7 +214,7 @@ func stringSliceToList(slice []string) vida.Value {
 	l := len(slice)
 	xs := make([]vida.Value, l)
 	for i := 0; i < l; i++ {
-		xs[i] = &vida.String{Value: slice[i]}
+		xs[i] = vida.String{Value: slice[i]}
 	}
 	return &vida.List{Value: xs}
 }
