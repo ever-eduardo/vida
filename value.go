@@ -264,7 +264,7 @@ func (s String) Type() string {
 }
 
 func (s String) Clone() Value {
-	return &String{Runes: s.Runes, Value: s.Value}
+	return String{Runes: s.Runes, Value: s.Value}
 }
 
 type Integer int64
