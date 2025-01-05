@@ -26,6 +26,7 @@ func generateText() vida.Value {
 	m.Value["join"] = join()
 	m.Value["toLower"] = lower()
 	m.Value["toUpper"] = upper()
+	m.Value["count"] = count()
 	m.UpdateKeys()
 	return m
 }
@@ -346,6 +347,20 @@ func upper() vida.GFn {
 			if v, ok := args[0].(vida.String); ok {
 				return vida.String{Value: strings.ToUpper(v.Value)}, nil
 			}
+		}
+		return vida.NilValue, nil
+	}
+}
+
+func count() vida.GFn {
+	return func(args ...vida.Value) (vida.Value, error) {
+		if len(args) > 1 {
+			if s, ok := args[0].(vida.String); ok {
+				if substr, ok := args[1].(vida.String); ok {
+					return vida.Integer(strings.Count(s.Value, substr.Value)), nil
+				}
+			}
+			return vida.NilValue, nil
 		}
 		return vida.NilValue, nil
 	}
