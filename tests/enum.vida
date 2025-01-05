@@ -37,3 +37,18 @@ assert(CardSuit.spades == 10)
 assert(CardSuit.hearts == 11)
 assert(CardSuit.diamonds == 12)
 assert(CardSuit.clubs == 13)
+
+loc Konst = enum {
+    c1 = 1
+    c2
+    _
+    c4
+    _
+    _
+    c7
+}
+
+assert(Konst.c1 == 1)
+assert(Konst.c2 == 2)
+assert(Konst.c4 == 4)
+assert(Konst.c7 == 7)

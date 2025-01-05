@@ -1140,12 +1140,19 @@ func (c *compiler) compileExpr(node ast.Node, isRoot bool) (int, int) {
 		e := make(Enum)
 		if n.HasInitVal {
 			for _, v := range n.Variants {
+				if v == "_" {
+					n.Init++
+					continue
+				}
 				e[v] = Integer(n.Init)
 				n.Init++
 			}
 			return c.kb.EnumIndex(e), rKonst
 		}
 		for i, v := range n.Variants {
+			if v == "_" {
+				continue
+			}
 			e[v] = Integer(i)
 		}
 		return c.kb.EnumIndex(e), rKonst
