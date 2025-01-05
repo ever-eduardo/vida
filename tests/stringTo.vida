@@ -1,0 +1,21 @@
+loc stringTo = load("stringTo")
+
+assert(stringTo.boolean("true") == true)
+assert(stringTo.boolean("false") == false)
+assert(not stringTo.boolean(""))
+
+assert(stringTo.float("1.42") == 1.42)
+assert(stringTo.float("1e-5") == 1e-5)
+assert(stringTo.float("-1e5") == -1e5)
+assert(stringTo.float("0.0") == 0.0)
+assert(stringTo.float("-0.0") == -0.0)
+
+assert(stringTo.int("-42") == -42)
+assert(stringTo.int("42") == 42)
+assert(stringTo.int("42.25") == nil)
+assert(stringTo.int("0xFF") == 0xFF)
+assert(stringTo.int("0b1010") == 0b1010)
+
+assert(stringTo.nilValue("nil") == nil)
+assert(stringTo.nilValue("") == nil)
+
