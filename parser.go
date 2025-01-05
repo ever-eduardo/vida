@@ -823,5 +823,8 @@ func (p *parser) expect(tok token.Token) {
 func (p *parser) advance() token.Token {
 	p.current.Line, p.current.Token, p.current.Lit = p.next.Line, p.next.Token, p.next.Lit
 	p.next.Line, p.next.Token, p.next.Lit = p.lexer.Next()
+	for p.next.Token == token.COMMENT {
+		p.next.Line, p.next.Token, p.next.Lit = p.lexer.Next()
+	}
 	return p.current.Token
 }
