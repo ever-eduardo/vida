@@ -163,7 +163,7 @@ func (it *StringIterator) Key() Value {
 }
 
 func (it *StringIterator) Value() Value {
-	return String{Value: string(it.Runes[it.Init])}
+	return String{Value: string(it.Runes[it.Init]), Runes: it.Runes[it.Init : it.Init+1]}
 }
 
 func (it *StringIterator) Boolean() Bool {

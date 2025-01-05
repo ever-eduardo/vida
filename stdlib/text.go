@@ -2,6 +2,8 @@ package stdlib
 
 import (
 	"strings"
+	"unicode"
+	"unicode/utf8"
 
 	"github.com/ever-eduardo/vida"
 )
@@ -27,6 +29,14 @@ func generateText() vida.Value {
 	m.Value["toLower"] = lower()
 	m.Value["toUpper"] = upper()
 	m.Value["count"] = count()
+	m.Value["isAscii"] = isAscii()
+	m.Value["isDecimal"] = isDecimal()
+	m.Value["isDigit"] = isDigit()
+	m.Value["isHexDigit"] = isHexDigit()
+	m.Value["isLetter"] = isLetter()
+	m.Value["isNumber"] = isNumber()
+	m.Value["isSpace"] = isSpace()
+	m.Value["codepoint"] = codepoint()
 	m.UpdateKeys()
 	return m
 }
@@ -359,6 +369,106 @@ func count() vida.GFn {
 				if substr, ok := args[1].(vida.String); ok {
 					return vida.Integer(strings.Count(s.Value, substr.Value)), nil
 				}
+			}
+			return vida.NilValue, nil
+		}
+		return vida.NilValue, nil
+	}
+}
+
+func isAscii() vida.GFn {
+	return func(args ...vida.Value) (vida.Value, error) {
+		if len(args) > 0 {
+			if s, ok := args[0].(vida.String); ok && vida.StringLength(s) == 1 {
+				c := s.Runes[0]
+				return vida.Bool(0 <= c && c <= unicode.MaxASCII), nil
+			}
+			return vida.NilValue, nil
+		}
+		return vida.NilValue, nil
+	}
+}
+
+func isDecimal() vida.GFn {
+	return func(args ...vida.Value) (vida.Value, error) {
+		if len(args) > 0 {
+			if s, ok := args[0].(vida.String); ok && vida.StringLength(s) == 1 {
+				c := s.Runes[0]
+				return vida.Bool('0' <= c && c <= '9'), nil
+			}
+			return vida.NilValue, nil
+		}
+		return vida.NilValue, nil
+	}
+}
+
+func isDigit() vida.GFn {
+	return func(args ...vida.Value) (vida.Value, error) {
+		if len(args) > 0 {
+			if s, ok := args[0].(vida.String); ok && vida.StringLength(s) == 1 {
+				return vida.Bool(unicode.IsDigit(s.Runes[0])), nil
+			}
+			return vida.NilValue, nil
+		}
+		return vida.NilValue, nil
+	}
+}
+
+func isHexDigit() vida.GFn {
+	return func(args ...vida.Value) (vida.Value, error) {
+		if len(args) > 0 {
+			if s, ok := args[0].(vida.String); ok && vida.StringLength(s) == 1 {
+				c := s.Runes[0]
+				return vida.Bool('0' <= c && c <= '9' || 'a' <= (32|c) && (32|c) <= 'f'), nil
+			}
+			return vida.NilValue, nil
+		}
+		return vida.NilValue, nil
+	}
+}
+
+func isLetter() vida.GFn {
+	return func(args ...vida.Value) (vida.Value, error) {
+		if len(args) > 0 {
+			if s, ok := args[0].(vida.String); ok && vida.StringLength(s) == 1 {
+				c := s.Runes[0]
+				return vida.Bool('a' <= (32|c) && (32|c) <= 'z' || c == '_' || c >= utf8.RuneSelf && unicode.IsLetter(c)), nil
+			}
+			return vida.NilValue, nil
+		}
+		return vida.NilValue, nil
+	}
+}
+
+func isNumber() vida.GFn {
+	return func(args ...vida.Value) (vida.Value, error) {
+		if len(args) > 0 {
+			if s, ok := args[0].(vida.String); ok && vida.StringLength(s) == 1 {
+				return vida.Bool(unicode.IsNumber(s.Runes[0])), nil
+			}
+			return vida.NilValue, nil
+		}
+		return vida.NilValue, nil
+	}
+}
+
+func isSpace() vida.GFn {
+	return func(args ...vida.Value) (vida.Value, error) {
+		if len(args) > 0 {
+			if s, ok := args[0].(vida.String); ok && vida.StringLength(s) == 1 {
+				return vida.Bool(unicode.IsSpace(s.Runes[0])), nil
+			}
+			return vida.NilValue, nil
+		}
+		return vida.NilValue, nil
+	}
+}
+
+func codepoint() vida.GFn {
+	return func(args ...vida.Value) (vida.Value, error) {
+		if len(args) > 0 {
+			if s, ok := args[0].(vida.String); ok && vida.StringLength(s) == 1 {
+				return vida.Integer(s.Runes[0]), nil
 			}
 			return vida.NilValue, nil
 		}
