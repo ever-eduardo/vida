@@ -75,4 +75,5 @@ var (
 	ErrNotEnoughArgs                    = errors.New("not given enough arguments to the function")
 	ErrVariadicArgs                     = errors.New("expected a list for variradic arguments")
 	ErrSlice                            = errors.New("could not process the slice")
+	ErrValueIsConstant                  = errors.New("value is constant")
 )

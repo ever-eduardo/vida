@@ -223,6 +223,14 @@ type MethodCallExpr struct {
 	Line     uint
 }
 
+type Enum struct {
+	Variants   []string
+	Identifier string
+	Init       uint64
+	Step       uint64
+	HasForExpr bool
+}
+
 func (ast *Ast) _node()           {}
 func (loc *Loc) _node()           {}
 func (mut *Mut) _node()           {}
@@ -265,3 +273,4 @@ func (n *CallExpr) _node()        {}
 func (n *CallStmt) _node()        {}
 func (n *MethodCallStmt) _node()  {}
 func (n *MethodCallExpr) _node()  {}
+func (n *Enum) _node()            {}

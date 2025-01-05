@@ -85,3 +85,10 @@ func (kb *konstBuilder) FunctionIndex(value *CoreFunction) int {
 	kb.index++
 	return i
 }
+
+func (kb *konstBuilder) EnumIndex(value Enum) int {
+	i := kb.index
+	*kb.Konstants = append(*kb.Konstants, value)
+	kb.index++
+	return i
+}

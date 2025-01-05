@@ -44,6 +44,7 @@ primary		:=	'true'
 			|	Function
 			|	Error
 			|	Import
+			|	Enumeration
 binop		:=	'and'
 			|	'or'
 			|	'+'
@@ -71,6 +72,7 @@ Error		:=	'error' '(' expr? ')'
 Import		:=	'import' '(' String ')'
 Function	:=	'fn' (iden... | iden (',' iden)* (',' iden...)? )? fBody | '=>' expr
 fBody		:=	'{' statement* ret?* '}'
+Enumeration :=	'enum' '{' ident+ '}'
 select		:=	'[' expr | '..' | '..' expr | expr '..' | expr '..' expr ']' select*
 			|	'.' ident select*
 			|	'(' ...expr | (expr (',' expr)*)?  (',' ...expr)? ')' select*

@@ -384,6 +384,22 @@ func printAST(node Node, sb *strings.Builder, level int) {
 		for i := range len(n.Statement) {
 			printAST(n.Statement[i], sb, level+twoLevels)
 		}
+	case *Enum:
+		buildIndent(sb, level+oneLevel)
+		sb.WriteString("Enum")
+		sb.WriteRune(nl)
+		if n.HasForExpr {
+			if n.Step != 0 {
+				sb.WriteString(fmt.Sprintf("for %v = %v, %v", n.Identifier, n.Init, n.Step))
+			} else {
+				sb.WriteString(fmt.Sprintf("for %v = %v", n.Identifier, n.Init))
+			}
+		}
+		for _, v := range n.Variants {
+			buildIndent(sb, level+twoLevels)
+			sb.WriteString(v)
+			sb.WriteRune(nl)
+		}
 	default:
 		sb.WriteRune(nl)
 		buildIndent(sb, level+oneLevel)

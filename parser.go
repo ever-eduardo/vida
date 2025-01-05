@@ -616,6 +616,21 @@ func (p *parser) operand() ast.Node {
 		p.advance()
 		p.expect(token.RPAREN)
 		return i
+	case token.ENUM:
+		e := &ast.Enum{}
+		p.advance()
+		p.expect(token.LCURLY)
+		p.advance()
+		p.expect(token.IDENTIFIER)
+		e.Variants = append(e.Variants, p.current.Lit)
+		p.advance()
+		for p.current.Token != token.RCURLY {
+			p.expect(token.IDENTIFIER)
+			e.Variants = append(e.Variants, p.current.Lit)
+			p.advance()
+		}
+		p.expect(token.RCURLY)
+		return e
 	default:
 		if p.ok {
 			if p.lexer.LexicalError.Message == "" {

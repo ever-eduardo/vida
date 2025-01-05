@@ -1136,6 +1136,12 @@ func (c *compiler) compileExpr(node ast.Node, isRoot bool) (int, int) {
 		c.emitCall(c.rAlloc, 0, 0, 1)
 		c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 		return c.rAlloc, rLoc
+	case *ast.Enum:
+		e := make(Enum)
+		for i, v := range n.Variants {
+			e[v] = Integer(i)
+		}
+		return c.kb.EnumIndex(e), rKonst
 	default:
 		return 0, rGlob
 	}

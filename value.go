@@ -1,7 +1,9 @@
 package vida
 
 import (
+	"encoding/json"
 	"fmt"
+	"maps"
 	"math"
 	"strconv"
 	"strings"
@@ -221,7 +223,7 @@ func (s String) IGet(index Value) (Value, error) {
 }
 
 func (s String) ISet(index, val Value) error {
-	return verror.ErrValueNotIndexable
+	return verror.ErrValueIsConstant
 }
 
 func (s String) Prefix(op uint64) (Value, error) {
@@ -1025,5 +1027,65 @@ func (e Error) Type() string {
 }
 
 func (e Error) Clone() Value {
+	return e
+}
+
+type Enum map[string]Integer
+
+func (e Enum) Boolean() Bool {
+	return true
+}
+
+func (e Enum) Prefix(uint64) (Value, error) {
+	return NilValue, verror.ErrPrefixOpNotDefined
+}
+
+func (e Enum) Binop(uint64, Value) (Value, error) {
+	return NilValue, verror.ErrBinaryOpNotDefined
+}
+
+func (e Enum) IGet(index Value) (Value, error) {
+	if val, ok := e[index.String()]; ok {
+		return val, nil
+	}
+	return NilValue, nil
+}
+
+func (e Enum) ISet(Value, Value) error {
+	return verror.ErrValueIsConstant
+}
+
+func (e Enum) Equals(other Value) Bool {
+	if val, ok := other.(Enum); ok {
+		return Bool(maps.Equal(e, val))
+	}
+	return false
+}
+
+func (e Enum) IsIterable() Bool {
+	return false
+}
+
+func (e Enum) Iterator() Value {
+	return NilValue
+}
+
+func (e Enum) IsCallable() Bool {
+	return false
+}
+
+func (e Enum) String() string {
+	jsonbytes, err := json.Marshal(e)
+	if err != nil {
+		return "enum{...}"
+	}
+	return string(jsonbytes)
+}
+
+func (e Enum) Type() string {
+	return "enum"
+}
+
+func (e Enum) Clone() Value {
 	return e
 }
