@@ -20,6 +20,12 @@ func generateText() vida.Value {
 	m.Value["replace"] = replace()
 	m.Value["replaceAll"] = replaceAll()
 	m.Value["center"] = center()
+	m.Value["contains"] = contains()
+	m.Value["containsAny"] = containsAny()
+	m.Value["index"] = index()
+	m.Value["join"] = join()
+	m.Value["toLower"] = lower()
+	m.Value["toUpper"] = upper()
 	m.UpdateKeys()
 	return m
 }
@@ -258,6 +264,88 @@ func center() vida.GFn {
 				}
 			}
 			return vida.NilValue, nil
+		}
+		return vida.NilValue, nil
+	}
+}
+
+func contains() vida.GFn {
+	return func(args ...vida.Value) (vida.Value, error) {
+		if len(args) > 1 {
+			if s, ok := args[0].(vida.String); ok {
+				if substr, ok := args[1].(vida.String); ok {
+					return vida.Bool(strings.Contains(s.Value, substr.Value)), nil
+				}
+			}
+			return vida.NilValue, nil
+		}
+		return vida.NilValue, nil
+	}
+}
+
+func containsAny() vida.GFn {
+	return func(args ...vida.Value) (vida.Value, error) {
+		if len(args) > 1 {
+			if s, ok := args[0].(vida.String); ok {
+				if substr, ok := args[1].(vida.String); ok {
+					return vida.Bool(strings.ContainsAny(s.Value, substr.Value)), nil
+				}
+			}
+			return vida.NilValue, nil
+		}
+		return vida.NilValue, nil
+	}
+}
+
+func index() vida.GFn {
+	return func(args ...vida.Value) (vida.Value, error) {
+		if len(args) > 1 {
+			if s, ok := args[0].(vida.String); ok {
+				if substr, ok := args[1].(vida.String); ok {
+					return vida.Integer(strings.Index(s.Value, substr.Value)), nil
+				}
+			}
+			return vida.NilValue, nil
+		}
+		return vida.NilValue, nil
+	}
+}
+
+func join() vida.GFn {
+	return func(args ...vida.Value) (vida.Value, error) {
+		if len(args) > 1 {
+			if xs, ok := args[0].(*vida.List); ok {
+				if sep, ok := args[1].(vida.String); ok {
+					var r []string
+					for _, v := range xs.Value {
+						r = append(r, v.String())
+					}
+					return vida.String{Value: strings.Join(r, sep.Value)}, nil
+				}
+			}
+			return vida.NilValue, nil
+		}
+		return vida.NilValue, nil
+	}
+}
+
+func lower() vida.GFn {
+	return func(args ...vida.Value) (vida.Value, error) {
+		if len(args) > 0 {
+			if v, ok := args[0].(vida.String); ok {
+				return vida.String{Value: strings.ToLower(v.Value)}, nil
+			}
+		}
+		return vida.NilValue, nil
+	}
+}
+
+func upper() vida.GFn {
+	return func(args ...vida.Value) (vida.Value, error) {
+		if len(args) > 0 {
+			if v, ok := args[0].(vida.String); ok {
+				return vida.String{Value: strings.ToUpper(v.Value)}, nil
+			}
 		}
 		return vida.NilValue, nil
 	}

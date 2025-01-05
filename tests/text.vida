@@ -126,3 +126,38 @@ assert(text.center(someText, 9) == "  hello  ")
 assert(text.center(someText, 10) == "  hello   ")
 assert(text.center(someText, 11) == "   hello   ")
 
+// contains
+someText = "For some other reasons we did not know when it was happening ... "
+data = "other "
+
+assert(text.contains(someText, data))
+
+data = "hello, world"
+
+assert(not text.contains(someText, data))
+
+// contains any
+data = "kp"
+assert(text.containsAny(someText, data))
+
+// index
+data = "F"
+assert(text.index(someText, data) == 0)
+
+data = "Yellow"
+assert(text.index(someText, data) == -1)
+
+
+// join
+data = [1,2,3,4,5]
+assert(text.join(data, ",") == "1,2,3,4,5")
+
+data = ["hello", "world", "this", "is", "a chocolate"]
+assert(text.join(data, "-") == "hello-world-this-is-a chocolate")
+
+// toLower, toUpper
+data = "alphabet"
+assert(text.toUpper(data) == "ALPHABET")
+
+data = "ALPHABET"
+assert(text.toLower(data) == "alphabet")
