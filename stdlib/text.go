@@ -12,7 +12,7 @@ func generateText() vida.Value {
 	m := &vida.Object{Value: make(map[string]vida.Value)}
 	m.Value["hasPrefix"] = hasPrefix()
 	m.Value["hasSuffix"] = hasSuffix()
-	m.Value["fromCodepoint"] = fromCodepoint()
+	m.Value["fromCodePoint"] = fromCodepoint()
 	m.Value["trim"] = trim()
 	m.Value["trimLeft"] = trimLeft()
 	m.Value["trimRight"] = trimRight()
@@ -36,7 +36,7 @@ func generateText() vida.Value {
 	m.Value["isLetter"] = isLetter()
 	m.Value["isNumber"] = isNumber()
 	m.Value["isSpace"] = isSpace()
-	m.Value["codepoint"] = codepoint()
+	m.Value["codePoint"] = codepoint()
 	m.UpdateKeys()
 	return m
 }

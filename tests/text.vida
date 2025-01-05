@@ -9,7 +9,7 @@ assert(not text.hasPrefix(data, "amber"))
 assert(text.hasSuffix(data, "ld"))
 assert(not text.hasSuffix(data, "groovy"))
 
-assert(type(text.fromCodepoint(9731, 9733, 9842, nil, true, false, 0x2f804)) == "string")
+assert(type(text.fromCodePoint(9731, 9733, 9842, nil, true, false, 0x2f804)) == "string")
 
 assert(text.trim("¡¡¡Hello, World!!!", "!¡") == data)
 assert(text.trim("   Hello, World   ") == data)
@@ -76,8 +76,8 @@ factor = 0
 data = text.repeat(someText, factor)
 assert(len(data) == 0)
 
-// fromCodepoint
-data = text.fromCodepoint(65, 66, 67, 68, 69, 70)
+// fromCodePoint
+data = text.fromCodePoint(65, 66, 67, 68, 69, 70)
 someText = "ABCDEF"
 assert(data == someText)
 
@@ -199,14 +199,14 @@ assert(all(someText, text.isLetter))
 someText = [" ", "\n", "\t"]
 assert(all(someText, text.isSpace))
 
-// codepoint
+// codePoint
 
 someText = "A"
-assert(text.codepoint(someText) == 65)
-assert(text.fromCodepoint(text.codepoint(someText)) == someText)
+assert(text.codePoint(someText) == 65)
+assert(text.fromCodePoint(text.codePoint(someText)) == someText)
 
 someText = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 for k, v in someText {
-    assert(text.fromCodepoint(text.codepoint(v)) == v)
+    assert(text.fromCodePoint(text.codePoint(v)) == v)
 }
 
