@@ -1253,7 +1253,7 @@ func (c *compiler) integrateKonst(val Value) (int, int) {
 		return c.kb.FloatIndex(float64(e)), rKonst
 	case Bool:
 		return c.kb.BooleanIndex(bool(e)), rKonst
-	case String:
+	case *String:
 		return c.kb.StringIndex(e.Value), rKonst
 	default:
 		return c.kb.NilIndex(), rKonst

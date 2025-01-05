@@ -73,7 +73,7 @@ func randShuffled() vida.GFn {
 				rand.Shuffle(len(v.Value), func(i, j int) { c.Value[i], c.Value[j] = c.Value[j], c.Value[i] })
 				return c, nil
 			}
-			if v, ok := args[0].(vida.String); ok {
+			if v, ok := args[0].(*vida.String); ok {
 				if v.Runes == nil {
 					v.Runes = []rune(v.Value)
 				}
@@ -81,7 +81,7 @@ func randShuffled() vida.GFn {
 				r := make([]rune, l)
 				copy(r, v.Runes)
 				rand.Shuffle(l, func(i, j int) { r[i], r[j] = r[j], r[i] })
-				return vida.String{Value: string(r), Runes: r}, nil
+				return &vida.String{Value: string(r), Runes: r}, nil
 			}
 		}
 		return vida.NilValue, nil

@@ -961,7 +961,7 @@ func (p *pp) printArg(arg Value, verb rune) {
 		p.fmtFloat(float64(f), 64, verb)
 	case Integer:
 		p.fmtInteger(uint64(f), signed, verb)
-	case String:
+	case *String:
 		p.fmtString(f.Value, verb)
 	// case *Bytes:
 	// 	p.fmtBytes(f.Value, verb, "[]byte")

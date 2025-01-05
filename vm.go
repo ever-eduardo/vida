@@ -397,13 +397,13 @@ func (vm *vM) processSlice(mode, sliceable uint64) (Value, error) {
 				return &List{}, nil
 			}
 		}
-	case String:
+	case *String:
 		if v.Runes == nil {
 			v.Runes = []rune(v.Value)
 		}
 		switch mode {
 		case vcv:
-			return String{Value: string(v.Runes[:])}, nil
+			return &String{Value: string(v.Runes[:])}, nil
 		case vce:
 			e := vm.Frame.stack[sliceable+1]
 			switch ee := e.(type) {
@@ -413,12 +413,12 @@ func (vm *vM) processSlice(mode, sliceable uint64) (Value, error) {
 					ee += l
 				}
 				if 0 <= ee && ee <= l {
-					return String{Value: string(v.Runes[:ee])}, nil
+					return &String{Value: string(v.Runes[:ee])}, nil
 				}
 				if ee > l {
-					return String{Value: string(v.Runes[:])}, nil
+					return &String{Value: string(v.Runes[:])}, nil
 				}
-				return String{}, nil
+				return &String{}, nil
 			}
 		case ecv:
 			e := vm.Frame.stack[sliceable+1]
@@ -429,12 +429,12 @@ func (vm *vM) processSlice(mode, sliceable uint64) (Value, error) {
 					ee += l
 				}
 				if 0 <= ee && ee <= l {
-					return String{Value: string(v.Runes[ee:])}, nil
+					return &String{Value: string(v.Runes[ee:])}, nil
 				}
 				if ee < 0 {
-					return String{Value: string(v.Runes[:])}, nil
+					return &String{Value: string(v.Runes[:])}, nil
 				}
-				return String{}, nil
+				return &String{}, nil
 			}
 		case ece:
 			l := vm.Frame.stack[sliceable+1]
@@ -451,22 +451,22 @@ func (vm *vM) processSlice(mode, sliceable uint64) (Value, error) {
 						rr += xslen
 					}
 					if 0 <= ll && ll <= xslen && 0 <= rr && rr <= xslen {
-						return String{Value: string(v.Runes[ll:rr])}, nil
+						return &String{Value: string(v.Runes[ll:rr])}, nil
 					}
 					if ll < 0 {
 						if 0 <= rr && rr <= xslen {
-							return String{Value: string(v.Runes[:rr])}, nil
+							return &String{Value: string(v.Runes[:rr])}, nil
 						}
 						if rr > xslen {
-							return String{Value: string(v.Runes[:])}, nil
+							return &String{Value: string(v.Runes[:])}, nil
 						}
 					} else if rr > xslen {
 						if 0 <= ll && ll <= xslen {
-							return String{Value: string(v.Runes[ll:])}, nil
+							return &String{Value: string(v.Runes[ll:])}, nil
 						}
 					}
 				}
-				return String{}, nil
+				return &String{}, nil
 			}
 		}
 	}

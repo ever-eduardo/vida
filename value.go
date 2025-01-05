@@ -169,16 +169,16 @@ type String struct {
 	Value string
 }
 
-func (s String) Boolean() Bool {
+func (s *String) Boolean() Bool {
 	return Bool(true)
 }
 
-func (s String) Binop(op uint64, rhs Value) (Value, error) {
+func (s *String) Binop(op uint64, rhs Value) (Value, error) {
 	switch r := rhs.(type) {
-	case String:
+	case *String:
 		switch op {
 		case uint64(token.ADD):
-			str := String{Value: s.Value + r.Value}
+			str := &String{Value: s.Value + r.Value}
 			return str, nil
 		case uint64(token.AND):
 			return r, nil
@@ -204,7 +204,7 @@ func (s String) Binop(op uint64, rhs Value) (Value, error) {
 	return NilValue, verror.ErrBinaryOpNotDefined
 }
 
-func (s String) IGet(index Value) (Value, error) {
+func (s *String) IGet(index Value) (Value, error) {
 	switch r := index.(type) {
 	case Integer:
 		if s.Runes == nil {
@@ -216,17 +216,17 @@ func (s String) IGet(index Value) (Value, error) {
 		}
 		if 0 <= r && r < l {
 			sr := s.Runes[r : r+Integer(1)]
-			return String{Value: string(sr), Runes: sr}, nil
+			return &String{Value: string(sr), Runes: sr}, nil
 		}
 	}
 	return NilValue, verror.ErrValueNotIndexable
 }
 
-func (s String) ISet(index, val Value) error {
+func (s *String) ISet(index, val Value) error {
 	return verror.ErrValueIsConstant
 }
 
-func (s String) Prefix(op uint64) (Value, error) {
+func (s *String) Prefix(op uint64) (Value, error) {
 	switch op {
 	case uint64(token.NOT):
 		return Bool(false), nil
@@ -235,22 +235,22 @@ func (s String) Prefix(op uint64) (Value, error) {
 	}
 }
 
-func (s String) Equals(other Value) Bool {
-	if val, ok := other.(String); ok {
+func (s *String) Equals(other Value) Bool {
+	if val, ok := other.(*String); ok {
 		return s.Value == val.Value
 	}
 	return false
 }
 
-func (s String) IsIterable() Bool {
+func (s *String) IsIterable() Bool {
 	return true
 }
 
-func (s String) IsCallable() Bool {
+func (s *String) IsCallable() Bool {
 	return false
 }
 
-func (s String) Iterator() Value {
+func (s *String) Iterator() Value {
 	if s.Runes == nil {
 		s.Runes = []rune(s.Value)
 	}
@@ -261,12 +261,12 @@ func (s String) String() string {
 	return s.Value
 }
 
-func (s String) Type() string {
+func (s *String) Type() string {
 	return "string"
 }
 
-func (s String) Clone() Value {
-	return String{Runes: s.Runes, Value: s.Value}
+func (s *String) Clone() Value {
+	return s
 }
 
 type Integer int64
@@ -991,7 +991,7 @@ func (e Error) Binop(op uint64, rhs Value) (Value, error) {
 }
 
 func (e Error) IGet(index Value) (Value, error) {
-	if val, ok := index.(String); ok && val.Value == "message" {
+	if val, ok := index.(*String); ok && val.Value == "message" {
 		return e.Message, nil
 	}
 	return NilValue, nil

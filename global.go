@@ -62,7 +62,7 @@ func gfnLen(args ...Value) (Value, error) {
 			return Integer(len(v.Value)), nil
 		case *Object:
 			return Integer(len(v.Value)), nil
-		case String:
+		case *String:
 			if v.Runes == nil {
 				v.Runes = []rune(v.Value)
 			}
@@ -74,7 +74,7 @@ func gfnLen(args ...Value) (Value, error) {
 
 func gfnType(args ...Value) (Value, error) {
 	if len(args) > 0 {
-		return String{Value: args[0].Type()}, nil
+		return &String{Value: args[0].Type()}, nil
 	}
 	return NilValue, nil
 }
@@ -82,9 +82,9 @@ func gfnType(args ...Value) (Value, error) {
 func gfnFormat(args ...Value) (Value, error) {
 	if len(args) > 1 {
 		switch v := args[0].(type) {
-		case String:
+		case *String:
 			s, e := formatValue(v.Value, args[1:]...)
-			return String{Value: s}, e
+			return &String{Value: s}, e
 		}
 	}
 	return NilValue, nil
@@ -150,7 +150,7 @@ func gfnReadLine(args ...Value) (Value, error) {
 	}
 	scanner := bufio.NewScanner(os.Stdin)
 	for scanner.Scan() {
-		return String{Value: scanner.Text()}, nil
+		return &String{Value: scanner.Text()}, nil
 	}
 	if err := scanner.Err(); err != nil {
 		return NilValue, err
@@ -177,7 +177,7 @@ func gfnDel(args ...Value) (Value, error) {
 
 func gfnLoadLib(args ...Value) (Value, error) {
 	if len(args) > 0 {
-		if v, ok := args[0].(String); ok {
+		if v, ok := args[0].(*String); ok {
 			if l, isPresent := stdlibLoader[v.Value]; isPresent {
 				return l(), nil
 			}
@@ -220,7 +220,7 @@ func generateHash(input string) (hash uint64) {
 	return
 }
 
-func StringLength(input String) Integer {
+func StringLength(input *String) Integer {
 	if input.Runes == nil {
 		input.Runes = []rune(input.Value)
 	}
