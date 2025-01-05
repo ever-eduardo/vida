@@ -161,3 +161,52 @@ assert(text.toUpper(data) == "ALPHABET")
 
 data = "ALPHABET"
 assert(text.toLower(data) == "alphabet")
+
+
+// isAscii
+let _a = "Enter"
+let _b = "caf\u00e9"
+let _c = "\xe6\x97\xa5" // 日
+let _j = "Japan 日本"
+
+let all = fn iterable, pred {
+    for k, v in iterable {
+        if not pred(v) {
+            ret false
+        }
+    }
+    ret true
+}
+
+assert(all(_a, text.isAscii))
+assert(not all(_b, text.isAscii))
+assert(not all(_c, text.isAscii))
+assert(not all(_j, text.isAscii))
+
+
+// IsX functions
+
+someText = "0123456789"
+assert(all(someText, text.isDecimal))
+assert(all(someText, text.isDigit))
+
+someText = "0123456789ABCDEF"
+assert(all(someText, text.isHexDigit))
+
+someText = "sometextwaswrittenhere"
+assert(all(someText, text.isLetter))
+
+someText = [" ", "\n", "\t"]
+assert(all(someText, text.isSpace))
+
+// codepoint
+
+someText = "A"
+assert(text.codepoint(someText) == 65)
+assert(text.fromCodepoint(text.codepoint(someText)) == someText)
+
+someText = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+for k, v in someText {
+    assert(text.fromCodepoint(text.codepoint(v)) == v)
+}
+
