@@ -1,0 +1,27 @@
+let Planet = enum {
+    mercury
+    venus
+    earth
+    mars
+    jupiter
+    saturn
+    uranus
+    neptune
+    pluton
+}
+
+assert(Planet)
+
+assert(Planet.mercury == 0)
+assert(Planet.venus == 1)
+assert(Planet.earth == 2)
+assert(Planet.mars == 3)
+assert(Planet.neptune == 7)
+
+let Color = enum {
+    red green blue
+}
+
+assert(Color.red == 0)
+assert(Color.green == 1)
+assert(Color.blue == 2)
