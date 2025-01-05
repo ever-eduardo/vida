@@ -469,7 +469,7 @@ func (p *parser) operand() ast.Node {
 			return &ast.Integer{Value: int64(i)}
 		} else {
 			if p.ok {
-				p.err = verror.New(p.lexer.ModuleName, "the integer literal could not be processed", verror.SyntaxErrType, p.current.Line)
+				p.err = verror.New(p.lexer.ModuleName, "integer literal could not be processed", verror.SyntaxErrType, p.current.Line)
 				p.ok = false
 			}
 			return &ast.Nil{}
@@ -479,7 +479,7 @@ func (p *parser) operand() ast.Node {
 			return &ast.Float{Value: f}
 		}
 		if p.ok {
-			p.err = verror.New(p.lexer.ModuleName, "the float literal could not be processed", verror.SyntaxErrType, p.current.Line)
+			p.err = verror.New(p.lexer.ModuleName, "float literal could not be processed", verror.SyntaxErrType, p.current.Line)
 			p.ok = false
 		}
 		return &ast.Nil{}
@@ -487,7 +487,7 @@ func (p *parser) operand() ast.Node {
 		s, e := strconv.Unquote(p.current.Lit)
 		if e != nil {
 			if p.ok {
-				p.err = verror.New(p.lexer.ModuleName, "the string literal could not be processed", verror.SyntaxErrType, p.current.Line)
+				p.err = verror.New(p.lexer.ModuleName, "string literal could not be processed", verror.SyntaxErrType, p.current.Line)
 				p.ok = false
 			}
 			return &ast.Nil{}
@@ -624,6 +624,47 @@ func (p *parser) operand() ast.Node {
 		p.expect(token.IDENTIFIER)
 		e.Variants = append(e.Variants, p.current.Lit)
 		p.advance()
+		if p.current.Token == token.ASSIGN {
+			p.advance()
+			if p.current.Token == token.ADD ||
+				p.current.Token == token.SUB ||
+				p.current.Token == token.TILDE {
+				op := p.current.Token
+				p.advance()
+				p.expect(token.INTEGER)
+				e.HasInitVal = true
+				if i, err := strconv.ParseUint(p.current.Lit, 0, 64); err == nil {
+					switch op {
+					case token.SUB:
+						e.Init = -int64(i)
+					case token.TILDE:
+						e.Init = int64(^uint32(i))
+					default:
+						e.Init = int64(i)
+					}
+				} else {
+					if p.ok {
+						p.err = verror.New(p.lexer.ModuleName, "integer literal could not be processed", verror.SyntaxErrType, p.current.Line)
+						p.ok = false
+					}
+					return &ast.Nil{}
+				}
+				p.advance()
+			} else {
+				p.expect(token.INTEGER)
+				e.HasInitVal = true
+				if i, err := strconv.ParseUint(p.current.Lit, 0, 64); err == nil {
+					e.Init = int64(i)
+				} else {
+					if p.ok {
+						p.err = verror.New(p.lexer.ModuleName, "integer literal could not be processed", verror.SyntaxErrType, p.current.Line)
+						p.ok = false
+					}
+					return &ast.Nil{}
+				}
+				p.advance()
+			}
+		}
 		for p.current.Token != token.RCURLY {
 			p.expect(token.IDENTIFIER)
 			e.Variants = append(e.Variants, p.current.Lit)

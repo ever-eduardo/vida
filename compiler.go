@@ -1138,6 +1138,13 @@ func (c *compiler) compileExpr(node ast.Node, isRoot bool) (int, int) {
 		return c.rAlloc, rLoc
 	case *ast.Enum:
 		e := make(Enum)
+		if n.HasInitVal {
+			for _, v := range n.Variants {
+				e[v] = Integer(n.Init)
+				n.Init++
+			}
+			return c.kb.EnumIndex(e), rKonst
+		}
 		for i, v := range n.Variants {
 			e[v] = Integer(i)
 		}

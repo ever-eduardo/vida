@@ -25,3 +25,15 @@ let Color = enum {
 assert(Color.red == 0)
 assert(Color.green == 1)
 assert(Color.blue == 2)
+
+loc CardSuit = enum {
+    spades = 10
+    hearts
+    diamonds
+    clubs
+}
+
+assert(CardSuit.spades == 10)
+assert(CardSuit.hearts == 11)
+assert(CardSuit.diamonds == 12)
+assert(CardSuit.clubs == 13)

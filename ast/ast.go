@@ -226,9 +226,10 @@ type MethodCallExpr struct {
 type Enum struct {
 	Variants   []string
 	Identifier string
-	Init       uint64
-	Step       uint64
+	Init       int64
+	Step       int64
 	HasForExpr bool
+	HasInitVal bool
 }
 
 func (ast *Ast) _node()           {}
