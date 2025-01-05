@@ -26,6 +26,7 @@ var coreLibNames = []string{
 	"error",
 	"exception",
 	"isError",
+	"str",
 }
 
 func loadCoreLib(store *[]Value) {
@@ -43,7 +44,8 @@ func loadCoreLib(store *[]Value) {
 		GFn(gfnDel),
 		GFn(gfnError),
 		GFn(gfnExcept),
-		GFn(gfnIsError))
+		GFn(gfnIsError),
+		GFn(gfnToString))
 }
 
 func gfnPrint(args ...Value) (Value, error) {
@@ -210,6 +212,13 @@ func gfnIsError(args ...Value) (Value, error) {
 	return Bool(false), nil
 }
 
+func gfnToString(args ...Value) (Value, error) {
+	if len(args) > 0 {
+		return &String{Value: args[0].String()}, nil
+	}
+	return Bool(false), nil
+}
+
 func generateHash(input string) (hash uint64) {
 	if len(input) == 0 {
 		return
@@ -320,6 +329,9 @@ var coreLibDescription = []string{
 	`
 	Help to explicitly check for an error value.
 	Example: if isError(value) {handle the error here}
+	`,
+	`
+	Return a string representation of a value.
 	`,
 }
 
