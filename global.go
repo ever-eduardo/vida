@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"strconv"
 
 	"github.com/ever-eduardo/vida/verror"
 )
@@ -26,7 +27,11 @@ var coreLibNames = []string{
 	"error",
 	"exception",
 	"isError",
-	"str",
+	"toString",
+	"toInt",
+	"toFloat",
+	"toBool",
+	"toNil",
 }
 
 func loadCoreLib(store *[]Value) {
@@ -45,7 +50,12 @@ func loadCoreLib(store *[]Value) {
 		GFn(gfnError),
 		GFn(gfnExcept),
 		GFn(gfnIsError),
-		GFn(gfnToString))
+		GFn(gfnToString),
+		GFn(gfnToInt),
+		GFn(gfnToFloat),
+		GFn(gfnToBool),
+		GFn(gfnToNil),
+	)
 }
 
 func gfnPrint(args ...Value) (Value, error) {
@@ -216,7 +226,67 @@ func gfnToString(args ...Value) (Value, error) {
 	if len(args) > 0 {
 		return &String{Value: args[0].String()}, nil
 	}
-	return Bool(false), nil
+	return NilValue, nil
+}
+
+func gfnToInt(args ...Value) (Value, error) {
+	l := len(args)
+	if l == 1 {
+		if v, ok := args[0].(*String); ok {
+			i, e := strconv.ParseInt(v.Value, 0, 64)
+			if e == nil {
+				return Integer(i), nil
+			}
+		}
+	}
+	if l == 2 {
+		if v, ok := args[0].(*String); ok {
+			if b, ok := args[1].(Integer); ok {
+				i, e := strconv.ParseInt(v.Value, int(b), 64)
+				if e == nil {
+					return Integer(i), nil
+				}
+			}
+		}
+	}
+	return NilValue, nil
+}
+
+func gfnToFloat(args ...Value) (Value, error) {
+	if len(args) > 0 {
+		if v, ok := args[0].(*String); ok {
+			r, e := strconv.ParseFloat(v.Value, 64)
+			if e == nil {
+				return Float(r), nil
+			}
+		}
+	}
+	return NilValue, nil
+}
+
+func gfnToBool(args ...Value) (Value, error) {
+	if len(args) > 0 {
+		if v, ok := args[0].(*String); ok {
+			if v.Value == "true" {
+				return Bool(true), nil
+			}
+			if v.Value == "false" {
+				return Bool(false), nil
+			}
+		}
+	}
+	return NilValue, nil
+}
+
+func gfnToNil(args ...Value) (Value, error) {
+	if len(args) > 0 {
+		if v, ok := args[0].(*String); ok {
+			if v.Value == "nil" {
+				return NilValue, nil
+			}
+		}
+	}
+	return NilValue, nil
 }
 
 func generateHash(input string) (hash uint64) {
@@ -332,6 +402,23 @@ var coreLibDescription = []string{
 	`,
 	`
 	Return a string representation of a value.
+	`,
+	`
+	Convertion from string to integer. The second optional argumeent
+	is an integer representing a base from 2 to 36.
+	Return nil when fail.
+	`,
+	`
+	Convertion from string to float.
+	Return nil when fail.
+	`,
+	`
+	Convertion from string to boolean.
+	Return nil when fail.
+	`,
+	`
+	Convertion from string to nil.
+	Always return nil
 	`,
 }
 
