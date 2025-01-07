@@ -88,7 +88,7 @@ var Tokens = [...]string{
 	ASSIGN:      "=",
 	QUOTE:       "\"",
 	COMMA:       ",",
-	METHOD_CALL: "->",
+	METHOD_CALL: "--",
 	DOT:         ".",
 	LPAREN:      "(",
 	RPAREN:      ")",

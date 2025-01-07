@@ -77,7 +77,7 @@ Enumeration :=	'enum' '{' ident+ '}'
 select		:=	'[' expr | '..' | '..' expr | expr '..' | expr '..' expr ']' select*
 			|	'.' ident select*
 			|	'(' ...expr | (expr (',' expr)*)?  (',' ...expr)? ')' select*
-			|	'->' ident '(' ...expr | (expr (',' expr)*)? (',' ...expr)? ')' select*
+			|	'--' ident '(' ...expr | (expr (',' expr)*)? (',' ...expr)? ')' select*
 break		:=	'break'
 continue	:=	'continue'
 ret			:=	'ret' expr

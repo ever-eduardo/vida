@@ -305,7 +305,7 @@ func (l *Lexer) Next() (line uint, tok token.Token, lit string) {
 		case '+':
 			tok = token.ADD
 		case '-':
-			if l.c == '>' {
+			if l.c == '-' {
 				l.next()
 				tok = token.METHOD_CALL
 			} else {
