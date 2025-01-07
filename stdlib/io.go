@@ -19,6 +19,9 @@ func generateIO() vida.Value {
 	m.Value["size"] = vida.GFn(fsize())
 	m.Value["fprint"] = vida.GFn(fprint())
 	m.Value["fprintf"] = vida.GFn(fprintf())
+	m.Value["isFile"] = vida.GFn(isFile())
+	m.Value["createTemp"] = vida.GFn(tempfile())
+	m.Value["tempDir"] = &vida.String{Value: os.TempDir()}
 	m.Value["ok"] = success
 	m.Value["R"] = vida.Integer(os.O_RDONLY)
 	m.Value["W"] = vida.Integer(os.O_WRONLY)
@@ -232,6 +235,36 @@ func fprintf() vida.GFn {
 					return vida.Integer(n), nil
 				}
 				return vida.Error{Message: &vida.String{Value: noStringFormat}}, nil
+			}
+		}
+		return vida.NilValue, nil
+	}
+}
+
+func isFile() vida.GFn {
+	return func(args ...vida.Value) (vida.Value, error) {
+		if len(args) > 0 {
+			if _, ok := args[0].(*FileHandler); ok {
+				return vida.Bool(ok), nil
+			}
+			return vida.Bool(false), nil
+		}
+		return vida.NilValue, nil
+	}
+}
+
+func tempfile() vida.GFn {
+	return func(args ...vida.Value) (vida.Value, error) {
+		if len(args) > 1 {
+			if dir, ok := args[0].(*vida.String); ok {
+				if pattern, ok := args[1].(*vida.String); ok {
+					f, err := os.CreateTemp(dir.Value, pattern.Value)
+					if err != nil {
+						f.Close()
+						return vida.Error{Message: &vida.String{Value: err.Error()}}, nil
+					}
+					return generateFileHandlerObject(f), nil
+				}
 			}
 		}
 		return vida.NilValue, nil
