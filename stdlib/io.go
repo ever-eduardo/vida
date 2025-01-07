@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 
 	"github.com/ever-eduardo/vida"
@@ -42,6 +43,7 @@ const (
 	fileAlreadyClosed   = "file is already closed"
 	noStringFormat      = "no string format given"
 	noOrClosedFH        = argIsNotFileHandler + " or " + fileAlreadyClosed
+	expectedBytes       = "expected a value of type bytes"
 )
 
 var success = &vida.String{Value: string(vida.Success)}
@@ -52,8 +54,9 @@ func generateFileHandlerObject(file *os.File) vida.Value {
 	o.Value["close"] = vida.GFn(fileClose())
 	o.Value["isClosed"] = vida.GFn(fileIsClosed())
 	o.Value["name"] = vida.GFn(fileName())
-	o.Value["write"] = vida.GFn(fileWriteString())
+	o.Value["write"] = vida.GFn(fileWrite())
 	o.Value["lines"] = vida.GFn(fileReadLines())
+	o.Value["read"] = vida.GFn(fileRead())
 	o.UpdateKeys()
 	return o
 }
@@ -419,16 +422,50 @@ func fileReadLines() vida.GFn {
 	}
 }
 
-func fileWriteString() vida.GFn {
+func fileRead() vida.GFn {
 	return func(args ...vida.Value) (vida.Value, error) {
 		if len(args) > 1 {
 			if obj, ok := args[0].(*vida.Object); ok {
 				if file, ok := obj.Value[fileHandlerName].(*FileHandler); ok {
-					if data, ok := args[1].(*vida.String); ok {
-						if file.IsClosed {
-							return vida.Error{Message: &vida.String{Value: fileAlreadyClosed}}, nil
+					if file.IsClosed {
+						return vida.Error{Message: &vida.String{Value: fileAlreadyClosed}}, nil
+					}
+					if b, ok := args[1].(*vida.Bytes); ok {
+						n, err := file.Handler.Read(b.Value)
+						if err != nil && !errors.Is(err, io.EOF) {
+							file.Handler.Close()
+							file.IsClosed = true
+							return vida.Error{Message: &vida.String{Value: err.Error()}}, nil
 						}
+						return vida.Integer(n), nil
+					}
+					return vida.Error{Message: &vida.String{Value: expectedBytes}}, nil
+				}
+				return vida.Error{Message: &vida.String{Value: argIsNotFileHandler}}, nil
+			}
+		}
+		return vida.NilValue, nil
+	}
+}
+
+func fileWrite() vida.GFn {
+	return func(args ...vida.Value) (vida.Value, error) {
+		if len(args) > 1 {
+			if obj, ok := args[0].(*vida.Object); ok {
+				if file, ok := obj.Value[fileHandlerName].(*FileHandler); ok {
+					if file.IsClosed {
+						return vida.Error{Message: &vida.String{Value: fileAlreadyClosed}}, nil
+					}
+					if data, ok := args[1].(*vida.String); ok {
 						i, err := file.Handler.WriteString(data.Value)
+						if err != nil {
+							file.IsClosed = true
+							file.Handler.Close()
+							return vida.Error{Message: &vida.String{Value: err.Error()}}, nil
+						}
+						return vida.Integer(i), nil
+					} else if data, ok := args[1].(*vida.Bytes); ok {
+						i, err := file.Handler.Write(data.Value)
 						if err != nil {
 							file.IsClosed = true
 							file.Handler.Close()
