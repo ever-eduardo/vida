@@ -1184,7 +1184,7 @@ func (b *Bytes) Iterator() Value {
 }
 
 func (b Bytes) String() string {
-	return string(b.Value)
+	return fmt.Sprintf("bytes [% x]", b.Value)
 }
 
 func (b *Bytes) Type() string {
