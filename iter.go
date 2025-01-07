@@ -279,3 +279,70 @@ func (it *IntegerIterator) Clone() Value {
 func (it *IntegerIterator) Type() string {
 	return "IntIter"
 }
+
+type BytesIterator struct {
+	Bytes []byte
+	Init  int
+	End   int
+}
+
+func (bi *BytesIterator) Next() bool {
+	bi.Init++
+	return bi.Init < bi.End
+}
+
+func (bi *BytesIterator) Key() Value {
+	return Integer(bi.Init)
+}
+
+func (bi *BytesIterator) Value() Value {
+	return Integer(bi.Bytes[bi.Init])
+}
+
+func (bi *BytesIterator) Boolean() Bool {
+	return true
+}
+
+func (bi *BytesIterator) Prefix(uint64) (Value, error) {
+	return NilValue, verror.ErrOpNotDefinedForIterators
+}
+
+func (bi *BytesIterator) Binop(uint64, Value) (Value, error) {
+	return NilValue, verror.ErrOpNotDefinedForIterators
+}
+
+func (bi *BytesIterator) IGet(Value) (Value, error) {
+	return NilValue, verror.ErrOpNotDefinedForIterators
+}
+
+func (bi *BytesIterator) ISet(Value, Value) error {
+	return verror.ErrOpNotDefinedForIterators
+}
+
+func (bi *BytesIterator) Equals(Value) Bool {
+	return false
+}
+
+func (bi *BytesIterator) IsIterable() Bool {
+	return false
+}
+
+func (bi *BytesIterator) IsCallable() Bool {
+	return false
+}
+
+func (bi *BytesIterator) Iterator() Value {
+	return NilValue
+}
+
+func (bi BytesIterator) String() string {
+	return fmt.Sprintf("BytesIter [i = %v, e = %v]", bi.Init, bi.End)
+}
+
+func (bi *BytesIterator) Clone() Value {
+	return bi
+}
+
+func (bi *BytesIterator) Type() string {
+	return "BytesIter"
+}

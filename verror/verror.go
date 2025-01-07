@@ -13,6 +13,7 @@ const (
 	RunTimeErrType     = "Runtime"
 	AssertionErrType   = "Assertion Failure"
 	ExceptionErrType   = "Exception"
+	MaxMemSize         = 0x7FFF_FFFF
 )
 
 type VidaError struct {
@@ -76,4 +77,5 @@ var (
 	ErrVariadicArgs                     = errors.New("expected a list for variradic arguments")
 	ErrSlice                            = errors.New("could not process the slice")
 	ErrValueIsConstant                  = errors.New("value is constant")
+	ErrMaxMemSize                       = errors.New("max memory size")
 )

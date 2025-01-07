@@ -178,6 +178,9 @@ func (s *String) Binop(op uint64, rhs Value) (Value, error) {
 	case *String:
 		switch op {
 		case uint64(token.ADD):
+			if len(s.Value)+len(r.Value) >= verror.MaxMemSize {
+				return NilValue, verror.ErrMaxMemSize
+			}
 			str := &String{Value: s.Value + r.Value}
 			return str, nil
 		case uint64(token.AND):
@@ -557,6 +560,9 @@ func (xs *List) Binop(op uint64, rhs Value) (Value, error) {
 				return xs, nil
 			}
 			lLen := len(xs.Value)
+			if rLen+lLen >= verror.MaxMemSize {
+				return NilValue, verror.ErrMaxMemSize
+			}
 			values := make([]Value, lLen+rLen)
 			copy(values[:lLen], xs.Value)
 			copy(values[lLen:], r.Value)
@@ -1088,4 +1094,105 @@ func (e Enum) Type() string {
 
 func (e Enum) Clone() Value {
 	return e
+}
+
+type Bytes struct {
+	Value []byte
+}
+
+func (b *Bytes) Boolean() Bool {
+	return Bool(true)
+}
+
+func (b *Bytes) Prefix(op uint64) (Value, error) {
+	switch op {
+	case uint64(token.NOT):
+		return Bool(false), nil
+	default:
+		return NilValue, verror.ErrPrefixOpNotDefined
+	}
+}
+
+func (b *Bytes) Binop(op uint64, rhs Value) (Value, error) {
+	switch r := rhs.(type) {
+	case *Bytes:
+		switch op {
+		case uint64(token.ADD):
+			rLen := len(r.Value)
+			if rLen == 0 {
+				return b, nil
+			}
+			lLen := len(b.Value)
+			if rLen+lLen >= verror.MaxMemSize {
+				return NilValue, verror.ErrMaxMemSize
+			}
+			values := make([]byte, lLen+rLen)
+			copy(values[:lLen], b.Value)
+			copy(values[lLen:], r.Value)
+			return &Bytes{Value: values}, nil
+		case uint64(token.AND):
+			return r, nil
+		case uint64(token.OR):
+			return b, nil
+		}
+	default:
+		switch op {
+		case uint64(token.OR):
+			return b, nil
+		case uint64(token.AND):
+			return r, nil
+		}
+	}
+	return NilValue, verror.ErrBinaryOpNotDefined
+}
+
+func (b *Bytes) IGet(index Value) (Value, error) {
+	switch r := index.(type) {
+	case Integer:
+		l := Integer(len(b.Value))
+		if r < 0 {
+			r += l
+		}
+		if 0 <= r && r < l {
+			return Integer(b.Value[r]), nil
+		}
+	}
+	return NilValue, verror.ErrValueNotIndexable
+}
+
+func (b *Bytes) ISet(index, val Value) error {
+	return verror.ErrValueIsConstant
+}
+
+func (b *Bytes) Equals(other Value) Bool {
+	if val, ok := other.(*Bytes); ok {
+		return b == val
+	}
+	return false
+}
+
+func (b *Bytes) IsIterable() Bool {
+	return true
+}
+
+func (b *Bytes) IsCallable() Bool {
+	return false
+}
+
+func (b *Bytes) Iterator() Value {
+	return &BytesIterator{Bytes: b.Value, Init: -1, End: len(b.Value)}
+}
+
+func (b Bytes) String() string {
+	return string(b.Value)
+}
+
+func (b *Bytes) Type() string {
+	return "bytes"
+}
+
+func (b *Bytes) Clone() Value {
+	c := make([]byte, len(b.Value))
+	copy(c, b.Value)
+	return &Bytes{Value: c}
 }

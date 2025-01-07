@@ -32,6 +32,7 @@ var coreLibNames = []string{
 	"toFloat",
 	"toBool",
 	"toNil",
+	"bytes",
 }
 
 func loadCoreLib(store *[]Value) {
@@ -55,6 +56,7 @@ func loadCoreLib(store *[]Value) {
 		GFn(gfnToFloat),
 		GFn(gfnToBool),
 		GFn(gfnToNil),
+		GFn(gfnBytes),
 	)
 }
 
@@ -79,6 +81,8 @@ func gfnLen(args ...Value) (Value, error) {
 				v.Runes = []rune(v.Value)
 			}
 			return Integer(len(v.Runes)), nil
+		case *Bytes:
+			return Integer(len(v.Value)), nil
 		}
 	}
 	return NilValue, nil
@@ -142,7 +146,7 @@ func gfnMakeList(args ...Value) (Value, error) {
 			if largs > 1 {
 				init = args[1]
 			}
-			if v >= 0 && v <= 0x7FFF_FFFF {
+			if v >= 0 && v < verror.MaxMemSize {
 				arr := make([]Value, v)
 				for i := range v {
 					arr[i] = init
@@ -152,6 +156,31 @@ func gfnMakeList(args ...Value) (Value, error) {
 		}
 	}
 	return &List{}, nil
+}
+
+func gfnBytes(args ...Value) (Value, error) {
+	l := len(args)
+	if l > 0 {
+		switch v := args[0].(type) {
+		case Integer:
+			var init byte = 0
+			if l > 1 {
+				if val, ok := args[1].(Integer); ok {
+					init = byte(val)
+				}
+			}
+			if v > 0 && v < verror.MaxMemSize {
+				b := make([]byte, v)
+				for i := range v {
+					b[i] = init
+				}
+				return &Bytes{Value: b}, nil
+			}
+		case *String:
+			return &Bytes{Value: []byte(v.Value)}, nil
+		}
+	}
+	return &Bytes{}, nil
 }
 
 func gfnReadLine(args ...Value) (Value, error) {
@@ -419,6 +448,11 @@ var coreLibDescription = []string{
 	`
 	Convertion from string to nil.
 	Always return nil
+	`,
+	`
+	Create a byte array from a string value.
+	It can create such array passing a size,
+	and an optional initial value.
 	`,
 }
 

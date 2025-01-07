@@ -8,7 +8,7 @@ import (
 	"github.com/ever-eduardo/vida/verror"
 )
 
-const MaxStringLen = 2147483647
+const MaxStringSize = 0x7FFF_FFFF
 
 // Strings for use with fmtbuf.WriteString. This is less overhead than using
 // fmtbuf.Write with byte arrays.
@@ -89,7 +89,7 @@ func (f *formatter) writePadding(n int) {
 	oldLen := len(buf)
 	newLen := oldLen + n
 
-	if newLen > MaxStringLen {
+	if newLen > MaxStringSize {
 		panic(verror.ErrStringLimit)
 	}
 
@@ -624,7 +624,7 @@ func (f *formatter) fmtFloat(v float64, size int, verb rune, prec int) {
 type fmtbuf []byte
 
 func (b *fmtbuf) Write(p []byte) {
-	if len(*b)+len(p) > MaxStringLen {
+	if len(*b)+len(p) > MaxStringSize {
 		panic(verror.ErrStringLimit)
 	}
 
@@ -632,7 +632,7 @@ func (b *fmtbuf) Write(p []byte) {
 }
 
 func (b *fmtbuf) WriteString(s string) {
-	if len(*b)+len(s) > MaxStringLen {
+	if len(*b)+len(s) > MaxStringSize {
 		panic(verror.ErrStringLimit)
 	}
 
@@ -640,7 +640,7 @@ func (b *fmtbuf) WriteString(s string) {
 }
 
 func (b *fmtbuf) WriteSingleByte(c byte) {
-	if len(*b) >= MaxStringLen {
+	if len(*b) >= MaxStringSize {
 		panic(verror.ErrStringLimit)
 	}
 
@@ -648,7 +648,7 @@ func (b *fmtbuf) WriteSingleByte(c byte) {
 }
 
 func (b *fmtbuf) WriteRune(r rune) {
-	if len(*b)+utf8.RuneLen(r) > MaxStringLen {
+	if len(*b)+utf8.RuneLen(r) > MaxStringSize {
 		panic(verror.ErrStringLimit)
 	}
 
@@ -899,7 +899,7 @@ func (p *pp) fmtString(v string, verb rune) {
 func (p *pp) fmtBytes(v []byte, verb rune, typeString string) {
 	switch verb {
 	case 'v', 'd':
-		if p.fmt.sharpV {
+		if p.fmt.sharpV || p.fmt.sharp {
 			_, _ = p.WriteString(typeString)
 			if v == nil {
 				_, _ = p.WriteString(nilParenString)
@@ -963,8 +963,8 @@ func (p *pp) printArg(arg Value, verb rune) {
 		p.fmtInteger(uint64(f), signed, verb)
 	case *String:
 		p.fmtString(f.Value, verb)
-	// case *Bytes:
-	// 	p.fmtBytes(f.Value, verb, "[]byte")
+	case *Bytes:
+		p.fmtBytes(f.Value, verb, "[]byte")
 	default:
 		p.fmtString(f.String(), verb)
 	}

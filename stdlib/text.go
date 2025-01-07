@@ -181,7 +181,7 @@ func repeat() vida.GFn {
 		if len(args) >= 2 {
 			if v, ok := args[0].(*vida.String); ok {
 				if times, ok := args[1].(vida.Integer); ok && times >= 0 {
-					if vida.StringLength(v)*times > vida.MaxStringLen {
+					if vida.StringLength(v)*times > vida.MaxStringSize {
 						return vida.NilValue, nil
 					}
 					return &vida.String{Value: strings.Repeat(v.Value, int(times))}, nil
