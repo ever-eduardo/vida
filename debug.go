@@ -303,8 +303,8 @@ func (vm *vM) debug() (Result, error) {
 				vm.Frame.code = fn.CoreFn.Code
 				vm.Frame.stack = vm.Stack[vm.Frame.bp:]
 				ip = 0
-			} else if fn, ok := val.(GFn); ok {
-				v, err := fn(vm.Frame.stack[B+1 : B+A+1]...)
+			} else {
+				v, err := val.Call(vm.Frame.stack[B+1 : B+A+1]...)
 				if err != nil {
 					return vm.createError(ip, err)
 				}

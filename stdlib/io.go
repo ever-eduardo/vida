@@ -276,6 +276,7 @@ func tempfile() vida.GFn {
 
 // Type FileHandler is a wrap over *os.File
 type FileHandler struct {
+	vida.DefaultReferenceSemantics
 	Handler  *os.File
 	IsClosed bool
 }

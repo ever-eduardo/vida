@@ -78,4 +78,5 @@ var (
 	ErrSlice                            = errors.New("could not process the slice")
 	ErrValueIsConstant                  = errors.New("value is constant")
 	ErrMaxMemSize                       = errors.New("max memory size")
+	ErrNotImplemented                   = errors.New("not implemented functionality for this value")
 )

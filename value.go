@@ -22,12 +22,15 @@ type Value interface {
 	IsIterable() Bool
 	Iterator() Value
 	IsCallable() Bool
+	Call(args ...Value) (Value, error)
 	String() string
 	Type() string
 	Clone() Value
 }
 
-type Nil struct{}
+type Nil struct {
+	DefaultValueSemantics
+}
 
 func (n Nil) Boolean() Bool {
 	return Bool(false)
@@ -145,6 +148,10 @@ func (b Bool) IsCallable() Bool {
 	return false
 }
 
+func (b Bool) Call(args ...Value) (Value, error) {
+	return NilValue, verror.ErrNotImplemented
+}
+
 func (b Bool) Iterator() Value {
 	return NilValue
 }
@@ -165,6 +172,7 @@ func (b Bool) Clone() Value {
 }
 
 type String struct {
+	DefaultReferenceSemantics
 	Runes []rune
 	Value string
 }
@@ -394,6 +402,10 @@ func (i Integer) IsCallable() Bool {
 	return false
 }
 
+func (i Integer) Call(args ...Value) (Value, error) {
+	return NilValue, verror.ErrNotImplemented
+}
+
 func (i Integer) Iterator() Value {
 	if i < 0 {
 		i = -i
@@ -517,6 +529,10 @@ func (f Float) IsCallable() Bool {
 	return false
 }
 
+func (f Float) Call(args ...Value) (Value, error) {
+	return NilValue, verror.ErrNotImplemented
+}
+
 func (f Float) Iterator() Value {
 	return NilValue
 }
@@ -534,6 +550,7 @@ func (f Float) Clone() Value {
 }
 
 type List struct {
+	DefaultReferenceSemantics
 	Value []Value
 }
 
@@ -655,6 +672,7 @@ func (xs *List) Clone() Value {
 }
 
 type Object struct {
+	DefaultReferenceSemantics
 	Keys  []string
 	Value map[string]Value
 }
@@ -781,6 +799,7 @@ type freeInfo struct {
 }
 
 type CoreFunction struct {
+	DefaultReferenceSemantics
 	Code       []uint64
 	Info       []freeInfo
 	Free       int
@@ -841,6 +860,7 @@ func (f *CoreFunction) Clone() Value {
 }
 
 type Function struct {
+	DefaultReferenceSemantics
 	Free   []Value
 	CoreFn *CoreFunction
 }
@@ -952,6 +972,10 @@ func (gfn GFn) IsCallable() Bool {
 	return true
 }
 
+func (gfn GFn) Call(args ...Value) (Value, error) {
+	return gfn(args...)
+}
+
 func (gfn GFn) Iterator() Value {
 	return NilValue
 }
@@ -969,6 +993,7 @@ func (gfn GFn) Type() string {
 }
 
 type Error struct {
+	DefaultValueSemantics
 	Message Value
 }
 
@@ -1080,6 +1105,10 @@ func (e Enum) IsCallable() Bool {
 	return false
 }
 
+func (e Enum) Call(args ...Value) (Value, error) {
+	return NilValue, verror.ErrNotImplemented
+}
+
 func (e Enum) String() string {
 	jsonbytes, err := json.Marshal(e)
 	if err != nil {
@@ -1097,6 +1126,7 @@ func (e Enum) Clone() Value {
 }
 
 type Bytes struct {
+	DefaultReferenceSemantics
 	Value []byte
 }
 
@@ -1193,4 +1223,112 @@ func (b *Bytes) Type() string {
 
 func (b *Bytes) Clone() Value {
 	return &Bytes{Value: b.Value}
+}
+
+type DefaultValueSemantics struct{}
+
+func (i DefaultValueSemantics) Boolean() Bool {
+	return false
+}
+
+func (i DefaultValueSemantics) Prefix(uint64) (Value, error) {
+	return NilValue, verror.ErrNotImplemented
+}
+
+func (i DefaultValueSemantics) Binop(uint64, Value) (Value, error) {
+	return NilValue, verror.ErrNotImplemented
+}
+
+func (i DefaultValueSemantics) IGet(Value) (Value, error) {
+	return NilValue, verror.ErrNotImplemented
+}
+
+func (i DefaultValueSemantics) ISet(Value, Value) error {
+	return verror.ErrNotImplemented
+}
+
+func (i DefaultValueSemantics) Equals(Value) Bool {
+	return false
+}
+
+func (i DefaultValueSemantics) IsIterable() Bool {
+	return false
+}
+
+func (i DefaultValueSemantics) Iterator() Value {
+	return NilValue
+}
+
+func (i DefaultValueSemantics) IsCallable() Bool {
+	return false
+}
+
+func (i DefaultValueSemantics) Call(args ...Value) (Value, error) {
+	return NilValue, verror.ErrNotImplemented
+}
+
+func (i DefaultValueSemantics) String() string {
+	return ""
+}
+
+func (i DefaultValueSemantics) Type() string {
+	return "notImplemented"
+}
+
+func (i DefaultValueSemantics) Clone() Value {
+	return NilValue
+}
+
+type DefaultReferenceSemantics struct{}
+
+func (i *DefaultReferenceSemantics) Boolean() Bool {
+	return false
+}
+
+func (i *DefaultReferenceSemantics) Prefix(uint64) (Value, error) {
+	return NilValue, verror.ErrNotImplemented
+}
+
+func (i *DefaultReferenceSemantics) Binop(uint64, Value) (Value, error) {
+	return NilValue, verror.ErrNotImplemented
+}
+
+func (i *DefaultReferenceSemantics) IGet(Value) (Value, error) {
+	return NilValue, verror.ErrNotImplemented
+}
+
+func (i *DefaultReferenceSemantics) ISet(Value, Value) error {
+	return verror.ErrNotImplemented
+}
+
+func (i *DefaultReferenceSemantics) Equals(Value) Bool {
+	return false
+}
+
+func (i *DefaultReferenceSemantics) IsIterable() Bool {
+	return false
+}
+
+func (i *DefaultReferenceSemantics) Iterator() Value {
+	return NilValue
+}
+
+func (i *DefaultReferenceSemantics) IsCallable() Bool {
+	return false
+}
+
+func (i *DefaultReferenceSemantics) Call(args ...Value) (Value, error) {
+	return NilValue, verror.ErrNotImplemented
+}
+
+func (i DefaultReferenceSemantics) String() string {
+	return ""
+}
+
+func (i *DefaultReferenceSemantics) Type() string {
+	return "notImplemented"
+}
+
+func (i *DefaultReferenceSemantics) Clone() Value {
+	return NilValue
 }

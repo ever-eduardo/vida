@@ -13,6 +13,7 @@ type Iterator interface {
 }
 
 type ListIterator struct {
+	DefaultReferenceSemantics
 	List []Value
 	Init int
 	End  int
@@ -80,6 +81,7 @@ func (it *ListIterator) Type() string {
 }
 
 type ObjectIterator struct {
+	DefaultReferenceSemantics
 	Keys []string
 	Obj  map[string]Value
 	Init int
@@ -148,6 +150,7 @@ func (it *ObjectIterator) Type() string {
 }
 
 type StringIterator struct {
+	DefaultReferenceSemantics
 	Runes []rune
 	Init  int
 	End   int
@@ -215,6 +218,7 @@ func (it *StringIterator) Type() string {
 }
 
 type IntegerIterator struct {
+	DefaultReferenceSemantics
 	Init Integer
 	End  Integer
 }
@@ -281,6 +285,7 @@ func (it *IntegerIterator) Type() string {
 }
 
 type BytesIterator struct {
+	DefaultReferenceSemantics
 	Bytes []byte
 	Init  int
 	End   int
