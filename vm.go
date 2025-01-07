@@ -494,5 +494,5 @@ func checkISACompatibility(m *Module) error {
 	if majorFromCode == major {
 		return nil
 	}
-	return verror.New(m.MainFunction.CoreFn.ModuleName, "The module was compiled with an uncompatible interpreter version", verror.FileErrType, 0)
+	return verror.New(m.MainFunction.CoreFn.ModuleName, "module compiled with an uncompatible interpreter version", verror.FileErrType, 0)
 }
