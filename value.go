@@ -1192,7 +1192,5 @@ func (b *Bytes) Type() string {
 }
 
 func (b *Bytes) Clone() Value {
-	c := make([]byte, len(b.Value))
-	copy(c, b.Value)
-	return &Bytes{Value: c}
+	return &Bytes{Value: b.Value}
 }

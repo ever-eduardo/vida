@@ -469,6 +469,75 @@ func (vm *vM) processSlice(mode, sliceable uint64) (Value, error) {
 				return &String{}, nil
 			}
 		}
+	case *Bytes:
+		switch mode {
+		case vcv:
+			return &Bytes{Value: v.Value}, nil
+		case vce:
+			e := vm.Frame.stack[sliceable+1]
+			switch ee := e.(type) {
+			case Integer:
+				l := Integer(len(v.Value))
+				if ee < 0 {
+					ee += l
+				}
+				if 0 <= ee && ee <= l {
+					return &Bytes{Value: v.Value[:ee]}, nil
+				}
+				if ee > l {
+					return &Bytes{Value: v.Value[:]}, nil
+				}
+				return &Bytes{}, nil
+			}
+		case ecv:
+			e := vm.Frame.stack[sliceable+1]
+			switch ee := e.(type) {
+			case Integer:
+				l := Integer(len(v.Value))
+				if ee < 0 {
+					ee += l
+				}
+				if 0 <= ee && ee <= l {
+					return &Bytes{Value: v.Value[ee:]}, nil
+				}
+				if ee < 0 {
+					return &Bytes{Value: v.Value[:]}, nil
+				}
+				return &Bytes{}, nil
+			}
+		case ece:
+			l := vm.Frame.stack[sliceable+1]
+			r := vm.Frame.stack[sliceable+2]
+			switch ll := l.(type) {
+			case Integer:
+				switch rr := r.(type) {
+				case Integer:
+					xslen := Integer(len(v.Value))
+					if ll < 0 {
+						ll += xslen
+					}
+					if rr < 0 {
+						rr += xslen
+					}
+					if 0 <= ll && ll <= xslen && 0 <= rr && rr <= xslen {
+						return &Bytes{Value: v.Value[ll:rr]}, nil
+					}
+					if ll < 0 {
+						if 0 <= rr && rr <= xslen {
+							return &Bytes{Value: v.Value[:rr]}, nil
+						}
+						if rr > xslen {
+							return &Bytes{Value: v.Value[:]}, nil
+						}
+					} else if rr > xslen {
+						if 0 <= ll && ll <= xslen {
+							return &Bytes{Value: v.Value[ll:]}, nil
+						}
+					}
+				}
+				return &Bytes{}, nil
+			}
+		}
 	}
 	return NilValue, verror.ErrSlice
 }
