@@ -178,6 +178,16 @@ func gfnBytes(args ...Value) (Value, error) {
 			}
 		case *String:
 			return &Bytes{Value: []byte(v.Value)}, nil
+		case *Bytes:
+			return v, nil
+		case *List:
+			var bts []byte
+			for _, val := range v.Value {
+				if i, ok := val.(Integer); ok {
+					bts = append(bts, byte(i))
+				}
+			}
+			return &Bytes{Value: bts}, nil
 		}
 	}
 	return &Bytes{}, nil
