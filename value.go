@@ -29,7 +29,7 @@ type Value interface {
 }
 
 type Nil struct {
-	DefaultValueSemantics
+	ValueSemanticsImpl
 }
 
 func (n Nil) Boolean() Bool {
@@ -172,7 +172,7 @@ func (b Bool) Clone() Value {
 }
 
 type String struct {
-	DefaultReferenceSemantics
+	ReferenceSemanticsImpl
 	Runes []rune
 	Value string
 }
@@ -550,7 +550,7 @@ func (f Float) Clone() Value {
 }
 
 type List struct {
-	DefaultReferenceSemantics
+	ReferenceSemanticsImpl
 	Value []Value
 }
 
@@ -672,7 +672,7 @@ func (xs *List) Clone() Value {
 }
 
 type Object struct {
-	DefaultReferenceSemantics
+	ReferenceSemanticsImpl
 	Keys  []string
 	Value map[string]Value
 }
@@ -799,7 +799,7 @@ type freeInfo struct {
 }
 
 type CoreFunction struct {
-	DefaultReferenceSemantics
+	ReferenceSemanticsImpl
 	Code       []uint64
 	Info       []freeInfo
 	Free       int
@@ -860,7 +860,7 @@ func (f *CoreFunction) Clone() Value {
 }
 
 type Function struct {
-	DefaultReferenceSemantics
+	ReferenceSemanticsImpl
 	Free   []Value
 	CoreFn *CoreFunction
 }
@@ -993,7 +993,7 @@ func (gfn GFn) Type() string {
 }
 
 type Error struct {
-	DefaultValueSemantics
+	ValueSemanticsImpl
 	Message Value
 }
 
@@ -1126,7 +1126,7 @@ func (e Enum) Clone() Value {
 }
 
 type Bytes struct {
-	DefaultReferenceSemantics
+	ReferenceSemanticsImpl
 	Value []byte
 }
 
@@ -1225,110 +1225,110 @@ func (b *Bytes) Clone() Value {
 	return &Bytes{Value: b.Value}
 }
 
-type DefaultValueSemantics struct{}
+type ValueSemanticsImpl struct{}
 
-func (i DefaultValueSemantics) Boolean() Bool {
+func (i ValueSemanticsImpl) Boolean() Bool {
 	return false
 }
 
-func (i DefaultValueSemantics) Prefix(uint64) (Value, error) {
-	return NilValue, verror.ErrNotImplemented
+func (i ValueSemanticsImpl) Prefix(uint64) (Value, error) {
+	return NilValue, verror.ErrPrefixOpNotDefined
 }
 
-func (i DefaultValueSemantics) Binop(uint64, Value) (Value, error) {
-	return NilValue, verror.ErrNotImplemented
+func (i ValueSemanticsImpl) Binop(uint64, Value) (Value, error) {
+	return NilValue, verror.ErrBinaryOpNotDefined
 }
 
-func (i DefaultValueSemantics) IGet(Value) (Value, error) {
-	return NilValue, verror.ErrNotImplemented
+func (i ValueSemanticsImpl) IGet(Value) (Value, error) {
+	return NilValue, verror.ErrValueNotIndexable
 }
 
-func (i DefaultValueSemantics) ISet(Value, Value) error {
-	return verror.ErrNotImplemented
+func (i ValueSemanticsImpl) ISet(Value, Value) error {
+	return verror.ErrValueIsConstant
 }
 
-func (i DefaultValueSemantics) Equals(Value) Bool {
+func (i ValueSemanticsImpl) Equals(Value) Bool {
 	return false
 }
 
-func (i DefaultValueSemantics) IsIterable() Bool {
+func (i ValueSemanticsImpl) IsIterable() Bool {
 	return false
 }
 
-func (i DefaultValueSemantics) Iterator() Value {
+func (i ValueSemanticsImpl) Iterator() Value {
 	return NilValue
 }
 
-func (i DefaultValueSemantics) IsCallable() Bool {
+func (i ValueSemanticsImpl) IsCallable() Bool {
 	return false
 }
 
-func (i DefaultValueSemantics) Call(args ...Value) (Value, error) {
+func (i ValueSemanticsImpl) Call(args ...Value) (Value, error) {
 	return NilValue, verror.ErrNotImplemented
 }
 
-func (i DefaultValueSemantics) String() string {
+func (i ValueSemanticsImpl) String() string {
 	return ""
 }
 
-func (i DefaultValueSemantics) Type() string {
-	return "notImplemented"
-}
-
-func (i DefaultValueSemantics) Clone() Value {
-	return NilValue
-}
-
-type DefaultReferenceSemantics struct{}
-
-func (i *DefaultReferenceSemantics) Boolean() Bool {
-	return false
-}
-
-func (i *DefaultReferenceSemantics) Prefix(uint64) (Value, error) {
-	return NilValue, verror.ErrNotImplemented
-}
-
-func (i *DefaultReferenceSemantics) Binop(uint64, Value) (Value, error) {
-	return NilValue, verror.ErrNotImplemented
-}
-
-func (i *DefaultReferenceSemantics) IGet(Value) (Value, error) {
-	return NilValue, verror.ErrNotImplemented
-}
-
-func (i *DefaultReferenceSemantics) ISet(Value, Value) error {
-	return verror.ErrNotImplemented
-}
-
-func (i *DefaultReferenceSemantics) Equals(Value) Bool {
-	return false
-}
-
-func (i *DefaultReferenceSemantics) IsIterable() Bool {
-	return false
-}
-
-func (i *DefaultReferenceSemantics) Iterator() Value {
-	return NilValue
-}
-
-func (i *DefaultReferenceSemantics) IsCallable() Bool {
-	return false
-}
-
-func (i *DefaultReferenceSemantics) Call(args ...Value) (Value, error) {
-	return NilValue, verror.ErrNotImplemented
-}
-
-func (i DefaultReferenceSemantics) String() string {
+func (i ValueSemanticsImpl) Type() string {
 	return ""
 }
 
-func (i *DefaultReferenceSemantics) Type() string {
-	return "notImplemented"
+func (i ValueSemanticsImpl) Clone() Value {
+	return NilValue
 }
 
-func (i *DefaultReferenceSemantics) Clone() Value {
+type ReferenceSemanticsImpl struct{}
+
+func (i *ReferenceSemanticsImpl) Boolean() Bool {
+	return false
+}
+
+func (i *ReferenceSemanticsImpl) Prefix(uint64) (Value, error) {
+	return NilValue, verror.ErrPrefixOpNotDefined
+}
+
+func (i *ReferenceSemanticsImpl) Binop(uint64, Value) (Value, error) {
+	return NilValue, verror.ErrBinaryOpNotDefined
+}
+
+func (i *ReferenceSemanticsImpl) IGet(Value) (Value, error) {
+	return NilValue, verror.ErrValueNotIndexable
+}
+
+func (i *ReferenceSemanticsImpl) ISet(Value, Value) error {
+	return verror.ErrValueIsConstant
+}
+
+func (i *ReferenceSemanticsImpl) Equals(Value) Bool {
+	return false
+}
+
+func (i *ReferenceSemanticsImpl) IsIterable() Bool {
+	return false
+}
+
+func (i *ReferenceSemanticsImpl) Iterator() Value {
+	return NilValue
+}
+
+func (i *ReferenceSemanticsImpl) IsCallable() Bool {
+	return false
+}
+
+func (i *ReferenceSemanticsImpl) Call(args ...Value) (Value, error) {
+	return NilValue, verror.ErrNotImplemented
+}
+
+func (i ReferenceSemanticsImpl) String() string {
+	return ""
+}
+
+func (i *ReferenceSemanticsImpl) Type() string {
+	return ""
+}
+
+func (i *ReferenceSemanticsImpl) Clone() Value {
 	return NilValue
 }
