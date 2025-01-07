@@ -741,7 +741,7 @@ func (o *Object) String() string {
 	}
 	var r []string
 	for _, v := range o.Keys {
-		r = append(r, fmt.Sprintf("%v: %v", v, o.Value[v].String()))
+		r = append(r, fmt.Sprintf("%v: %v", v, o.Value[v]))
 	}
 	return fmt.Sprintf("{%v}", strings.Join(r, ", "))
 }
@@ -951,7 +951,7 @@ func (gfn GFn) Iterator() Value {
 }
 
 func (gfn GFn) String() string {
-	return "GFn"
+	return "GFunction"
 }
 
 func (gFn GFn) Clone() Value {

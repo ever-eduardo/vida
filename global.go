@@ -61,7 +61,7 @@ func loadCoreLib(store *[]Value) {
 func gfnPrint(args ...Value) (Value, error) {
 	var s []any
 	for _, v := range args {
-		s = append(s, v.String())
+		s = append(s, v)
 	}
 	fmt.Fprintln(os.Stdout, s...)
 	return NilValue, nil
@@ -95,7 +95,7 @@ func gfnFormat(args ...Value) (Value, error) {
 	if len(args) > 1 {
 		switch v := args[0].(type) {
 		case *String:
-			s, e := formatValue(v.Value, args[1:]...)
+			s, e := FormatValue(v.Value, args[1:]...)
 			return &String{Value: s}, e
 		}
 	}
@@ -360,7 +360,7 @@ var coreLibDescription = []string{
 	`
 	Return a string with the given format.
 	The most common verb formats are: %v, %T, %f, %d, %b, %x
-	Example: fmt("This is the number %v", 15)
+	Example: format("This is the number %v", 15)
 	`,
 	`
 	Show a prompt and wait for an input from the user.
