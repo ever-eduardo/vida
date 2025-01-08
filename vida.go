@@ -28,10 +28,10 @@ func About() string {
 	
 	What is Vida?
 
-	Vida is a simple, interpreted computer language.
-	Its first vm was written in Go.
-	It has a minimal set of language constructs making it ergonomic
-	and suitable for common programming tasks.
+	Vida is a simple, ergonomic, interpreted computer language.
+	Its first vm is written in Go.
+	Vida has a minimal set of language constructs making it 
+	ergonomic, and suitable for most common programming tasks.
 	Vida can be extended by implementing the Value interface.
 	The stdlib is implemented in such way, so you can add to the
 	language all you need for your projects.
