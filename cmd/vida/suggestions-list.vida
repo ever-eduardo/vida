@@ -1,0 +1,35 @@
+
+loc box = "☐"
+loc check = "✅"
+loc uncheck = "❌"
+
+loc printList = fn xs {
+    print("\n\n\n\nSuggestions for Vida Enhancement\n\n\n")
+
+    for k, v in xs {
+        print(format("  %3v  %2v  %v", k + 1, box, v))
+    }
+
+    print("\n\n\n")
+}
+
+loc suggestionsList = [
+    "A command execution lib",
+    "An OS lib",
+    "A time lib",
+    "A regex lib",
+    "Analysis of code generation looking for optimization opportunities",
+    "Finding Vida's philosophy or The Philosphy of Vida",
+    "Optional commas in lists and objects",
+    "Binary serialization of values",
+    "Bytes and String buffer values",
+    "The object core library",
+    "Organize corelib",
+    "Local recursive values",
+    "An 'in' member checking binary op",
+    "A '**' power binary op",
+    "Creating a testing libray MVP"
+]
+
+printList(suggestionsList)
+

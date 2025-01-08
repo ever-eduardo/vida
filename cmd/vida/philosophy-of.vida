@@ -1,0 +1,22 @@
+
+
+loc title = "The Philosophy of Vida"
+loc header = "\n\n\n\n\n"
+loc footer = header
+loc check = "✅"
+loc vida = [
+    "Simplicity",
+    "Ergonomics",
+    "Beauty"
+]
+
+loc printThePhilosophyOf = fn xs {
+    print(format("%v   %v%v", header, title, header))
+    for i, v in xs {
+        print("\t", i + 1, check, v)
+    }
+    print(footer, footer)
+}
+
+printThePhilosophyOf(vida)
+
