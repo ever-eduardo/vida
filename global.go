@@ -461,8 +461,11 @@ var coreLibDescription = []string{
 	`,
 	`
 	Create a byte array from a string value.
-	It can create such array passing a size,
-	and an optional initial value.
+	It can create an array passing its size,
+	and an optional integer initial value as arguments.
+	If a list is passed as argumeent, then bytes will
+	iterate over the list and convert every integer to
+	a byte value truncating it. 
 	`,
 }
 
