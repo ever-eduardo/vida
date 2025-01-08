@@ -2,6 +2,7 @@ package stdlib
 
 import (
 	"os"
+	"runtime"
 
 	"github.com/ever-eduardo/vida"
 )
@@ -19,6 +20,8 @@ func generateOS() vida.Value {
 	m.Value["mkdirAll"] = vida.GFn(mkdirAll())
 	m.Value["rm"] = vida.GFn(rm())
 	m.Value["rmAll"] = vida.GFn(rmAll())
+	m.Value["name"] = vida.GFn(osName())
+	m.Value["arch"] = vida.GFn(osArch())
 	m.UpdateKeys()
 	return m
 }
@@ -146,5 +149,17 @@ func rmAll() vida.GFn {
 			}
 		}
 		return vida.NilValue, nil
+	}
+}
+
+func osName() vida.GFn {
+	return func(args ...vida.Value) (vida.Value, error) {
+		return &vida.String{Value: runtime.GOOS}, nil
+	}
+}
+
+func osArch() vida.GFn {
+	return func(args ...vida.Value) (vida.Value, error) {
+		return &vida.String{Value: runtime.GOARCH}, nil
 	}
 }
