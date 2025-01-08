@@ -460,12 +460,13 @@ var coreLibDescription = []string{
 	Always return nil
 	`,
 	`
-	Create a byte array from a string value.
-	It can create an array passing its size,
-	and an optional integer initial value as arguments.
-	If a list is passed as argumeent, then bytes will
+	Create an immutable byte list from a string value.
+	It can create the list by passing its size,
+	as first argumeent, and an optional integer 
+	as their initial value as second arg.
+	If a list is passed as argument, then bytes will
 	iterate over the list and convert every integer to
-	a byte value truncating it. 
+	a byte value truncating it to its uint8 bits value.
 	`,
 }
 
