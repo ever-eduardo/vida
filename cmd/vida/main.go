@@ -64,17 +64,14 @@ func main() {
 
 func debug(args []string) {
 	clear()
-	largs := len(args)
 	stdlib := stdlib.LoadStdlib()
-	if largs > 2 {
-		for i := 2; i < largs; i++ {
-			printVersion()
-			i, err := vida.NewDebugger(args[i], stdlib)
-			handleError(err)
-			r, err := i.Debug()
-			handleError(err)
-			fmt.Println(r)
-		}
+	if len(args) > 2 {
+		printVersion()
+		i, err := vida.NewDebugger(args[2], stdlib)
+		handleError(err)
+		r, err := i.Debug()
+		handleError(err)
+		fmt.Println(r)
 	} else {
 		printVersion()
 		handleError(errorNoArgsGivenTo(DEGUG))
@@ -82,17 +79,14 @@ func debug(args []string) {
 }
 
 func run(args []string) {
-	largs := len(args)
 	stdlib := stdlib.LoadStdlib()
-	if largs > 2 {
-		for i := 2; i < largs; i++ {
-			i, err := vida.NewInterpreter(args[i], stdlib)
-			handleError(err)
-			_, err = i.Run()
-			if err != nil {
-				printError(err)
-				i.PrintCallStack()
-			}
+	if len(args) > 2 {
+		i, err := vida.NewInterpreter(args[2], stdlib)
+		handleError(err)
+		_, err = i.Run()
+		if err != nil {
+			printError(err)
+			i.PrintCallStack()
 		}
 	} else {
 		printVersion()
@@ -103,19 +97,16 @@ func run(args []string) {
 func time(args []string) {
 	clear()
 	printVersion()
-	largs := len(args)
 	stdlib := stdlib.LoadStdlib()
-	if largs > 2 {
-		for i := 2; i < largs; i++ {
-			i, err := vida.NewInterpreter(args[i], stdlib)
-			handleError(err)
-			r, err := i.MeasureRunTime()
-			if err != nil {
-				printError(err)
-				i.PrintCallStack()
-			}
-			fmt.Println(r)
+	if len(args) > 2 {
+		i, err := vida.NewInterpreter(args[2], stdlib)
+		handleError(err)
+		r, err := i.MeasureRunTime()
+		if err != nil {
+			printError(err)
+			i.PrintCallStack()
 		}
+		fmt.Println(r)
 	} else {
 		printVersion()
 		handleError(errorNoArgsGivenTo(TIME))
