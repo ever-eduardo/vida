@@ -23,7 +23,7 @@ func generateIO() vida.Value {
 	m.Value["isFile"] = vida.GFn(isFile())
 	m.Value["createTemp"] = vida.GFn(tempfile())
 	m.Value["tempDir"] = &vida.String{Value: os.TempDir()}
-	m.Value["ok"] = success
+	m.Value["ok"] = Success
 	m.Value["R"] = vida.Integer(os.O_RDONLY)
 	m.Value["W"] = vida.Integer(os.O_WRONLY)
 	m.Value["RW"] = vida.Integer(os.O_RDWR)
@@ -45,8 +45,6 @@ const (
 	noOrClosedFH        = argIsNotFileHandler + " or " + fileAlreadyClosed
 	expectedBytes       = "expected a value of type bytes"
 )
-
-var success = &vida.String{Value: string(vida.Success)}
 
 func generateFileHandlerObject(file *os.File) vida.Value {
 	o := &vida.Object{Value: make(map[string]vida.Value)}
@@ -134,7 +132,7 @@ func remove() vida.GFn {
 				if err != nil {
 					return vida.Error{Message: &vida.String{Value: err.Error()}}, nil
 				}
-				return success, nil
+				return Success, nil
 			}
 			return vida.NilValue, nil
 		}
@@ -355,7 +353,7 @@ func fileClose() vida.GFn {
 					if err != nil {
 						return vida.Error{Message: &vida.String{Value: err.Error()}}, nil
 					}
-					return success, nil
+					return Success, nil
 				}
 				return vida.Error{Message: &vida.String{Value: argIsNotFileHandler}}, nil
 			}
