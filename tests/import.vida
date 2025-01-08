@@ -1,7 +1,7 @@
 
 loc math = load("math")
-loc depA = import("depA")
-loc depB = import("depB")
+loc depA = import("dep-A")
+loc depB = import("dep-B")
 
 assert(
     depA--fourTimesTau() == math.tau * 4 or
