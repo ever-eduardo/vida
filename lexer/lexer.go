@@ -149,6 +149,7 @@ func (l *Lexer) scanString() (token.Token, string) {
 		}
 		if ch == '\\' && l.c == '"' {
 			l.next()
+			return token.STRING, string(l.src[init:l.pointer])
 		}
 	}
 }
