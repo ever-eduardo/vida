@@ -18,6 +18,7 @@ loc suggestionsList = [
     "An OS lib",
     "A time lib",
     "A regex lib",
+    "A path lib",
     "Analysis of code generation looking for optimization opportunities",
     "Finding Vida's philosophy or The Philosphy of Vida",
     "Optional commas in lists and objects",
