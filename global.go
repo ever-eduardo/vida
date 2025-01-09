@@ -10,7 +10,10 @@ import (
 )
 
 var NilValue = Nil{}
-var stdlibLoader map[string]func() Value
+
+type ExternLibLoader map[string]func() Value
+
+var externLibLoader ExternLibLoader
 
 var coreLibNames = []string{
 	"print",
@@ -229,7 +232,7 @@ func gfnDel(args ...Value) (Value, error) {
 func gfnLoadLib(args ...Value) (Value, error) {
 	if len(args) > 0 {
 		if v, ok := args[0].(*String); ok {
-			if l, isPresent := stdlibLoader[v.Value]; isPresent {
+			if l, isPresent := externLibLoader[v.Value]; isPresent {
 				return l(), nil
 			}
 		}

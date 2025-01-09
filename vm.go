@@ -33,8 +33,8 @@ type vM struct {
 	fp      int
 }
 
-func newVM(m *Module, libLoaders map[string]func() Value, errInfo map[string]map[int]uint) (*vM, error) {
-	stdlibLoader = libLoaders
+func newVM(m *Module, libLoader ExternLibLoader, errInfo map[string]map[int]uint) (*vM, error) {
+	externLibLoader = libLoader
 	return &vM{Module: m, ErrInfo: errInfo}, checkISACompatibility(m)
 }
 
