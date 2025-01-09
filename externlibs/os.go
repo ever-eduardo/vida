@@ -2,6 +2,7 @@ package externlibs
 
 import (
 	"os"
+	"os/exec"
 	"runtime"
 
 	"github.com/ever-eduardo/vida"
@@ -22,6 +23,8 @@ func generateOS() vida.Value {
 	m.Value["rmAll"] = vida.GFn(rmAll())
 	m.Value["name"] = vida.GFn(osName())
 	m.Value["arch"] = vida.GFn(osArch())
+	m.Value["run"] = vida.GFn(runCMD())
+	m.Value["runPrint"] = vida.GFn(runPrint())
 	m.Value["stdin"] = &FileHandler{Handler: os.Stdin}
 	m.Value["stdout"] = &FileHandler{Handler: os.Stdout}
 	m.Value["stderr"] = &FileHandler{Handler: os.Stderr}
@@ -164,5 +167,52 @@ func osName() vida.GFn {
 func osArch() vida.GFn {
 	return func(args ...vida.Value) (vida.Value, error) {
 		return &vida.String{Value: runtime.GOARCH}, nil
+	}
+}
+
+func runCMD() vida.GFn {
+	return func(args ...vida.Value) (vida.Value, error) {
+		l := len(args)
+		if l > 0 {
+			if val, ok := args[0].(*vida.String); ok {
+				var arr []string
+				for i := 1; i < l; i++ {
+					if v, ok := args[i].(*vida.String); ok {
+						arr = append(arr, v.Value)
+					}
+				}
+				cmd := exec.Command(val.Value, arr...)
+				err := cmd.Run()
+				if err != nil {
+					return &vida.Error{Message: &vida.String{Value: err.Error()}}, nil
+				}
+				return Success, nil
+			}
+		}
+		return vida.NilValue, nil
+	}
+}
+
+func runPrint() vida.GFn {
+	return func(args ...vida.Value) (vida.Value, error) {
+		l := len(args)
+		if l > 0 {
+			if val, ok := args[0].(*vida.String); ok {
+				var arr []string
+				for i := 1; i < l; i++ {
+					if v, ok := args[i].(*vida.String); ok {
+						arr = append(arr, v.Value)
+					}
+				}
+				cmd := exec.Command(val.Value, arr...)
+				cmd.Stdout = os.Stdout
+				err := cmd.Run()
+				if err != nil {
+					return &vida.Error{Message: &vida.String{Value: err.Error()}}, nil
+				}
+				return Success, nil
+			}
+		}
+		return vida.NilValue, nil
 	}
 }
