@@ -1,4 +1,4 @@
-package stdlib
+package externlibs
 
 import (
 	"math/rand/v2"

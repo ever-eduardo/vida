@@ -1,4 +1,4 @@
-package stdlib
+package externlibs
 
 import "github.com/ever-eduardo/vida"
 
