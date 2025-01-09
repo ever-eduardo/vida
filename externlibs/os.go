@@ -182,6 +182,8 @@ func runCMD() vida.GFn {
 				}
 				cmd := exec.Command(val.Value, arr...)
 				cmd.Stdout = os.Stdout
+				cmd.Stdin = os.Stdin
+				cmd.Stderr = os.Stderr
 				err := cmd.Run()
 				if err != nil {
 					return &vida.Error{Message: &vida.String{Value: err.Error()}}, nil
