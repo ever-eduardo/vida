@@ -1,9 +1,11 @@
 
 loc text = load("text")
-loc io = load("io")
+loc os = load("os")
 
 loc clear = fn {
-    io.fprint(io.stdout, "\033[2J\033[1;1H")
+    if os.name() == "windows" {
+        os.run("cmd", "/C", "cls")
+    }
 }
 
 loc title = "The Philosophy of Vida"
