@@ -1,21 +1,28 @@
 
+loc text = load("text")
+loc io = load("io")
+
+loc clear = fn {
+    io.fprint(io.stdout, "\033[2J\033[1;1H")
+}
 
 loc title = "The Philosophy of Vida"
 loc header = "\n\n\n\n\n"
 loc footer = header
-loc check = "✅"
+loc bullet = "🌟"
+
 loc vida = [
     "Simplicity",
-    "Ergonomics",
-    "Beauty"
+    "Ergonomics"
 ]
 
 loc printThePhilosophyOf = fn xs {
-    print(format("%v   %v%v", header, title, header))
+    clear()
+    print(format("%v   %v%v", header, text.center(title, 30), header))
     for i, v in xs {
-        print("\t", i + 1, check, v)
+        print(text.center(format("   %v %v", bullet, v), 30))
     }
-    print(footer, footer)
+    print(footer)
 }
 
 printThePhilosophyOf(vida)
