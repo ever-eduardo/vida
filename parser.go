@@ -526,21 +526,39 @@ func (p *parser) operand() ast.Node {
 	case token.LCURLY:
 		obj := &ast.Object{Line: p.current.Line}
 		p.advance()
-		for p.current.Token != token.RCURLY {
-			p.expect(token.IDENTIFIER)
-			k := &ast.Property{Value: p.current.Lit}
+		if p.current.Token == token.RCURLY {
+			p.expect(token.RCURLY)
+			return obj
+		}
+		p.expect(token.IDENTIFIER)
+		k := &ast.Property{Value: p.current.Lit}
+		p.advance()
+		if p.current.Token == token.COMMA {
 			p.advance()
+		}
+		switch p.current.Token {
+		case token.IDENTIFIER:
+			obj.Pairs = append(obj.Pairs, &ast.Pair{Key: k, Value: &ast.Nil{}})
+			for p.current.Token != token.RCURLY {
+				p.expect(token.IDENTIFIER)
+				obj.Pairs = append(obj.Pairs, &ast.Pair{Key: &ast.Property{Value: p.current.Lit}, Value: &ast.Nil{}})
+				p.advance()
+				if p.current.Token == token.COMMA {
+					p.advance()
+				}
+			}
+		case token.RCURLY:
+			obj.Pairs = append(obj.Pairs, &ast.Pair{Key: k, Value: &ast.Nil{}})
+		default:
 			p.expect(token.ASSIGN)
 			p.advance()
 			v := p.expression(token.LowestPrec)
 			p.advance()
 			obj.Pairs = append(obj.Pairs, &ast.Pair{Key: k, Value: v})
-			for p.current.Token == token.COMMA {
+			if p.current.Token == token.COMMA {
 				p.advance()
-				if p.current.Token == token.RCURLY {
-					p.expect(token.RCURLY)
-					return obj
-				}
+			}
+			for p.current.Token != token.RCURLY {
 				p.expect(token.IDENTIFIER)
 				k := &ast.Property{Value: p.current.Lit}
 				p.advance()
@@ -549,10 +567,11 @@ func (p *parser) operand() ast.Node {
 				v := p.expression(token.LowestPrec)
 				p.advance()
 				obj.Pairs = append(obj.Pairs, &ast.Pair{Key: k, Value: v})
+				if p.current.Token == token.COMMA {
+					p.advance()
+				}
 			}
-			goto endObj
 		}
-	endObj:
 		p.expect(token.RCURLY)
 		return obj
 	case token.LPAREN:
