@@ -4,7 +4,11 @@ loc os = load("os")
 
 loc clear = fn {
     if os.name() == "windows" {
-        os.run("cmd", "/C", "cls")
+        if not os.run("cmd", "/C", "cls") {
+            os.run("powershell", "-c", "clear")
+        }
+    } else {
+        os.run("clear")
     }
 }
 
