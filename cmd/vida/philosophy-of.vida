@@ -10,6 +10,7 @@ loc title = "The Philosophy of Vida"
 loc header = "\n\n\n\n\n"
 loc footer = header
 loc bullet = "🌟"
+loc width = 39
 
 loc vida = [
     "Simplicity",
@@ -18,9 +19,9 @@ loc vida = [
 
 loc printThePhilosophyOf = fn xs {
     clear()
-    print(format("%v   %v%v", header, text.center(title, 30), header))
+    print(format("%v   %v%v", header, text.center(title, width), header))
     for i, v in xs {
-        print(text.center(format("   %v %v", bullet, v), 30))
+        print(text.center(format("   %v %v", bullet, v), width))
     }
     print(footer)
 }
