@@ -27,13 +27,11 @@ loc getBullet = fn state {
     ret uncheck
 }
 
-loc item = {
-    text = nil,
-    state = nil,
-    description = fn self, pos {
-        loc bullet = getBullet(self.state)
-        ret format("  %3v  %2v  %v", pos, bullet, self.text)
-    }
+loc item = { text, state }
+
+item.description = fn self, pos {
+    loc bullet = getBullet(self.state)
+    ret format("  %3v  %2v  %v", pos, bullet, self.text)
 }
 
 
@@ -52,7 +50,6 @@ loc suggestionsList = [
     "A regex lib",
     "A path lib",
     "Analysis of code generation looking for optimization opportunities",
-    "Optional commas in lists and objects",
     "Binary serialization of values",
     "Bytes and String buffer values",
     "The object core library",
