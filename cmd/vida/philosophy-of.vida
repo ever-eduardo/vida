@@ -17,6 +17,16 @@ loc header = "\n\n\n\n\n"
 loc footer = header
 loc bullet = "🌟"
 loc width = 39
+loc quoteWidth = 45
+loc quote = [
+    "Simplicity is a great virtue,",
+    "but it requires hard work to achieve it", 
+    "and education to appreciate it.",
+    "And to make matters worse:",
+    "complexity sells better.",
+    "",
+    "-Edsger Dijkstra"
+]
 
 loc vida = [
     "Simplicity",
@@ -28,6 +38,10 @@ loc printThePhilosophyOf = fn xs {
     print(format("%v   %v%v", header, text.center(title, width), header))
     for i, v in xs {
         print(text.center(format("   %v %v", bullet, v), width))
+    }
+    print(footer)
+    for i, v in quote {
+        print(text.center(format("   %v", v), quoteWidth))
     }
     print(footer)
 }
