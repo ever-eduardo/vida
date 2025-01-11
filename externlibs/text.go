@@ -37,6 +37,7 @@ func generateText() vida.Value {
 	m.Value["isNumber"] = isNumber()
 	m.Value["isSpace"] = isSpace()
 	m.Value["codePoint"] = codepoint()
+	m.Value["byteslen"] = byteslen()
 	m.UpdateKeys()
 	return m
 }
@@ -471,6 +472,17 @@ func codepoint() vida.GFn {
 				return vida.Integer(s.Runes[0]), nil
 			}
 			return vida.NilValue, nil
+		}
+		return vida.NilValue, nil
+	}
+}
+
+func byteslen() vida.GFn {
+	return func(args ...vida.Value) (vida.Value, error) {
+		if len(args) > 0 {
+			if val, ok := args[0].(*vida.String); ok {
+				return vida.Integer(len(val.Value)), nil
+			}
 		}
 		return vida.NilValue, nil
 	}
