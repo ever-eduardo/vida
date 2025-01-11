@@ -91,7 +91,12 @@ func (p *parser) mutOrCall(statements *[]ast.Node) ast.Node {
 }
 
 func (p *parser) localStmt() ast.Node {
+	isRecursive := false
 	p.advance()
+	if p.current.Token == token.REC {
+		isRecursive = true
+		p.advance()
+	}
 	p.expect(token.IDENTIFIER)
 	i := p.current.Lit
 	p.advance()
@@ -99,7 +104,7 @@ func (p *parser) localStmt() ast.Node {
 	p.advance()
 	e := p.expression(token.LowestPrec)
 	p.advance()
-	return &ast.Loc{Identifier: i, Expr: e}
+	return &ast.Loc{Identifier: i, Expr: e, IsRecursive: isRecursive}
 }
 
 func (p *parser) global() ast.Node {

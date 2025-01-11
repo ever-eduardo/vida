@@ -74,6 +74,7 @@ const (
 	IMPORT
 	EXPORT
 	ENUM
+	REC
 	keyword_end
 )
 
@@ -136,6 +137,7 @@ var Tokens = [...]string{
 	IMPORT:      "import",
 	EXPORT:      "export",
 	ENUM:        "enum",
+	REC:         "rec",
 }
 
 type TokenInfo struct {

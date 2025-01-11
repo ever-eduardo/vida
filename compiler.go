@@ -173,8 +173,14 @@ func (c *compiler) compileStmt(node ast.Node) {
 		}
 	case *ast.Loc:
 		to := c.rAlloc
-		from, scope := c.compileExpr(n.Expr, true)
-		c.sb.addLocal(n.Identifier, c.level, c.scope, to)
+		var from, scope int
+		if n.IsRecursive {
+			c.sb.addLocal(n.Identifier, c.level, c.scope, to)
+			from, scope = c.compileExpr(n.Expr, true)
+		} else {
+			from, scope = c.compileExpr(n.Expr, true)
+			c.sb.addLocal(n.Identifier, c.level, c.scope, to)
+		}
 		switch scope {
 		case rKonst:
 			c.emitLoadK(from, to)

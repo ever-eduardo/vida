@@ -11,8 +11,9 @@ type Ast struct {
 }
 
 type Loc struct {
-	Identifier string
-	Expr       Node
+	Identifier  string
+	Expr        Node
+	IsRecursive bool
 }
 
 type Mut struct {
