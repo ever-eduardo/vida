@@ -39,4 +39,120 @@ object.inject(void, alp, his)
 
 assert(len(void) == oldVoidLength + len(alp) + len(his))
 
+loc checkProps = fn void {
+    for in 1000 {
+        loc v = clone(void)
+        assert(v.hello == void.hello and v.world == void.world and v.alpha == void.alpha)
+    }
+}
 
+
+void = {
+    hello
+    world
+    alpha = 42
+}
+
+checkProps(void)
+
+void = {
+    hello = 90
+    world = 120
+    alpha = "alpha"
+}
+
+checkProps(void)
+
+void = {
+    hello = "hello"
+    world,
+    alpha
+}
+
+checkProps(void)
+
+void = {
+    hello,
+    world,
+    alpha,
+}
+
+checkProps(void)
+
+void = {
+    hello = 90,
+    world = 120,
+    alpha = "alpha",
+}
+
+checkProps(void)
+
+void = { hello world alpha }
+
+checkProps(void)
+
+
+void = {
+    hello = "hello"
+    world,
+    alpha,
+}
+
+checkProps(void)
+
+
+
+void = {
+    hello,
+    world = 90,
+    alpha,
+}
+
+checkProps(void)
+
+
+void = {
+    hello = "hello"
+    world,
+    alpha = 123123
+}
+
+checkProps(void)
+
+
+void = {
+    hello = "hello"
+    world
+    alpha = 123123,
+}
+
+checkProps(void)
+
+
+void = {
+    hello,
+    world,
+    alpha = 90,
+}
+
+checkProps(void)
+
+
+
+void = {
+    hello = "hello"
+    world = 3213
+    alpha
+}
+
+checkProps(void)
+
+
+
+void = {
+    hello = "hello"
+    world = 90
+    alpha,
+}
+
+checkProps(void)
