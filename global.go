@@ -232,6 +232,9 @@ func gfnDel(args ...Value) (Value, error) {
 func gfnLoadLib(args ...Value) (Value, error) {
 	if len(args) > 0 {
 		if v, ok := args[0].(*String); ok {
+			if v.Value == objectLibName {
+				return loadObjectLib(), nil
+			}
 			if l, isPresent := externLibLoader[v.Value]; isPresent {
 				return l(), nil
 			}
@@ -329,16 +332,6 @@ func gfnToNil(args ...Value) (Value, error) {
 		}
 	}
 	return NilValue, nil
-}
-
-func generateHash(input string) (hash uint64) {
-	if len(input) == 0 {
-		return
-	}
-	for _, v := range input {
-		hash = ((hash << 5) - hash) + uint64(v)
-	}
-	return
 }
 
 func StringLength(input *String) Integer {
