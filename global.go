@@ -11,9 +11,9 @@ import (
 
 var NilValue = Nil{}
 
-type ExternLibLoader map[string]func() Value
+type LibsLoader map[string]func() Value
 
-var externLibLoader ExternLibLoader
+var libsLoader LibsLoader
 
 var coreLibNames = []string{
 	"print",
@@ -235,7 +235,7 @@ func gfnLoadLib(args ...Value) (Value, error) {
 			if v.Value == objectLibName {
 				return loadObjectLib(), nil
 			}
-			if l, isPresent := externLibLoader[v.Value]; isPresent {
+			if l, isPresent := libsLoader[v.Value]; isPresent {
 				return l(), nil
 			}
 		}

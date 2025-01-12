@@ -1,10 +1,10 @@
-package externlibs
+package libs
 
 import "github.com/ever-eduardo/vida"
 
 var Success = &vida.String{Value: string(vida.Success)}
 
-func LoadStdlib() vida.ExternLibLoader {
+func Loadlibs() vida.LibsLoader {
 	l := make(map[string]func() vida.Value)
 	l["rand"] = generateRandom
 	l["math"] = generateMath

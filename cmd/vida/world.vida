@@ -1,6 +1,0 @@
-
-loc a = nil
-
-loc f = fn => nil
-
-print(f())
