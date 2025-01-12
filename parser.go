@@ -511,21 +511,12 @@ func (p *parser) operand() ast.Node {
 		p.advance()
 		for p.current.Token != token.RBRACKET {
 			e := p.expression(token.LowestPrec)
-			p.advance()
 			xs.ExprList = append(xs.ExprList, e)
-			for p.current.Token == token.COMMA {
+			p.advance()
+			if p.current.Token == token.COMMA {
 				p.advance()
-				if p.current.Token == token.RBRACKET {
-					p.expect(token.RBRACKET)
-					return xs
-				}
-				e := p.expression(token.LowestPrec)
-				p.advance()
-				xs.ExprList = append(xs.ExprList, e)
 			}
-			goto endList
 		}
-	endList:
 		p.expect(token.RBRACKET)
 		return xs
 	case token.LCURLY:
