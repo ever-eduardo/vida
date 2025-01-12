@@ -168,7 +168,7 @@ func (token Token) IsKeyword() bool {
 }
 
 func (token Token) IsBinaryOperator() bool {
-	return (binary_op_init < token && token < binary_op_end) || token == AND || token == OR
+	return (binary_op_init < token && token < binary_op_end) || token == AND || token == OR || token == IN
 }
 
 func IsKeyword(name string) bool {
@@ -207,7 +207,7 @@ func (op Token) Precedence() int {
 		return 1
 	case AND:
 		return 2
-	case EQ, NEQ, LT, LE, GT, GE:
+	case EQ, NEQ, LT, LE, GT, GE, IN:
 		return 3
 	case ADD, SUB, BOR, BXOR:
 		return 4

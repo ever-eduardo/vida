@@ -8,6 +8,7 @@ import (
 	"os"
 
 	"github.com/ever-eduardo/vida"
+	"github.com/ever-eduardo/vida/token"
 	"github.com/ever-eduardo/vida/verror"
 )
 
@@ -284,12 +285,26 @@ func (file *FileHandler) Boolean() vida.Bool {
 	return vida.Bool(!file.IsClosed)
 }
 
-func (file *FileHandler) Prefix(uint64) (vida.Value, error) {
-	return vida.NilValue, verror.ErrPrefixOpNotDefined
+func (file *FileHandler) Prefix(op uint64) (vida.Value, error) {
+	switch op {
+	case uint64(token.NOT):
+		return !file.Boolean(), nil
+	default:
+		return vida.NilValue, verror.ErrPrefixOpNotDefined
+	}
 }
 
-func (file *FileHandler) Binop(uint64, vida.Value) (vida.Value, error) {
-	return vida.NilValue, verror.ErrBinaryOpNotDefined
+func (file *FileHandler) Binop(op uint64, rhs vida.Value) (vida.Value, error) {
+	switch op {
+	case uint64(token.AND):
+		return vida.NilValue, nil
+	case uint64(token.OR):
+		return rhs, nil
+	case uint64(token.IN):
+		return vida.IsMemberOf(file, rhs)
+	default:
+		return vida.NilValue, verror.ErrBinaryOpNotDefined
+	}
 }
 
 func (file *FileHandler) IGet(vida.Value) (vida.Value, error) {

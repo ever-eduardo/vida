@@ -1,0 +1,88 @@
+
+loc miniList = [1 2 3]
+
+loc data = { hello world }
+
+loc f = fn => [data, miniList, nil]
+
+loc e = error("hello world")
+
+loc planet = { mercury venus earth mars }
+
+loc b = bytes(100, 0xFF)
+
+let xs = [
+    1 
+    2 
+    3 
+    true 
+    false 
+    nil 
+    45.5
+    "example"
+    miniList
+    data
+    f
+    len
+    e
+    planet
+    b
+]
+
+assert(1 in xs)
+assert(2 in xs)
+assert(3 in xs)
+assert(true in xs)
+assert(false in xs)
+assert(nil in xs)
+assert(45.5 in xs)
+assert("example" in xs)
+assert(data in xs)
+assert(f in xs)
+assert(len in xs == false)
+assert(e in xs)
+assert(planet in xs)
+assert(b in xs)
+
+
+data = {this is the end take your breath but count to ten}
+
+assert("this" in data)
+assert("is" in data)
+assert("the" in data)
+assert("end" in data)
+assert("take" in data)
+assert("your" in data)
+assert("breath" in data)
+assert("but" in data)
+assert("count" in data)
+assert("to" in data)
+assert("ten" in data)
+
+loc __hello = "this"
+loc __world = "breath"
+
+assert(__hello in data)
+assert(__world in data)
+
+for k, v in data {
+    assert(k in data)
+}
+
+assert(data in data == false)
+assert(xs in xs == false)
+
+
+data = "this is the end, take your breath and count to ten"
+
+for k, v in data {
+    assert(v in data)
+}
+
+data = bytes(10, 0xFF)
+
+for k, v in data {
+    assert(v in data)
+}
+
+

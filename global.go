@@ -341,6 +341,46 @@ func StringLength(input *String) Integer {
 	return Integer(len(input.Runes))
 }
 
+func IsMemberOf(args ...Value) (Value, error) {
+	if len(args) > 1 {
+		switch collection := args[1].(type) {
+		case *List:
+			item := args[0]
+			for _, v := range collection.Value {
+				if item.Equals(v) {
+					return Bool(true), nil
+				}
+			}
+			return Bool(false), nil
+		case *Object:
+			item := args[0]
+			for _, key := range collection.Keys {
+				if item.Equals(&String{Value: key}) {
+					return Bool(true), nil
+				}
+			}
+			return Bool(false), nil
+		case *String:
+			item := args[0]
+			for _, char := range collection.Runes {
+				if item.Equals(&String{Value: string(char)}) {
+					return Bool(true), nil
+				}
+			}
+			return Bool(false), nil
+		case *Bytes:
+			item := args[0]
+			for _, b := range collection.Value {
+				if item.Equals(Integer(b)) {
+					return Bool(true), nil
+				}
+			}
+			return Bool(false), nil
+		}
+	}
+	return NilValue, nil
+}
+
 var coreLibDescription = []string{
 	`
 	Print one or more values separated by a comma.
