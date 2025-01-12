@@ -83,7 +83,7 @@ func printInstr(instr, ip uint64, isRunningDebug bool) string {
 	case object, jump, ret:
 		sb.WriteString(fmt.Sprintf(" %3v", B))
 	case iSet:
-		sb.WriteString(fmt.Sprintf(" %3v %3v %3v %3v %3v", (P>>shift16)>>4, P>>shift16&0xF, P&clean16, A, B))
+		sb.WriteString(fmt.Sprintf(" %3v %3v %3v %3v %3v", (P>>shift16)>>shift4, P>>shift16&clean8, P&clean16, A, B))
 	}
 	return sb.String()
 }

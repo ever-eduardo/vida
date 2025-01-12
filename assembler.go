@@ -29,11 +29,14 @@ const (
 )
 
 const (
+	shift4  = 4
 	shift16 = 16
+	shift20 = 20
 	shift24 = 24
 	shift32 = 32
 	shift48 = 48
 	shift56 = 56
+	clean8  = 0x000000000000000F
 	clean16 = 0x000000000000FFFF
 	clean24 = 0x0000000000FFFFFF
 )
@@ -195,7 +198,7 @@ func (c *compiler) emitIGet(indexable, index, to, isKonst int) {
 
 func (c *compiler) emitISet(indexable, index, expr, scopeIdx, scopeExpr int) {
 	var s byte = byte(scopeExpr)
-	s |= byte(scopeIdx) << 4
+	s |= byte(scopeIdx) << shift4
 	var i uint64 = uint64(expr)
 	i |= uint64(index) << shift16
 	i |= uint64(indexable) << shift32

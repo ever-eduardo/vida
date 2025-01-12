@@ -163,13 +163,13 @@ func (vm *vM) debug() (Result, error) {
 			vm.Frame.stack[B] = val
 		case iSet:
 			var err error
-			scopeIdx := (P >> shift16) >> 4
-			scopeExp := (P >> shift16) & 0xF
+			scopeIdx := P >> shift20
+			scopeExp := (P >> shift16) & clean8
 			switch scopeIdx {
 			case storeFromLocal:
 				switch scopeExp {
 				case storeFromLocal:
-					err = vm.Frame.stack[P].ISet(vm.Frame.stack[A], vm.Frame.stack[B])
+					err = vm.Frame.stack[P&clean16].ISet(vm.Frame.stack[A], vm.Frame.stack[B])
 				case storeFromKonst:
 					err = vm.Frame.stack[P&clean16].ISet(vm.Frame.stack[A], (*vm.Module.Konstants)[B])
 				case storeFromGlobal:
@@ -180,7 +180,7 @@ func (vm *vM) debug() (Result, error) {
 			case storeFromKonst:
 				switch scopeExp {
 				case storeFromLocal:
-					err = vm.Frame.stack[P].ISet((*vm.Module.Konstants)[A], vm.Frame.stack[B])
+					err = vm.Frame.stack[P&clean16].ISet((*vm.Module.Konstants)[A], vm.Frame.stack[B])
 				case storeFromKonst:
 					err = vm.Frame.stack[P&clean16].ISet((*vm.Module.Konstants)[A], (*vm.Module.Konstants)[B])
 				case storeFromGlobal:
@@ -191,7 +191,7 @@ func (vm *vM) debug() (Result, error) {
 			case storeFromGlobal:
 				switch scopeExp {
 				case storeFromLocal:
-					err = vm.Frame.stack[P].ISet((*vm.Module.Store)[A], vm.Frame.stack[B])
+					err = vm.Frame.stack[P&clean16].ISet((*vm.Module.Store)[A], vm.Frame.stack[B])
 				case storeFromKonst:
 					err = vm.Frame.stack[P&clean16].ISet((*vm.Module.Store)[A], (*vm.Module.Konstants)[B])
 				case storeFromGlobal:
@@ -202,7 +202,7 @@ func (vm *vM) debug() (Result, error) {
 			default:
 				switch scopeExp {
 				case storeFromLocal:
-					err = vm.Frame.stack[P].ISet(vm.Frame.lambda.Free[A], vm.Frame.stack[B])
+					err = vm.Frame.stack[P&clean16].ISet(vm.Frame.lambda.Free[A], vm.Frame.stack[B])
 				case storeFromKonst:
 					err = vm.Frame.stack[P&clean16].ISet(vm.Frame.lambda.Free[A], (*vm.Module.Konstants)[B])
 				case storeFromGlobal:

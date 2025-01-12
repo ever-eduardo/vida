@@ -416,19 +416,13 @@ func (c *compiler) compileStmt(node ast.Node) {
 			k, u := c.compileExpr(n.Expr, true)
 			switch u {
 			case rLoc:
-				c.emitISetK(i, j, k, 0)
+				c.emitISet(i, j, k, storeFromKonst, storeFromLocal)
 			case rKonst:
-				c.emitISetK(i, j, k, 1)
+				c.emitISet(i, j, k, storeFromKonst, storeFromKonst)
 			case rGlob:
-				c.rAlloc++
-				c.emitLoadG(k, c.rAlloc)
-				c.emitISetK(i, j, c.rAlloc, 0)
-				c.rAlloc--
+				c.emitISet(i, j, k, storeFromKonst, storeFromGlobal)
 			case rFree:
-				c.rAlloc++
-				c.emitLoadF(k, c.rAlloc)
-				c.emitISetK(i, j, c.rAlloc, 0)
-				c.rAlloc--
+				c.emitISet(i, j, k, storeFromKonst, storeFromFree)
 			}
 			c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 			c.rAlloc--
