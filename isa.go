@@ -17,7 +17,6 @@ const (
 	object
 	iGet
 	iSet
-	iSetK
 	eq
 	eqG
 	eqK
@@ -51,7 +50,6 @@ var opcodes = [...]string{
 	object:   "Object",
 	iGet:     "IGet",
 	iSet:     "ISet",
-	iSetK:    "ISetK",
 	eq:       "Eq",
 	eqG:      "EqG",
 	eqK:      "EqK",

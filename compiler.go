@@ -592,35 +592,29 @@ func (c *compiler) compileExpr(node ast.Node, isRoot bool) (int, int) {
 		c.emitList(count, c.rAlloc, c.rAlloc)
 		return c.rAlloc, rLoc
 	case *ast.Object:
-		objAddr := c.rAlloc
+		o := c.rAlloc
 		if c.mutLoc && isRoot {
-			objAddr = c.rDest
+			o = c.rDest
 		}
-		c.emitObject(objAddr)
+		c.emitObject(o)
 		for _, v := range n.Pairs {
 			k, _ := c.compileExpr(v.Key, false)
 			c.rAlloc++
 			v, sv := c.compileExpr(v.Value, false)
 			switch sv {
 			case rKonst:
-				c.emitISetK(objAddr, k, v, 1)
+				c.emitISet(o, k, v, storeFromKonst, storeFromKonst)
 			case rLoc:
-				c.emitISetK(objAddr, k, v, 0)
+				c.emitISet(o, k, v, storeFromKonst, storeFromLocal)
 			case rGlob:
-				c.rAlloc++
-				c.emitLoadG(v, c.rAlloc)
-				c.emitISetK(objAddr, k, c.rAlloc, 0)
-				c.rAlloc--
+				c.emitISet(o, k, v, storeFromKonst, storeFromGlobal)
 			case rFree:
-				c.rAlloc++
-				c.emitLoadF(v, c.rAlloc)
-				c.emitISetK(objAddr, k, c.rAlloc, 0)
-				c.rAlloc--
+				c.emitISet(o, k, v, storeFromKonst, storeFromFree)
 			}
 			c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 			c.rAlloc--
 		}
-		return objAddr, rLoc
+		return o, rLoc
 	case *ast.Property:
 		return c.kb.StringIndex(n.Value), rKonst
 	case *ast.ForState:

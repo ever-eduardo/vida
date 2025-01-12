@@ -213,16 +213,6 @@ func (vm *vM) run() (Result, error) {
 			if err != nil {
 				return vm.createError(ip, err)
 			}
-		case iSetK:
-			var err error
-			if P>>shift16 == 0 {
-				err = vm.Frame.stack[P].ISet((*vm.Module.Konstants)[A], vm.Frame.stack[B])
-			} else {
-				err = vm.Frame.stack[P&clean16].ISet((*vm.Module.Konstants)[A], (*vm.Module.Konstants)[B])
-			}
-			if err != nil {
-				return vm.createError(ip, err)
-			}
 		case slice:
 			val, err := vm.processSlice(P, A)
 			if err != nil {
