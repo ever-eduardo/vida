@@ -15,6 +15,13 @@ const (
 )
 
 const (
+	storeFromLocal = iota
+	storeFromKonst
+	storeFromGlobal
+	storeFromFree
+)
+
+const (
 	vcv = 2
 	vce = 3
 	ecv = 6
@@ -39,10 +46,10 @@ func (c *compiler) appendEnd() {
 	c.currentFn.Code = append(c.currentFn.Code, end)
 }
 
-func (c *compiler) emitStoreG(from, to, isKonst int) {
+func (c *compiler) emitStoreG(from, to, scope int) {
 	var i uint64 = uint64(to)
 	i |= uint64(from) << shift16
-	i |= uint64(isKonst) << shift32
+	i |= uint64(scope) << shift32
 	i |= storeG << shift56
 	c.currentFn.Code = append(c.currentFn.Code, i)
 }
@@ -75,9 +82,10 @@ func (c *compiler) emitMove(from, to int) {
 	c.currentFn.Code = append(c.currentFn.Code, i)
 }
 
-func (c *compiler) emitStoreF(from, to int) {
+func (c *compiler) emitStoreF(from, to, scope int) {
 	var i uint64 = uint64(to)
 	i |= uint64(from) << shift16
+	i |= uint64(scope) << shift32
 	i |= storeF << shift56
 	c.currentFn.Code = append(c.currentFn.Code, i)
 }

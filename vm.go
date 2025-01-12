@@ -54,10 +54,15 @@ func (vm *vM) run() (Result, error) {
 		ip++
 		switch op {
 		case storeG:
-			if P == 1 {
-				(*vm.Module.Store)[B] = (*vm.Module.Konstants)[A]
-			} else {
+			switch P {
+			case storeFromLocal:
 				(*vm.Module.Store)[B] = vm.Frame.stack[A]
+			case storeFromKonst:
+				(*vm.Module.Store)[B] = (*vm.Module.Konstants)[A]
+			case storeFromGlobal:
+				(*vm.Module.Store)[B] = (*vm.Module.Store)[A]
+			default:
+				(*vm.Module.Store)[B] = vm.Frame.lambda.Free[A]
 			}
 		case loadG:
 			vm.Frame.stack[B] = (*vm.Module.Store)[A]
@@ -68,7 +73,16 @@ func (vm *vM) run() (Result, error) {
 		case move:
 			vm.Frame.stack[B] = vm.Frame.stack[A]
 		case storeF:
-			vm.Frame.lambda.Free[B] = vm.Frame.stack[A]
+			switch P {
+			case storeFromLocal:
+				vm.Frame.lambda.Free[B] = vm.Frame.stack[A]
+			case storeFromKonst:
+				vm.Frame.lambda.Free[B] = (*vm.Module.Konstants)[A]
+			case storeFromGlobal:
+				vm.Frame.lambda.Free[B] = (*vm.Module.Store)[A]
+			default:
+				vm.Frame.lambda.Free[B] = vm.Frame.stack[A]
+			}
 		case check:
 			if P == 0 && !vm.Frame.stack[A].Boolean() {
 				ip = int(B)
