@@ -65,7 +65,7 @@ binop		:=	'and'
 			|	'<<'
 String		:=	'"' Any valid utf-8 encoded byte '"'
 			|	'`' Any valid utf-8 encoded byte '`'
-List		:=	'['(expr (',' expr)* (',')?)?']'
+List		:=	'['(expr ((',')? expr)* (',')?)?']'
 Object		:=	'{'((iden | pair) ((',')? ident | pair)* (',')?)?'}'
 pair		:=	ident '=' expr
 Error		:=	'error' '(' expr? ')'
