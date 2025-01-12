@@ -61,6 +61,7 @@ loc suggestionsList = [
     "Thinking Functional (Lambda)"
     "Iterator helpers like foreach, every, some, all, none, exist"
     "Make objects and lists toggle between mutable and immutable ones."
+    "concurrency"
 ]
 
 printList(suggestionsList)
