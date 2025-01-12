@@ -176,6 +176,7 @@ func (c *compiler) compileStmt(node ast.Node) {
 		var from, scope int
 		if n.IsRecursive {
 			c.sb.addLocal(n.Identifier, c.level, c.scope, to)
+			c.emitLoadK(c.kb.NilIndex(), to)
 			from, scope = c.compileExpr(n.Expr, true)
 		} else {
 			from, scope = c.compileExpr(n.Expr, true)

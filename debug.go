@@ -228,6 +228,7 @@ func (vm *vM) debug() (Result, error) {
 		case fun:
 			fn := &Function{CoreFn: (*vm.Module.Konstants)[A].(*CoreFunction)}
 			if fn.CoreFn.Free > 0 {
+				vm.Frame.stack[B] = fn
 				var free []Value
 				for i := 0; i < fn.CoreFn.Free; i++ {
 					if fn.CoreFn.Info[i].IsLocal {
