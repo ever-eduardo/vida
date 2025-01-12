@@ -531,39 +531,10 @@ func (p *parser) operand() ast.Node {
 	case token.LCURLY:
 		obj := &ast.Object{Line: p.current.Line}
 		p.advance()
-		if p.current.Token == token.RCURLY {
-			p.expect(token.RCURLY)
-			return obj
-		}
-		p.expect(token.IDENTIFIER)
-		k := &ast.Property{Value: p.current.Lit}
-		p.advance()
-		if p.current.Token == token.COMMA {
-			p.advance()
-		}
-		switch p.current.Token {
-		case token.IDENTIFIER:
-			obj.Pairs = append(obj.Pairs, &ast.Pair{Key: k, Value: &ast.Nil{}})
-		case token.ASSIGN:
-			p.expect(token.ASSIGN)
-			p.advance()
-			v := p.expression(token.LowestPrec)
-			p.advance()
-			obj.Pairs = append(obj.Pairs, &ast.Pair{Key: k, Value: v})
-			if p.current.Token == token.COMMA {
-				p.advance()
-			}
-		default:
-			if p.ok {
-				p.err = verror.New(p.lexer.ModuleName, "expected identifier or assignment", verror.SyntaxErrType, p.current.Line)
-				p.ok = false
-			}
-			return &ast.Nil{}
-		}
 	loop:
 		for p.current.Token != token.RCURLY {
 			p.expect(token.IDENTIFIER)
-			k = &ast.Property{Value: p.current.Lit}
+			k := &ast.Property{Value: p.current.Lit}
 			p.advance()
 			if p.current.Token == token.COMMA {
 				p.advance()
