@@ -158,7 +158,9 @@ func (c *compiler) compileStmt(node ast.Node) {
 		case rKonst:
 			c.emitStoreG(from, to, storeFromKonst)
 		case rGlob:
-			c.emitStoreG(from, to, storeFromGlobal)
+			if from != to {
+				c.emitStoreG(from, to, storeFromGlobal)
+			}
 		case rFree:
 			c.emitStoreG(from, to, storeFromFree)
 		case rLoc:
