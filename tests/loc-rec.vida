@@ -1,0 +1,64 @@
+
+
+loc rec androidPhone = {
+    os = "Android"
+    series
+    size
+    price
+    new = fn => clone(androidPhone)
+}
+
+
+for in 1000 {
+    loc phone = androidPhone.new()
+    assert(phone.os == androidPhone.os)
+}
+
+
+loc rec alpha = fn x {
+    loc rec gamma = fn x {
+        loc rec omega = fn x {
+            if x <= 0 {
+                ret x
+            }
+            ret omega(x-1)
+        }
+        if x <= 0 {
+            ret omega
+        }
+        ret gamma(x-1)
+    }
+    if x <= 0 {
+        ret gamma
+    }
+    ret alpha(x-1)
+}
+
+loc val = 10_000
+assert(alpha(val)(val)(val) == 0)
+
+
+loc rec hello = hello
+assert(hello == nil)
+
+
+loc rec game = {
+    id = 42
+    name
+    repr = game.id + game.id
+}
+
+assert(game.repr == game.id + game.id)
+
+
+loc rec fib = fn n {
+    if n == 0 or n == 1 {
+        ret n
+    }
+    ret fib(n-1) + fib(n-2)
+}
+
+assert(fib(10) == 55)
+
+
+

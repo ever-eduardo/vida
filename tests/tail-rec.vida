@@ -1,15 +1,15 @@
 
 let N = 10_000_000
 
-let rec = fn x, N {
+let recursive = fn x, N {
     if x >= N {
         ret x
     }
-    ret rec(x+1, N)
+    ret recursive(x+1, N)
 }
 
 let i = 0
 
-let r = rec(i, N)
+let r = recursive(i, N)
 
 assert(r == N)
