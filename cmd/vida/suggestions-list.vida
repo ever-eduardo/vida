@@ -54,10 +54,13 @@ loc suggestionsList = [
     "Bytes and String buffer values",
     "The object core library",
     "Organize corelib",
-    "Local recursive values",
     "An 'in' member checking binary op",
     "A '**' power binary op",
     "Creating a testing libray MVP"
+    "Metaprogramming"
+    "Thinking Functional (Lambda)"
+    "Iterator helpers like foreach, every, some, all, none, exist"
+    "Make objects and lists toggle between mutable and immutable ones."
 ]
 
 printList(suggestionsList)
