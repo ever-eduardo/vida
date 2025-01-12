@@ -193,11 +193,13 @@ func (c *compiler) emitIGet(indexable, index, to, isKonst int) {
 	c.currentFn.Code = append(c.currentFn.Code, i)
 }
 
-func (c *compiler) emitISet(indexable, index, expr, isKonst int) {
+func (c *compiler) emitISet(indexable, index, expr, scopeIdx, scopeExpr int) {
+	var s byte = byte(scopeExpr)
+	s |= byte(scopeIdx) << 4
 	var i uint64 = uint64(expr)
 	i |= uint64(index) << shift16
 	i |= uint64(indexable) << shift32
-	i |= uint64(isKonst) << shift48
+	i |= uint64(s) << shift48
 	i |= iSet << shift56
 	c.currentFn.Code = append(c.currentFn.Code, i)
 }

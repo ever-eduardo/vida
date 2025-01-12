@@ -338,15 +338,13 @@ func (c *compiler) compileStmt(node ast.Node) {
 		j, t := c.compileExpr(n.Index, true)
 		switch t {
 		case rKonst:
-			c.emitIGet(i, j, i, 1)
+			c.emitIGet(i, j, i, storeFromKonst)
 		case rLoc:
-			c.emitIGet(i, j, i, 0)
+			c.emitIGet(i, j, i, storeFromLocal)
 		case rGlob:
-			c.emitLoadG(j, c.rAlloc)
-			c.emitIGet(i, c.rAlloc, i, 0)
+			c.emitIGet(i, j, i, storeFromGlobal)
 		case rFree:
-			c.emitLoadF(j, c.rAlloc)
-			c.emitIGet(i, c.rAlloc, i, 0)
+			c.emitIGet(i, j, i, storeFromFree)
 		}
 		c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 		if !c.fromRefStmt {
@@ -362,15 +360,13 @@ func (c *compiler) compileStmt(node ast.Node) {
 		j, t := c.compileExpr(n.Selector, true)
 		switch t {
 		case rKonst:
-			c.emitIGet(i, j, i, 1)
+			c.emitIGet(i, j, i, storeFromKonst)
 		case rLoc:
-			c.emitIGet(i, j, i, 0)
+			c.emitIGet(i, j, i, storeFromLocal)
 		case rGlob:
-			c.emitLoadG(j, c.rAlloc)
-			c.emitIGet(i, c.rAlloc, i, 0)
+			c.emitIGet(i, j, i, storeFromGlobal)
 		case rFree:
-			c.emitLoadF(j, c.rAlloc)
-			c.emitIGet(i, c.rAlloc, i, 0)
+			c.emitIGet(i, j, i, storeFromFree)
 		}
 		c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 		if !c.fromRefStmt {
@@ -390,34 +386,28 @@ func (c *compiler) compileStmt(node ast.Node) {
 			k, u := c.compileExpr(n.Expr, true)
 			switch u {
 			case rLoc:
-				c.emitISet(i, j, k, 0)
+				c.emitISet(i, j, k, storeFromLocal, storeFromLocal)
 			case rKonst:
-				c.emitISet(i, j, k, 1)
+				c.emitISet(i, j, k, storeFromLocal, storeFromKonst)
 			case rGlob:
-				c.emitLoadG(k, c.rAlloc)
-				c.emitISet(i, j, c.rAlloc, 0)
+				c.emitISet(i, j, k, storeFromLocal, storeFromGlobal)
 			case rFree:
-				c.emitLoadF(k, c.rAlloc)
-				c.emitISet(i, j, c.rAlloc, 0)
+				c.emitISet(i, j, k, storeFromLocal, storeFromFree)
 			}
 			c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 			c.rAlloc--
 		case rGlob:
 			c.rAlloc++
 			k, u := c.compileExpr(n.Expr, true)
-			c.rAlloc++
-			c.emitLoadG(j, c.rAlloc)
 			switch u {
 			case rLoc:
-				c.emitISet(i, c.rAlloc, k, 0)
+				c.emitISet(i, j, k, storeFromGlobal, storeFromLocal)
 			case rKonst:
-				c.emitISet(i, c.rAlloc, k, 1)
+				c.emitISet(i, j, k, storeFromGlobal, storeFromKonst)
 			case rGlob:
-				c.emitLoadG(k, c.rAlloc+1)
-				c.emitISet(i, c.rAlloc, c.rAlloc+1, 0)
+				c.emitISet(i, j, k, storeFromGlobal, storeFromGlobal)
 			case rFree:
-				c.emitLoadF(k, c.rAlloc+1)
-				c.emitISet(i, c.rAlloc, c.rAlloc+1, 0)
+				c.emitISet(i, j, k, storeFromGlobal, storeFromFree)
 			}
 			c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 			c.rAlloc -= 2
@@ -445,19 +435,15 @@ func (c *compiler) compileStmt(node ast.Node) {
 		case rFree:
 			c.rAlloc++
 			k, u := c.compileExpr(n.Expr, true)
-			c.rAlloc++
-			c.emitLoadF(j, c.rAlloc)
 			switch u {
 			case rLoc:
-				c.emitISet(i, c.rAlloc, k, 0)
+				c.emitISet(i, j, k, storeFromFree, storeFromLocal)
 			case rKonst:
-				c.emitISet(i, c.rAlloc, k, 1)
+				c.emitISet(i, j, k, storeFromFree, storeFromKonst)
 			case rGlob:
-				c.emitLoadG(k, c.rAlloc+1)
-				c.emitISet(i, c.rAlloc, c.rAlloc+1, 0)
+				c.emitISet(i, j, k, storeFromFree, storeFromGlobal)
 			case rFree:
-				c.emitLoadF(k, c.rAlloc+1)
-				c.emitISet(i, c.rAlloc, c.rAlloc+1, 0)
+				c.emitISet(i, j, k, storeFromFree, storeFromGlobal)
 			}
 			c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 			c.rAlloc -= 2

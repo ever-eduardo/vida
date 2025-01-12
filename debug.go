@@ -147,10 +147,15 @@ func (vm *vM) debug() (Result, error) {
 		case iGet:
 			var val Value
 			var err error
-			if P>>shift16 == 0 {
+			switch P >> shift16 {
+			case storeFromLocal:
 				val, err = vm.Frame.stack[P].IGet(vm.Frame.stack[A])
-			} else {
+			case storeFromKonst:
 				val, err = vm.Frame.stack[P&clean16].IGet((*vm.Module.Konstants)[A])
+			case storeFromGlobal:
+				val, err = vm.Frame.stack[P&clean16].IGet((*vm.Module.Store)[A])
+			default:
+				val, err = vm.Frame.stack[P&clean16].IGet(vm.Frame.lambda.Free[A])
 			}
 			if err != nil {
 				return vm.createError(ip, err)
@@ -158,10 +163,53 @@ func (vm *vM) debug() (Result, error) {
 			vm.Frame.stack[B] = val
 		case iSet:
 			var err error
-			if P>>shift16 == 0 {
-				err = vm.Frame.stack[P].ISet(vm.Frame.stack[A], vm.Frame.stack[B])
-			} else {
-				err = vm.Frame.stack[P&clean16].ISet(vm.Frame.stack[A], (*vm.Module.Konstants)[B])
+			scopeIdx := (P >> shift16) >> 4
+			scopeExp := (P >> shift16) & 0xF
+			switch scopeIdx {
+			case storeFromLocal:
+				switch scopeExp {
+				case storeFromLocal:
+					err = vm.Frame.stack[P].ISet(vm.Frame.stack[A], vm.Frame.stack[B])
+				case storeFromKonst:
+					err = vm.Frame.stack[P&clean16].ISet(vm.Frame.stack[A], (*vm.Module.Konstants)[B])
+				case storeFromGlobal:
+					err = vm.Frame.stack[P&clean16].ISet(vm.Frame.stack[A], (*vm.Module.Store)[B])
+				default:
+					err = vm.Frame.stack[P&clean16].ISet(vm.Frame.stack[A], vm.Frame.lambda.Free[B])
+				}
+			case storeFromKonst:
+				switch scopeExp {
+				case storeFromLocal:
+					err = vm.Frame.stack[P].ISet((*vm.Module.Konstants)[A], vm.Frame.stack[B])
+				case storeFromKonst:
+					err = vm.Frame.stack[P&clean16].ISet((*vm.Module.Konstants)[A], (*vm.Module.Konstants)[B])
+				case storeFromGlobal:
+					err = vm.Frame.stack[P&clean16].ISet((*vm.Module.Konstants)[A], (*vm.Module.Store)[B])
+				default:
+					err = vm.Frame.stack[P&clean16].ISet((*vm.Module.Konstants)[A], vm.Frame.lambda.Free[B])
+				}
+			case storeFromGlobal:
+				switch scopeExp {
+				case storeFromLocal:
+					err = vm.Frame.stack[P].ISet((*vm.Module.Store)[A], vm.Frame.stack[B])
+				case storeFromKonst:
+					err = vm.Frame.stack[P&clean16].ISet((*vm.Module.Store)[A], (*vm.Module.Konstants)[B])
+				case storeFromGlobal:
+					err = vm.Frame.stack[P&clean16].ISet((*vm.Module.Store)[A], (*vm.Module.Store)[B])
+				default:
+					err = vm.Frame.stack[P&clean16].ISet((*vm.Module.Store)[A], vm.Frame.lambda.Free[B])
+				}
+			default:
+				switch scopeExp {
+				case storeFromLocal:
+					err = vm.Frame.stack[P].ISet(vm.Frame.lambda.Free[A], vm.Frame.stack[B])
+				case storeFromKonst:
+					err = vm.Frame.stack[P&clean16].ISet(vm.Frame.lambda.Free[A], (*vm.Module.Konstants)[B])
+				case storeFromGlobal:
+					err = vm.Frame.stack[P&clean16].ISet(vm.Frame.lambda.Free[A], (*vm.Module.Store)[B])
+				default:
+					err = vm.Frame.stack[P&clean16].ISet(vm.Frame.lambda.Free[A], vm.Frame.lambda.Free[B])
+				}
 			}
 			if err != nil {
 				return vm.createError(ip, err)
