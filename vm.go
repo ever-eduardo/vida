@@ -64,14 +64,17 @@ func (vm *vM) run() (Result, error) {
 			default:
 				(*vm.Module.Store)[B] = vm.Frame.lambda.Free[A]
 			}
-		case loadG:
-			vm.Frame.stack[B] = (*vm.Module.Store)[A]
-		case loadF:
-			vm.Frame.stack[B] = vm.Frame.lambda.Free[A]
-		case loadK:
-			vm.Frame.stack[B] = (*vm.Module.Konstants)[A]
-		case move:
-			vm.Frame.stack[B] = vm.Frame.stack[A]
+		case load:
+			switch P {
+			case loadFromLocal:
+				vm.Frame.stack[B] = vm.Frame.stack[A]
+			case loadFromKonst:
+				vm.Frame.stack[B] = (*vm.Module.Konstants)[A]
+			case loadFromGlobal:
+				vm.Frame.stack[B] = (*vm.Module.Store)[A]
+			default:
+				vm.Frame.stack[B] = vm.Frame.lambda.Free[A]
+			}
 		case storeF:
 			switch P {
 			case storeFromLocal:

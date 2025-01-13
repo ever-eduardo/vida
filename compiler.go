@@ -120,15 +120,15 @@ func (c *compiler) compileStmt(node ast.Node) {
 			from, sexpr := c.compileExpr(n.Expr, true)
 			switch sexpr {
 			case rGlob:
-				c.emitLoadG(from, to)
+				c.emitLoad(from, to, loadFromGlobal)
 			case rLoc:
 				if from != to {
-					c.emitMove(from, to)
+					c.emitLoad(from, to, loadFromLocal)
 				}
 			case rKonst:
-				c.emitLoadK(from, to)
+				c.emitLoad(from, to, loadFromKonst)
 			case rFree:
-				c.emitLoadF(from, to)
+				c.emitLoad(from, to, loadFromFree)
 			}
 			c.mutLoc = false
 		case rGlob:
@@ -171,7 +171,7 @@ func (c *compiler) compileStmt(node ast.Node) {
 		var from, scope int
 		if n.IsRecursive {
 			c.sb.addLocal(n.Identifier, c.level, c.scope, to)
-			c.emitLoadK(c.kb.NilIndex(), to)
+			c.emitLoad(c.kb.NilIndex(), to, loadFromKonst)
 			from, scope = c.compileExpr(n.Expr, true)
 		} else {
 			from, scope = c.compileExpr(n.Expr, true)
@@ -179,14 +179,14 @@ func (c *compiler) compileStmt(node ast.Node) {
 		}
 		switch scope {
 		case rKonst:
-			c.emitLoadK(from, to)
+			c.emitLoad(from, to, loadFromKonst)
 		case rGlob:
-			c.emitLoadG(from, to)
+			c.emitLoad(from, to, loadFromGlobal)
 		case rFree:
-			c.emitLoadF(from, to)
+			c.emitLoad(from, to, loadFromFree)
 		case rLoc:
 			if from != to {
-				c.emitMove(from, to)
+				c.emitLoad(from, to, loadFromLocal)
 			}
 		}
 		c.rAlloc++
@@ -230,7 +230,7 @@ func (c *compiler) compileStmt(node ast.Node) {
 
 		c.rAlloc++
 		c.sb.addLocal(n.Id, c.level, c.scope, c.rAlloc)
-		c.emitLoadK(c.kb.IntegerIndex(0), c.rAlloc)
+		c.emitLoad(c.kb.IntegerIndex(0), c.rAlloc, loadFromKonst)
 
 		c.rAlloc++
 		c.emitForSet(ireg, 0)
@@ -251,15 +251,15 @@ func (c *compiler) compileStmt(node ast.Node) {
 		c.startLoopScope()
 		c.scope++
 		ireg := c.rAlloc
-		c.emitLoadK(c.kb.IntegerIndex(0), ireg)
+		c.emitLoad(c.kb.IntegerIndex(0), ireg, loadFromKonst)
 
 		c.rAlloc++
 		c.sb.addLocal(n.Key, c.level, c.scope, c.rAlloc)
-		c.emitLoadK(c.kb.IntegerIndex(0), c.rAlloc)
+		c.emitLoad(c.kb.IntegerIndex(0), c.rAlloc, loadFromKonst)
 
 		c.rAlloc++
 		c.sb.addLocal(n.Value, c.level, c.scope, c.rAlloc)
-		c.emitLoadK(c.kb.IntegerIndex(0), c.rAlloc)
+		c.emitLoad(c.kb.IntegerIndex(0), c.rAlloc, loadFromKonst)
 
 		c.rAlloc++
 		i, s := c.compileExpr(n.Expr, true)
@@ -321,11 +321,11 @@ func (c *compiler) compileStmt(node ast.Node) {
 		i, s := c.refScope(n.Value)
 		switch s {
 		case rLoc:
-			c.emitMove(i, c.rAlloc)
+			c.emitLoad(i, c.rAlloc, loadFromLocal)
 		case rGlob:
-			c.emitLoadG(i, c.rAlloc)
+			c.emitLoad(i, c.rAlloc, loadFromGlobal)
 		case rFree:
-			c.emitLoadF(i, c.rAlloc)
+			c.emitLoad(i, c.rAlloc, loadFromFree)
 		case rNotDefined:
 			c.generateReferenceError(n.Value, n.Line)
 		}
@@ -491,7 +491,7 @@ func (c *compiler) compileStmt(node ast.Node) {
 		} else {
 			c.rAlloc++
 		}
-		c.emitMove(o, c.rAlloc)
+		c.emitLoad(o, c.rAlloc, loadFromLocal)
 		c.rAlloc++
 		j, _ := c.compileExpr(n.Prop, true)
 		c.emitIGet(o, j, o, storeFromKonst, storeFromLocal)
@@ -550,7 +550,7 @@ func (c *compiler) compileExpr(node ast.Node, isRoot bool) (int, int) {
 		}
 		switch scope {
 		case rGlob:
-			c.emitLoadG(from, c.rAlloc)
+			c.emitLoad(from, c.rAlloc, loadFromGlobal)
 			c.emitPrefix(c.rAlloc, c.rAlloc, n.Op)
 			c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 		case rLoc:
@@ -563,11 +563,11 @@ func (c *compiler) compileExpr(node ast.Node, isRoot bool) (int, int) {
 				c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 			}
 		case rKonst:
-			c.emitLoadK(from, c.rAlloc)
+			c.emitLoad(from, c.rAlloc, loadFromKonst)
 			c.emitPrefix(c.rAlloc, c.rAlloc, n.Op)
 			c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 		case rFree:
-			c.emitLoadF(from, c.rAlloc)
+			c.emitLoad(from, c.rAlloc, loadFromFree)
 			c.emitPrefix(c.rAlloc, c.rAlloc, n.Op)
 			c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 		}
@@ -589,14 +589,14 @@ func (c *compiler) compileExpr(node ast.Node, isRoot bool) (int, int) {
 			switch s {
 			case rLoc:
 				if i != c.rAlloc {
-					c.emitMove(i, c.rAlloc)
+					c.emitLoad(i, c.rAlloc, loadFromLocal)
 				}
 			case rKonst:
-				c.emitLoadK(i, c.rAlloc)
+				c.emitLoad(i, c.rAlloc, loadFromKonst)
 			case rGlob:
-				c.emitLoadG(i, c.rAlloc)
+				c.emitLoad(i, c.rAlloc, loadFromGlobal)
 			case rFree:
-				c.emitLoadF(i, c.rAlloc)
+				c.emitLoad(i, c.rAlloc, loadFromFree)
 			}
 			c.rAlloc++
 			count++
@@ -1223,14 +1223,14 @@ func (c *compiler) exprToReg(i, s int) {
 	switch s {
 	case rLoc:
 		if i != c.rAlloc {
-			c.emitMove(i, c.rAlloc)
+			c.emitLoad(i, c.rAlloc, loadFromLocal)
 		}
 	case rGlob:
-		c.emitLoadG(i, c.rAlloc)
+		c.emitLoad(i, c.rAlloc, loadFromGlobal)
 	case rKonst:
-		c.emitLoadK(i, c.rAlloc)
+		c.emitLoad(i, c.rAlloc, loadFromKonst)
 	case rFree:
-		c.emitLoadF(i, c.rAlloc)
+		c.emitLoad(i, c.rAlloc, loadFromFree)
 	}
 }
 
@@ -1250,7 +1250,7 @@ func (c *compiler) compileBinaryExpr(n *ast.BinaryExpr, isRoot bool) (int, int) 
 				c.lineErr = n.Line
 			}
 		case rGlob:
-			c.emitLoadG(ridx, lreg)
+			c.emitLoad(ridx, lreg, loadFromGlobal)
 			if c.mutLoc && isRoot {
 				c.emitBinopQ(lidx, lreg, c.rDest, n.Op)
 				c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
@@ -1269,7 +1269,7 @@ func (c *compiler) compileBinaryExpr(n *ast.BinaryExpr, isRoot bool) (int, int) 
 				c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 			}
 		case rFree:
-			c.emitLoadF(ridx, lreg)
+			c.emitLoad(ridx, lreg, loadFromFree)
 			if c.mutLoc && isRoot {
 				c.emitBinopQ(lidx, lreg, c.rDest, n.Op)
 				c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
@@ -1292,7 +1292,7 @@ func (c *compiler) compileBinaryExpr(n *ast.BinaryExpr, isRoot bool) (int, int) 
 				c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 			}
 		case rKonst:
-			c.emitLoadG(lidx, lreg)
+			c.emitLoad(lidx, lreg, loadFromGlobal)
 			if c.mutLoc && isRoot {
 				c.emitBinopK(ridx, lreg, c.rDest, n.Op)
 				c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
@@ -1302,9 +1302,9 @@ func (c *compiler) compileBinaryExpr(n *ast.BinaryExpr, isRoot bool) (int, int) 
 				c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 			}
 		case rLoc:
-			c.emitMove(ridx, lreg)
+			c.emitLoad(ridx, lreg, loadFromLocal)
 			c.rAlloc++
-			c.emitLoadG(lidx, c.rAlloc)
+			c.emitLoad(lidx, c.rAlloc, loadFromGlobal)
 			if c.mutLoc && isRoot {
 				c.emitBinop(c.rAlloc, lreg, c.rDest, n.Op)
 				c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
@@ -1317,8 +1317,8 @@ func (c *compiler) compileBinaryExpr(n *ast.BinaryExpr, isRoot bool) (int, int) 
 			}
 		case rFree:
 			c.rAlloc++
-			c.emitLoadG(lidx, lreg)
-			c.emitLoadF(ridx, c.rAlloc)
+			c.emitLoad(lidx, lreg, loadFromGlobal)
+			c.emitLoad(ridx, c.rAlloc, loadFromFree)
 			if c.mutLoc && isRoot {
 				c.emitBinop(lreg, c.rAlloc, c.rDest, n.Op)
 				c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
@@ -1346,7 +1346,7 @@ func (c *compiler) compileBinaryExpr(n *ast.BinaryExpr, isRoot bool) (int, int) 
 				c.rAlloc--
 			}
 		case rGlob:
-			c.emitLoadG(ridx, c.rAlloc)
+			c.emitLoad(ridx, c.rAlloc, loadFromGlobal)
 			if c.mutLoc && isRoot {
 				c.emitBinop(lidx, c.rAlloc, c.rDest, n.Op)
 				c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
@@ -1369,7 +1369,7 @@ func (c *compiler) compileBinaryExpr(n *ast.BinaryExpr, isRoot bool) (int, int) 
 				c.rAlloc--
 			}
 		case rFree:
-			c.emitLoadF(ridx, c.rAlloc)
+			c.emitLoad(ridx, c.rAlloc, loadFromFree)
 			if c.mutLoc && isRoot {
 				c.emitBinop(lidx, c.rAlloc, c.rDest, n.Op)
 				c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
@@ -1386,7 +1386,7 @@ func (c *compiler) compileBinaryExpr(n *ast.BinaryExpr, isRoot bool) (int, int) 
 		ridx, rscope := c.compileExpr(n.Rhs, false)
 		switch rscope {
 		case rLoc:
-			c.emitLoadF(lidx, lreg)
+			c.emitLoad(lidx, lreg, loadFromFree)
 			if c.mutLoc && isRoot {
 				c.emitBinop(lreg, ridx, c.rDest, n.Op)
 				c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
@@ -1398,8 +1398,8 @@ func (c *compiler) compileBinaryExpr(n *ast.BinaryExpr, isRoot bool) (int, int) 
 				c.rAlloc--
 			}
 		case rGlob:
-			c.emitLoadF(lidx, lreg)
-			c.emitLoadG(ridx, c.rAlloc)
+			c.emitLoad(lidx, lreg, loadFromFree)
+			c.emitLoad(ridx, c.rAlloc, loadFromGlobal)
 			if c.mutLoc && isRoot {
 				c.emitBinop(lreg, c.rAlloc, c.rDest, n.Op)
 				c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
@@ -1411,7 +1411,7 @@ func (c *compiler) compileBinaryExpr(n *ast.BinaryExpr, isRoot bool) (int, int) 
 				c.rAlloc--
 			}
 		case rKonst:
-			c.emitLoadF(lidx, lreg)
+			c.emitLoad(lidx, lreg, loadFromFree)
 			if c.mutLoc && isRoot {
 				c.emitBinopK(ridx, lreg, c.rDest, n.Op)
 				c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
@@ -1423,8 +1423,8 @@ func (c *compiler) compileBinaryExpr(n *ast.BinaryExpr, isRoot bool) (int, int) 
 				c.rAlloc--
 			}
 		case rFree:
-			c.emitLoadF(lidx, lreg)
-			c.emitLoadF(ridx, c.rAlloc)
+			c.emitLoad(lidx, lreg, loadFromFree)
+			c.emitLoad(ridx, c.rAlloc, loadFromFree)
 			if c.mutLoc && isRoot {
 				c.emitBinop(lreg, c.rAlloc, c.rDest, n.Op)
 				c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
@@ -1454,7 +1454,7 @@ func (c *compiler) compileBinaryEq(n *ast.BinaryExpr, isRoot bool) (int, int) {
 			}
 			return c.integrateKonst(val)
 		case rGlob:
-			c.emitLoadG(ridx, lreg)
+			c.emitLoad(ridx, lreg, loadFromGlobal)
 			if c.mutLoc && isRoot {
 				c.emitEqQ(lidx, lreg, c.rDest, n.Op)
 				return c.rDest, rLoc
@@ -1469,7 +1469,7 @@ func (c *compiler) compileBinaryEq(n *ast.BinaryExpr, isRoot bool) (int, int) {
 				c.emitEqQ(lidx, ridx, lreg, n.Op)
 			}
 		case rFree:
-			c.emitLoadF(ridx, lreg)
+			c.emitLoad(ridx, lreg, loadFromFree)
 			if c.mutLoc && isRoot {
 				c.emitEqQ(lidx, lreg, c.rDest, n.Op)
 				return c.rDest, rLoc
@@ -1488,7 +1488,7 @@ func (c *compiler) compileBinaryEq(n *ast.BinaryExpr, isRoot bool) (int, int) {
 				c.emitEqG(lidx, ridx, lreg, n.Op)
 			}
 		case rKonst:
-			c.emitLoadG(lidx, lreg)
+			c.emitLoad(lidx, lreg, loadFromGlobal)
 			if c.mutLoc && isRoot {
 				c.emitEqK(ridx, lreg, c.rDest, n.Op)
 				return c.rDest, rLoc
@@ -1496,9 +1496,9 @@ func (c *compiler) compileBinaryEq(n *ast.BinaryExpr, isRoot bool) (int, int) {
 				c.emitEqK(ridx, lreg, lreg, n.Op)
 			}
 		case rLoc:
-			c.emitMove(ridx, lreg)
+			c.emitLoad(ridx, lreg, loadFromLocal)
 			c.rAlloc++
-			c.emitLoadG(lidx, c.rAlloc)
+			c.emitLoad(lidx, c.rAlloc, loadFromGlobal)
 			if c.mutLoc && isRoot {
 				c.emitEq(c.rAlloc, lreg, c.rDest, n.Op)
 				c.rAlloc--
@@ -1509,8 +1509,8 @@ func (c *compiler) compileBinaryEq(n *ast.BinaryExpr, isRoot bool) (int, int) {
 			}
 		case rFree:
 			c.rAlloc++
-			c.emitLoadG(lidx, lreg)
-			c.emitLoadF(ridx, c.rAlloc)
+			c.emitLoad(lidx, lreg, loadFromGlobal)
+			c.emitLoad(ridx, c.rAlloc, loadFromFree)
 			if c.mutLoc && isRoot {
 				c.emitEq(lreg, c.rAlloc, c.rDest, n.Op)
 				c.rAlloc--
@@ -1534,7 +1534,7 @@ func (c *compiler) compileBinaryEq(n *ast.BinaryExpr, isRoot bool) (int, int) {
 				c.rAlloc--
 			}
 		case rGlob:
-			c.emitLoadG(ridx, c.rAlloc)
+			c.emitLoad(ridx, c.rAlloc, loadFromGlobal)
 			if c.mutLoc && isRoot {
 				c.emitEq(lidx, c.rAlloc, c.rDest, n.Op)
 				c.rAlloc--
@@ -1553,7 +1553,7 @@ func (c *compiler) compileBinaryEq(n *ast.BinaryExpr, isRoot bool) (int, int) {
 				c.rAlloc--
 			}
 		case rFree:
-			c.emitLoadF(ridx, c.rAlloc)
+			c.emitLoad(ridx, c.rAlloc, loadFromFree)
 			if c.mutLoc && isRoot {
 				c.emitEq(lidx, c.rAlloc, c.rDest, n.Op)
 				c.rAlloc--
@@ -1567,7 +1567,7 @@ func (c *compiler) compileBinaryEq(n *ast.BinaryExpr, isRoot bool) (int, int) {
 		ridx, rscope := c.compileExpr(n.Rhs, false)
 		switch rscope {
 		case rLoc:
-			c.emitLoadF(lidx, lreg)
+			c.emitLoad(lidx, lreg, loadFromFree)
 			if c.mutLoc && isRoot {
 				c.emitEq(lreg, ridx, c.rDest, n.Op)
 				return c.rDest, rLoc
@@ -1576,8 +1576,8 @@ func (c *compiler) compileBinaryEq(n *ast.BinaryExpr, isRoot bool) (int, int) {
 			}
 		case rGlob:
 			c.rAlloc++
-			c.emitLoadF(lidx, lreg)
-			c.emitLoadG(ridx, c.rAlloc)
+			c.emitLoad(lidx, lreg, loadFromFree)
+			c.emitLoad(ridx, c.rAlloc, loadFromGlobal)
 			if c.mutLoc && isRoot {
 				c.emitEq(lreg, c.rAlloc, c.rDest, n.Op)
 				c.rAlloc--
@@ -1587,7 +1587,7 @@ func (c *compiler) compileBinaryEq(n *ast.BinaryExpr, isRoot bool) (int, int) {
 				c.rAlloc--
 			}
 		case rKonst:
-			c.emitLoadF(lidx, lreg)
+			c.emitLoad(lidx, lreg, loadFromFree)
 			if c.mutLoc && isRoot {
 				c.emitEqK(ridx, lreg, c.rDest, n.Op)
 				return c.rDest, rLoc
@@ -1596,8 +1596,8 @@ func (c *compiler) compileBinaryEq(n *ast.BinaryExpr, isRoot bool) (int, int) {
 			}
 		case rFree:
 			c.rAlloc++
-			c.emitLoadF(lidx, lreg)
-			c.emitLoadF(ridx, c.rAlloc)
+			c.emitLoad(lidx, lreg, loadFromFree)
+			c.emitLoad(ridx, c.rAlloc, loadFromFree)
 			if c.mutLoc && isRoot {
 				c.emitEq(lreg, c.rAlloc, c.rDest, n.Op)
 				c.rAlloc--

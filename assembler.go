@@ -22,6 +22,13 @@ const (
 )
 
 const (
+	loadFromLocal = iota
+	loadFromKonst
+	loadFromGlobal
+	loadFromFree
+)
+
+const (
 	vcv = 2
 	vce = 3
 	ecv = 6
@@ -57,31 +64,11 @@ func (c *compiler) emitStoreG(from, to, scope int) {
 	c.currentFn.Code = append(c.currentFn.Code, i)
 }
 
-func (c *compiler) emitLoadG(from, to int) {
+func (c *compiler) emitLoad(from, to, kind int) {
 	var i uint64 = uint64(to)
 	i |= uint64(from) << shift16
-	i |= loadG << shift56
-	c.currentFn.Code = append(c.currentFn.Code, i)
-}
-
-func (c *compiler) emitLoadF(from, to int) {
-	var i uint64 = uint64(to)
-	i |= uint64(from) << shift16
-	i |= loadF << shift56
-	c.currentFn.Code = append(c.currentFn.Code, i)
-}
-
-func (c *compiler) emitLoadK(from, to int) {
-	var i uint64 = uint64(to)
-	i |= uint64(from) << shift16
-	i |= loadK << shift56
-	c.currentFn.Code = append(c.currentFn.Code, i)
-}
-
-func (c *compiler) emitMove(from, to int) {
-	var i uint64 = uint64(to)
-	i |= uint64(from) << shift16
-	i |= move << shift56
+	i |= uint64(kind) << shift32
+	i |= load << shift56
 	c.currentFn.Code = append(c.currentFn.Code, i)
 }
 
