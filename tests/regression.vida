@@ -4,3 +4,25 @@ loc b = nil
 loc f = fn => a + format("%v", b)
 loc result = f()
 assert(result == "hellonil")
+
+loc data = {
+    id = 42
+    name = "data"
+    email = "data@data.data"
+    getId = fn self => self.id
+    getName = fn self => self.name
+    getEmail = fn self => self.email
+}
+
+for in 1000 {
+    loc data = clone(data)
+    assert(data--getId() == data.id)
+    assert(data--getName() == data.name)
+    assert(data--getEmail() == data.email)
+    data--getId()
+    data--getName()
+    data--getEmail()
+}
+
+
+
