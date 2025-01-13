@@ -485,26 +485,25 @@ func (c *compiler) compileStmt(node ast.Node) {
 		c.emitCall(callable, len(n.Args), n.Ellipsis, 1)
 		c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 	case *ast.MethodCallStmt:
-		obj := c.rAlloc
+		o := c.rAlloc
 		if c.fromRefStmt {
-			obj -= 1
+			o -= 1
 		} else {
 			c.rAlloc++
 		}
-		c.emitMove(obj, c.rAlloc)
+		c.emitMove(o, c.rAlloc)
 		c.rAlloc++
-		j, t := c.compileExpr(n.Prop, true)
-		c.exprToReg(j, t)
-		c.emitIGet(obj+1, obj+2, obj, 0)
+		j, _ := c.compileExpr(n.Prop, true)
+		c.emitIGet(o, j, o, storeFromKonst)
 		c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 		for _, v := range n.Args {
 			i, s := c.compileExpr(v, true)
 			c.exprToReg(i, s)
 			c.rAlloc++
 		}
-		c.rAlloc = obj
+		c.rAlloc = o
 		c.fromRefStmt = false
-		c.emitCall(obj, len(n.Args)+1, n.Ellipsis, 2)
+		c.emitCall(o, len(n.Args)+1, n.Ellipsis, 2)
 		c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 	case *ast.Export:
 		if c.isSubcompiler {
@@ -1063,24 +1062,24 @@ func (c *compiler) compileExpr(node ast.Node, isRoot bool) (int, int) {
 		c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 		return reg, rLoc
 	case *ast.MethodCallExpr:
-		reg := c.rAlloc
+		o := c.rAlloc
 		c.rAlloc++
 		i, s := c.compileExpr(n.Obj, false)
 		c.exprToReg(i, s)
 		c.rAlloc++
 		j, t := c.compileExpr(n.Prop, false)
 		c.exprToReg(j, t)
-		c.emitIGet(reg+1, reg+2, reg, 0)
+		c.emitIGet(o+1, o+2, o, 0)
 		c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 		for _, v := range n.Args {
 			i, s := c.compileExpr(v, false)
 			c.exprToReg(i, s)
 			c.rAlloc++
 		}
-		c.rAlloc = reg
-		c.emitCall(reg, len(n.Args)+1, n.Ellipsis, 2)
+		c.rAlloc = o
+		c.emitCall(o, len(n.Args)+1, n.Ellipsis, 2)
 		c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
-		return reg, rLoc
+		return o, rLoc
 	case *ast.Import:
 		if _, isCycle := c.depMap[n.Path]; isCycle {
 			c.hadError = true

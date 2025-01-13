@@ -187,11 +187,11 @@ func (c *compiler) emitObject(to int) {
 	c.currentFn.Code = append(c.currentFn.Code, i)
 }
 
-func (c *compiler) emitIGet(indexable, index, to, isKonst int) {
+func (c *compiler) emitIGet(indexable, index, to, source int) {
 	var i uint64 = uint64(to)
 	i |= uint64(index) << shift16
 	i |= uint64(indexable) << shift32
-	i |= uint64(isKonst) << shift48
+	i |= uint64(source) << shift48
 	i |= iGet << shift56
 	c.currentFn.Code = append(c.currentFn.Code, i)
 }
