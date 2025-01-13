@@ -148,7 +148,7 @@ func (vm *vM) run() (Result, error) {
 			var err error
 			switch P >> shift16 {
 			case storeFromLocal:
-				val, err = vm.Frame.stack[P].IGet(vm.Frame.stack[A])
+				val, err = vm.Frame.stack[P&clean16].IGet(vm.Frame.stack[A])
 			case storeFromKonst:
 				val, err = vm.Frame.stack[P&clean16].IGet((*vm.Module.Konstants)[A])
 			case storeFromGlobal:

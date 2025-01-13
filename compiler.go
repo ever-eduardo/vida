@@ -1066,10 +1066,10 @@ func (c *compiler) compileExpr(node ast.Node, isRoot bool) (int, int) {
 		c.rAlloc++
 		i, s := c.compileExpr(n.Obj, false)
 		c.exprToReg(i, s)
+		i = c.rAlloc
 		c.rAlloc++
-		j, t := c.compileExpr(n.Prop, false)
-		c.exprToReg(j, t)
-		c.emitIGet(o+1, o+2, o, 0)
+		j, _ := c.compileExpr(n.Prop, false)
+		c.emitIGet(i, j, o, storeFromKonst)
 		c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 		for _, v := range n.Args {
 			i, s := c.compileExpr(v, false)
