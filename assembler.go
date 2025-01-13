@@ -56,14 +56,6 @@ func (c *compiler) appendEnd() {
 	c.currentFn.Code = append(c.currentFn.Code, end)
 }
 
-func (c *compiler) emitStoreG(from, to, scope int) {
-	var i uint64 = uint64(to)
-	i |= uint64(from) << shift16
-	i |= uint64(scope) << shift32
-	i |= storeG << shift56
-	c.currentFn.Code = append(c.currentFn.Code, i)
-}
-
 func (c *compiler) emitLoad(from, to, kind int) {
 	var i uint64 = uint64(to)
 	i |= uint64(from) << shift16
@@ -72,11 +64,12 @@ func (c *compiler) emitLoad(from, to, kind int) {
 	c.currentFn.Code = append(c.currentFn.Code, i)
 }
 
-func (c *compiler) emitStoreF(from, to, scope int) {
+func (c *compiler) emitStore(from, to, src, dst int) {
 	var i uint64 = uint64(to)
 	i |= uint64(from) << shift16
-	i |= uint64(scope) << shift32
-	i |= storeF << shift56
+	i |= uint64(src) << shift32
+	i |= uint64(dst) << shift48
+	i |= store << shift56
 	c.currentFn.Code = append(c.currentFn.Code, i)
 }
 

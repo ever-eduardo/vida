@@ -70,15 +70,15 @@ func printInstr(instr, ip uint64, isRunningDebug bool) string {
 	switch op {
 	case end:
 		return sb.String()
-	case storeG, list, slice, iForSet, check, load:
+	case list, slice, iForSet, check, load:
 		sb.WriteString(fmt.Sprintf(" %3v %3v %3v", P, A, B))
-	case storeF, forSet, forLoop, iForLoop, fun, ret:
+	case forSet, forLoop, iForLoop, fun, ret:
 		sb.WriteString(fmt.Sprintf(" %3v %3v", A, B))
 	case prefix:
 		sb.WriteString(fmt.Sprintf(" %3v %3v %3v", token.Token(P).String(), A, B))
 	case binopG, binop, binopK, binopQ, eq, eqG, eqK, eqQ:
 		sb.WriteString(fmt.Sprintf(" %3v %3v %3v %3v", token.Token(P>>shift16).String(), P&clean16, A, B))
-	case call:
+	case call, store:
 		sb.WriteString(fmt.Sprintf(" %3v %3v %3v %3v", P>>shift16, P&clean16, A, B))
 	case object, jump:
 		sb.WriteString(fmt.Sprintf(" %3v", B))

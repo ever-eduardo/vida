@@ -104,15 +104,15 @@ func (c *compiler) compileStmt(node ast.Node) {
 			from, sexpr := c.compileExpr(n.Expr, true)
 			switch sexpr {
 			case rGlob:
-				c.emitStoreF(from, to, storeFromGlobal)
+				c.emitStore(from, to, storeFromGlobal, storeFromFree)
 			case rKonst:
-				c.emitStoreF(from, to, storeFromKonst)
+				c.emitStore(from, to, storeFromKonst, storeFromFree)
 			case rFree:
 				if from != to {
-					c.emitStoreF(from, to, storeFromFree)
+					c.emitStore(from, to, storeFromFree, storeFromFree)
 				}
 			case rLoc:
-				c.emitStoreF(from, to, storeFromLocal)
+				c.emitStore(from, to, storeFromLocal, storeFromFree)
 			}
 		case rLoc:
 			c.mutLoc = true
@@ -136,14 +136,14 @@ func (c *compiler) compileStmt(node ast.Node) {
 			switch sexpr {
 			case rGlob:
 				if from != to {
-					c.emitStoreG(from, to, storeFromGlobal)
+					c.emitStore(from, to, storeFromGlobal, storeFromGlobal)
 				}
 			case rKonst:
-				c.emitStoreG(from, to, storeFromKonst)
+				c.emitStore(from, to, storeFromKonst, storeFromGlobal)
 			case rFree:
-				c.emitStoreG(from, to, storeFromFree)
+				c.emitStore(from, to, storeFromFree, storeFromGlobal)
 			case rLoc:
-				c.emitStoreG(from, to, storeFromLocal)
+				c.emitStore(from, to, storeFromLocal, storeFromGlobal)
 			}
 		case rNotDefined:
 			c.generateReferenceError(n.Indentifier, n.Line)
@@ -156,15 +156,15 @@ func (c *compiler) compileStmt(node ast.Node) {
 		from, scope := c.compileExpr(n.Expr, true)
 		switch scope {
 		case rKonst:
-			c.emitStoreG(from, to, storeFromKonst)
+			c.emitStore(from, to, storeFromKonst, storeFromGlobal)
 		case rGlob:
 			if from != to {
-				c.emitStoreG(from, to, storeFromGlobal)
+				c.emitStore(from, to, storeFromGlobal, storeFromGlobal)
 			}
 		case rFree:
-			c.emitStoreG(from, to, storeFromFree)
+			c.emitStore(from, to, storeFromFree, storeFromGlobal)
 		case rLoc:
-			c.emitStoreG(from, to, storeFromLocal)
+			c.emitStore(from, to, storeFromLocal, storeFromGlobal)
 		}
 	case *ast.Loc:
 		to := c.rAlloc

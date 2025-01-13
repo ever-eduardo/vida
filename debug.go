@@ -54,17 +54,6 @@ func (vm *vM) debug() (Result, error) {
 		P = i >> shift32 & clean24
 		ip++
 		switch op {
-		case storeG:
-			switch P {
-			case storeFromLocal:
-				(*vm.Module.Store)[B] = vm.Frame.stack[A]
-			case storeFromKonst:
-				(*vm.Module.Store)[B] = (*vm.Module.Konstants)[A]
-			case storeFromGlobal:
-				(*vm.Module.Store)[B] = (*vm.Module.Store)[A]
-			default:
-				(*vm.Module.Store)[B] = vm.Frame.lambda.Free[A]
-			}
 		case load:
 			switch P {
 			case loadFromLocal:
@@ -76,16 +65,30 @@ func (vm *vM) debug() (Result, error) {
 			default:
 				vm.Frame.stack[B] = vm.Frame.lambda.Free[A]
 			}
-		case storeF:
-			switch P {
-			case storeFromLocal:
-				vm.Frame.lambda.Free[B] = vm.Frame.stack[A]
-			case storeFromKonst:
-				vm.Frame.lambda.Free[B] = (*vm.Module.Konstants)[A]
+		case store:
+			switch P >> shift16 {
 			case storeFromGlobal:
-				vm.Frame.lambda.Free[B] = (*vm.Module.Store)[A]
+				switch P & clean16 {
+				case storeFromLocal:
+					(*vm.Module.Store)[B] = vm.Frame.stack[A]
+				case storeFromKonst:
+					(*vm.Module.Store)[B] = (*vm.Module.Konstants)[A]
+				case storeFromGlobal:
+					(*vm.Module.Store)[B] = (*vm.Module.Store)[A]
+				default:
+					(*vm.Module.Store)[B] = vm.Frame.lambda.Free[A]
+				}
 			default:
-				vm.Frame.lambda.Free[B] = vm.Frame.stack[A]
+				switch P & clean16 {
+				case storeFromLocal:
+					vm.Frame.lambda.Free[B] = vm.Frame.stack[A]
+				case storeFromKonst:
+					vm.Frame.lambda.Free[B] = (*vm.Module.Konstants)[A]
+				case storeFromGlobal:
+					vm.Frame.lambda.Free[B] = (*vm.Module.Store)[A]
+				default:
+					vm.Frame.lambda.Free[B] = vm.Frame.stack[A]
+				}
 			}
 		case check:
 			if P == 0 && !vm.Frame.stack[A].Boolean() {

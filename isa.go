@@ -3,8 +3,7 @@ package vida
 const (
 	end = iota
 	load
-	storeG
-	storeF
+	store
 	prefix
 	binop
 	binopG
@@ -33,8 +32,7 @@ const (
 var opcodes = [...]string{
 	end:      "End",
 	load:     "Load",
-	storeG:   "StoreG",
-	storeF:   "StoreF",
+	store:    "Store",
 	prefix:   "Prefix",
 	binop:    "Binop",
 	binopG:   "BinopG",
