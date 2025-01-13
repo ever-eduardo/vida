@@ -457,8 +457,16 @@ func (c *compiler) compileStmt(node ast.Node) {
 	case *ast.Ret:
 		if c.level != 0 || c.isSubcompiler {
 			i, s := c.compileExpr(n.Expr, true)
-			c.exprToReg(i, s)
-			c.emitRet(c.rAlloc)
+			switch s {
+			case rLoc:
+				c.emitRet(storeFromLocal, i)
+			case rGlob:
+				c.emitRet(storeFromGlobal, i)
+			case rKonst:
+				c.emitRet(storeFromKonst, i)
+			case rFree:
+				c.emitRet(storeFromFree, i)
+			}
 		}
 	case *ast.CallStmt:
 		callable := c.rAlloc
@@ -501,8 +509,16 @@ func (c *compiler) compileStmt(node ast.Node) {
 	case *ast.Export:
 		if c.isSubcompiler {
 			i, s := c.compileExpr(n.Expr, true)
-			c.exprToReg(i, s)
-			c.emitRet(c.rAlloc)
+			switch s {
+			case rLoc:
+				c.emitRet(storeFromLocal, i)
+			case rGlob:
+				c.emitRet(storeFromGlobal, i)
+			case rKonst:
+				c.emitRet(storeFromKonst, i)
+			case rFree:
+				c.emitRet(storeFromFree, i)
+			}
 		}
 	}
 }

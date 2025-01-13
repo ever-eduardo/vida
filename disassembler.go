@@ -72,7 +72,7 @@ func printInstr(instr, ip uint64, isRunningDebug bool) string {
 		return sb.String()
 	case storeG, list, slice, iForSet, check:
 		sb.WriteString(fmt.Sprintf(" %3v %3v %3v", P, A, B))
-	case loadG, loadF, loadK, move, storeF, forSet, forLoop, iForLoop, fun:
+	case loadG, loadF, loadK, move, storeF, forSet, forLoop, iForLoop, fun, ret:
 		sb.WriteString(fmt.Sprintf(" %3v %3v", A, B))
 	case prefix:
 		sb.WriteString(fmt.Sprintf(" %3v %3v %3v", token.Token(P).String(), A, B))
@@ -80,7 +80,7 @@ func printInstr(instr, ip uint64, isRunningDebug bool) string {
 		sb.WriteString(fmt.Sprintf(" %3v %3v %3v %3v", token.Token(P>>shift16).String(), P&clean16, A, B))
 	case iGet, call:
 		sb.WriteString(fmt.Sprintf(" %3v %3v %3v %3v", P>>shift16, P&clean16, A, B))
-	case object, jump, ret:
+	case object, jump:
 		sb.WriteString(fmt.Sprintf(" %3v", B))
 	case iSet:
 		sb.WriteString(fmt.Sprintf(" %3v %3v %3v %3v %3v", (P>>shift16)>>shift4, P>>shift16&clean8, P&clean16, A, B))

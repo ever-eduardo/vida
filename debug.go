@@ -364,7 +364,17 @@ func (vm *vM) debug() (Result, error) {
 				vm.Frame.stack[B] = v
 			}
 		case ret:
-			val := vm.Frame.stack[B]
+			var val Value
+			switch B {
+			case storeFromLocal:
+				val = vm.Frame.stack[A]
+			case storeFromKonst:
+				val = (*vm.Module.Konstants)[A]
+			case storeFromGlobal:
+				val = (*vm.Module.Store)[A]
+			default:
+				val = vm.Frame.lambda.Free[A]
+			}
 			vm.fp--
 			vm.Frame = &vm.Frames[vm.fp]
 			ip = vm.Frame.ip

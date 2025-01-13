@@ -274,8 +274,9 @@ func (c *compiler) emitCall(callable, argCount, ellipsis, firstArg int) {
 	c.currentFn.Code = append(c.currentFn.Code, i)
 }
 
-func (c *compiler) emitRet(retReg int) {
-	var i uint64 = uint64(retReg)
+func (c *compiler) emitRet(source, index int) {
+	var i uint64 = uint64(source)
+	i |= uint64(index) << shift16
 	i |= ret << shift56
 	c.currentFn.Code = append(c.currentFn.Code, i)
 }
