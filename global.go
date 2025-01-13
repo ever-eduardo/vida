@@ -277,11 +277,23 @@ func gfnToString(args ...Value) (Value, error) {
 func gfnToInt(args ...Value) (Value, error) {
 	l := len(args)
 	if l == 1 {
-		if v, ok := args[0].(*String); ok {
+		switch v := args[0].(type) {
+		case *String:
 			i, e := strconv.ParseInt(v.Value, 0, 64)
 			if e == nil {
 				return Integer(i), nil
 			}
+		case Integer:
+			return v, nil
+		case Bool:
+			if v {
+				return Integer(1), nil
+			}
+			return Integer(0), nil
+		case Float:
+			return Integer(v), nil
+		case Nil:
+			return Integer(0), nil
 		}
 	}
 	if l == 2 {
@@ -299,11 +311,23 @@ func gfnToInt(args ...Value) (Value, error) {
 
 func gfnToFloat(args ...Value) (Value, error) {
 	if len(args) > 0 {
-		if v, ok := args[0].(*String); ok {
+		switch v := args[0].(type) {
+		case *String:
 			r, e := strconv.ParseFloat(v.Value, 64)
 			if e == nil {
 				return Float(r), nil
 			}
+		case Integer:
+			return Float(v), nil
+		case Float:
+			return v, nil
+		case Nil:
+			return Float(0), nil
+		case Bool:
+			if v {
+				return Float(1), nil
+			}
+			return Float(0), nil
 		}
 	}
 	return NilValue, nil
