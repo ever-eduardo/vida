@@ -208,7 +208,7 @@ func (s *String) Binop(op uint64, rhs Value) (Value, error) {
 		case uint64(token.GE):
 			return Bool(s.Value >= r.Value), nil
 		case uint64(token.IN):
-			return IsMemberOf(s, rhs)
+			return Bool(strings.Contains(r.Value, s.Value)), nil
 		}
 	default:
 		switch op {

@@ -86,3 +86,9 @@ for k, v in data {
 }
 
 
+assert("w" in "asdwr")
+assert("alph" in "alphanumeric")
+assert("ic" in "alphanumeric")
+assert("wellinghton" in "wellinghton")
+
+
