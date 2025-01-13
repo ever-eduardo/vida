@@ -147,15 +147,45 @@ func (vm *vM) debug() (Result, error) {
 		case iGet:
 			var val Value
 			var err error
-			switch P >> shift16 {
+			scopeIndex := P >> shift20
+			scopeIndexable := (P >> shift16) & clean8
+			switch scopeIndex {
 			case storeFromLocal:
-				val, err = vm.Frame.stack[P&clean16].IGet(vm.Frame.stack[A])
+				switch scopeIndexable {
+				case storeFromLocal:
+					val, err = vm.Frame.stack[P&clean16].IGet(vm.Frame.stack[A])
+				case storeFromGlobal:
+					val, err = (*vm.Module.Store)[P&clean16].IGet(vm.Frame.stack[A])
+				default:
+					val, err = vm.Frame.lambda.Free[P&clean16].IGet(vm.Frame.stack[A])
+				}
 			case storeFromKonst:
-				val, err = vm.Frame.stack[P&clean16].IGet((*vm.Module.Konstants)[A])
+				switch scopeIndexable {
+				case storeFromLocal:
+					val, err = vm.Frame.stack[P&clean16].IGet((*vm.Module.Konstants)[A])
+				case storeFromGlobal:
+					val, err = (*vm.Module.Store)[P&clean16].IGet((*vm.Module.Konstants)[A])
+				default:
+					val, err = vm.Frame.lambda.Free[P&clean16].IGet((*vm.Module.Konstants)[A])
+				}
 			case storeFromGlobal:
-				val, err = vm.Frame.stack[P&clean16].IGet((*vm.Module.Store)[A])
+				switch scopeIndexable {
+				case storeFromLocal:
+					val, err = vm.Frame.stack[P&clean16].IGet((*vm.Module.Store)[A])
+				case storeFromGlobal:
+					val, err = (*vm.Module.Store)[P&clean16].IGet((*vm.Module.Store)[A])
+				default:
+					val, err = vm.Frame.lambda.Free[P&clean16].IGet((*vm.Module.Store)[A])
+				}
 			default:
-				val, err = vm.Frame.stack[P&clean16].IGet(vm.Frame.lambda.Free[A])
+				switch scopeIndexable {
+				case storeFromLocal:
+					val, err = vm.Frame.stack[P&clean16].IGet(vm.Frame.lambda.Free[A])
+				case storeFromGlobal:
+					val, err = (*vm.Module.Store)[P&clean16].IGet(vm.Frame.lambda.Free[A])
+				default:
+					val, err = vm.Frame.lambda.Free[P&clean16].IGet(vm.Frame.lambda.Free[A])
+				}
 			}
 			if err != nil {
 				return vm.createError(ip, err)

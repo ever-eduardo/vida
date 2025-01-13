@@ -187,11 +187,13 @@ func (c *compiler) emitObject(to int) {
 	c.currentFn.Code = append(c.currentFn.Code, i)
 }
 
-func (c *compiler) emitIGet(indexable, index, to, scopeIdx int) {
+func (c *compiler) emitIGet(indexable, index, to, scopeIndex, scopeIndexable int) {
+	var s byte = byte(scopeIndexable)
+	s |= byte(scopeIndex) << shift4
 	var i uint64 = uint64(to)
 	i |= uint64(index) << shift16
 	i |= uint64(indexable) << shift32
-	i |= uint64(scopeIdx) << shift48
+	i |= uint64(s) << shift48
 	i |= iGet << shift56
 	c.currentFn.Code = append(c.currentFn.Code, i)
 }

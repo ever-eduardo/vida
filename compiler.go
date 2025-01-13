@@ -340,13 +340,13 @@ func (c *compiler) compileStmt(node ast.Node) {
 		j, t := c.compileExpr(n.Index, true)
 		switch t {
 		case rKonst:
-			c.emitIGet(i, j, i, storeFromKonst)
+			c.emitIGet(i, j, i, storeFromKonst, storeFromLocal)
 		case rLoc:
-			c.emitIGet(i, j, i, storeFromLocal)
+			c.emitIGet(i, j, i, storeFromLocal, storeFromLocal)
 		case rGlob:
-			c.emitIGet(i, j, i, storeFromGlobal)
+			c.emitIGet(i, j, i, storeFromGlobal, storeFromLocal)
 		case rFree:
-			c.emitIGet(i, j, i, storeFromFree)
+			c.emitIGet(i, j, i, storeFromFree, storeFromLocal)
 		}
 		c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 		if !c.fromRefStmt {
@@ -362,13 +362,13 @@ func (c *compiler) compileStmt(node ast.Node) {
 		j, t := c.compileExpr(n.Selector, true)
 		switch t {
 		case rKonst:
-			c.emitIGet(i, j, i, storeFromKonst)
+			c.emitIGet(i, j, i, storeFromKonst, storeFromLocal)
 		case rLoc:
-			c.emitIGet(i, j, i, storeFromLocal)
+			c.emitIGet(i, j, i, storeFromLocal, storeFromLocal)
 		case rGlob:
-			c.emitIGet(i, j, i, storeFromGlobal)
+			c.emitIGet(i, j, i, storeFromGlobal, storeFromLocal)
 		case rFree:
-			c.emitIGet(i, j, i, storeFromFree)
+			c.emitIGet(i, j, i, storeFromFree, storeFromLocal)
 		}
 		c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 		if !c.fromRefStmt {
@@ -494,7 +494,7 @@ func (c *compiler) compileStmt(node ast.Node) {
 		c.emitMove(o, c.rAlloc)
 		c.rAlloc++
 		j, _ := c.compileExpr(n.Prop, true)
-		c.emitIGet(o, j, o, storeFromKonst)
+		c.emitIGet(o, j, o, storeFromKonst, storeFromLocal)
 		c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 		for _, v := range n.Args {
 			i, s := c.compileExpr(v, true)
@@ -638,7 +638,7 @@ func (c *compiler) compileExpr(node ast.Node, isRoot bool) (int, int) {
 		return c.kb.IntegerIndex(0), rKonst
 	case *ast.IGet:
 		i, s := c.compileExpr(n.Indexable, false)
-		lreg := c.rAlloc
+		dest := c.rAlloc
 		switch s {
 		case rLoc:
 			c.rAlloc++
@@ -646,47 +646,45 @@ func (c *compiler) compileExpr(node ast.Node, isRoot bool) (int, int) {
 			switch t {
 			case rLoc:
 				if c.mutLoc && isRoot {
-					c.emitIGet(i, j, c.rDest, 0)
+					c.emitIGet(i, j, c.rDest, storeFromLocal, storeFromLocal)
 					c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 					c.rAlloc--
 					return c.rDest, rLoc
 				} else {
-					c.emitIGet(i, j, lreg, 0)
+					c.emitIGet(i, j, dest, storeFromLocal, storeFromLocal)
 					c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 					c.rAlloc--
 				}
 			case rGlob:
-				c.emitLoadG(j, c.rAlloc)
 				if c.mutLoc && isRoot {
-					c.emitIGet(i, c.rAlloc, c.rDest, 0)
+					c.emitIGet(i, j, c.rDest, storeFromGlobal, storeFromLocal)
 					c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 					c.rAlloc--
 					return c.rDest, rLoc
 				} else {
-					c.emitIGet(i, c.rAlloc, lreg, 0)
+					c.emitIGet(i, j, dest, storeFromGlobal, storeFromLocal)
 					c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 					c.rAlloc--
 				}
 			case rKonst:
 				if c.mutLoc && isRoot {
-					c.emitIGet(i, j, c.rDest, 1)
+					c.emitIGet(i, j, c.rDest, storeFromKonst, storeFromLocal)
 					c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 					c.rAlloc--
 					return c.rDest, rLoc
 				} else {
-					c.emitIGet(i, j, lreg, 1)
+					c.emitIGet(i, j, dest, storeFromKonst, storeFromLocal)
 					c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 					c.rAlloc--
 				}
 			case rFree:
-				c.emitLoadF(j, c.rAlloc)
 				if c.mutLoc && isRoot {
-					c.emitIGet(i, c.rAlloc, c.rDest, 0)
+					c.emitIGet(i, j, c.rDest, storeFromFree, storeFromLocal)
 					c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 					c.rAlloc--
 					return c.rDest, rLoc
 				} else {
-					c.emitIGet(i, c.rAlloc, lreg, 0)
+					c.emitIGet(i, j, dest, storeFromFree, storeFromLocal)
 					c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 					c.rAlloc--
 				}
@@ -696,53 +694,46 @@ func (c *compiler) compileExpr(node ast.Node, isRoot bool) (int, int) {
 			j, t := c.compileExpr(n.Index, false)
 			switch t {
 			case rLoc:
-				c.emitMove(j, c.rAlloc)
-				c.emitLoadG(i, lreg)
 				if c.mutLoc && isRoot {
-					c.emitIGet(lreg, c.rAlloc, c.rDest, 0)
+					c.emitIGet(i, j, c.rDest, storeFromLocal, storeFromGlobal)
 					c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 					c.rAlloc--
 					return c.rDest, rLoc
 				} else {
-					c.emitIGet(lreg, c.rAlloc, lreg, 0)
+					c.emitIGet(i, j, dest, storeFromLocal, storeFromGlobal)
 					c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 					c.rAlloc--
 				}
 			case rGlob:
-				c.emitLoadG(i, lreg)
-				c.emitLoadG(j, lreg+1)
 				if c.mutLoc && isRoot {
-					c.emitIGet(lreg, lreg+1, c.rDest, 0)
+					c.emitIGet(i, j, c.rDest, storeFromGlobal, storeFromGlobal)
 					c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 					c.rAlloc--
 					return c.rDest, rLoc
 				} else {
-					c.emitIGet(lreg, lreg+1, lreg, 0)
+					c.emitIGet(i, j, dest, storeFromGlobal, storeFromGlobal)
 					c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 					c.rAlloc--
 				}
 			case rKonst:
-				c.emitLoadG(i, lreg)
 				if c.mutLoc && isRoot {
-					c.emitIGet(lreg, j, c.rDest, 1)
+					c.emitIGet(i, j, c.rDest, storeFromKonst, storeFromGlobal)
 					c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 					c.rAlloc--
 					return c.rDest, rLoc
 				} else {
-					c.emitIGet(lreg, j, lreg, 1)
+					c.emitIGet(i, j, dest, storeFromKonst, storeFromGlobal)
 					c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 					c.rAlloc--
 				}
 			case rFree:
-				c.emitLoadG(i, lreg)
-				c.emitLoadF(j, lreg+1)
 				if c.mutLoc && isRoot {
-					c.emitIGet(lreg, lreg+1, c.rDest, 0)
+					c.emitIGet(i, j, c.rDest, storeFromFree, storeFromGlobal)
 					c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 					c.rAlloc--
 					return c.rDest, rLoc
 				} else {
-					c.emitIGet(lreg, lreg+1, lreg, 0)
+					c.emitIGet(i, j, dest, storeFromFree, storeFromGlobal)
 					c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 					c.rAlloc--
 				}
@@ -752,61 +743,54 @@ func (c *compiler) compileExpr(node ast.Node, isRoot bool) (int, int) {
 			j, t := c.compileExpr(n.Index, false)
 			switch t {
 			case rLoc:
-				c.emitMove(j, c.rAlloc)
-				c.emitLoadF(i, lreg)
 				if c.mutLoc && isRoot {
-					c.emitIGet(lreg, c.rAlloc, c.rDest, 0)
+					c.emitIGet(i, j, c.rDest, storeFromLocal, storeFromFree)
 					c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 					c.rAlloc--
 					return c.rDest, rLoc
 				} else {
-					c.emitIGet(lreg, c.rAlloc, lreg, 0)
+					c.emitIGet(i, j, dest, storeFromLocal, storeFromFree)
 					c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 					c.rAlloc--
 				}
 			case rGlob:
-				c.emitLoadF(i, lreg)
-				c.emitLoadG(j, lreg+1)
 				if c.mutLoc && isRoot {
-					c.emitIGet(lreg, lreg+1, c.rDest, 0)
+					c.emitIGet(i, j, c.rDest, storeFromGlobal, storeFromFree)
 					c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 					c.rAlloc--
 				} else {
-					c.emitIGet(lreg, lreg+1, lreg, 0)
+					c.emitIGet(i, j, dest, storeFromGlobal, storeFromFree)
 					c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 					c.rAlloc--
 				}
 			case rKonst:
-				c.emitLoadF(i, lreg)
 				if c.mutLoc && isRoot {
-					c.emitIGet(lreg, j, c.rDest, 1)
+					c.emitIGet(i, j, c.rDest, storeFromKonst, storeFromFree)
 					c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 					c.rAlloc--
 					return c.rDest, rLoc
 				} else {
-					c.emitIGet(lreg, j, lreg, 1)
+					c.emitIGet(i, j, dest, storeFromKonst, storeFromFree)
 					c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 					c.rAlloc--
 				}
 			case rFree:
-				c.emitLoadF(i, lreg)
-				c.emitLoadF(j, lreg+1)
 				if c.mutLoc && isRoot {
-					c.emitIGet(lreg, lreg+1, c.rDest, 0)
+					c.emitIGet(i, j, c.rDest, storeFromFree, storeFromFree)
 					c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 					c.rAlloc--
 					return c.rDest, rLoc
 				} else {
-					c.emitIGet(lreg, lreg+1, lreg, 0)
+					c.emitIGet(i, j, dest, storeFromFree, storeFromFree)
 					c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 					c.rAlloc--
 				}
 			}
 		}
-		return lreg, rLoc
+		return dest, rLoc
 	case *ast.Select:
 		i, s := c.compileExpr(n.Selectable, false)
-		lreg := c.rAlloc
+		dest := c.rAlloc
 		switch s {
 		case rLoc:
 			c.rAlloc++
@@ -814,47 +798,45 @@ func (c *compiler) compileExpr(node ast.Node, isRoot bool) (int, int) {
 			switch t {
 			case rLoc:
 				if c.mutLoc && isRoot {
-					c.emitIGet(i, j, c.rDest, 0)
+					c.emitIGet(i, j, c.rDest, storeFromLocal, storeFromLocal)
 					c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 					c.rAlloc--
 					return c.rDest, rLoc
 				} else {
-					c.emitIGet(i, j, lreg, 0)
+					c.emitIGet(i, j, dest, storeFromLocal, storeFromLocal)
 					c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 					c.rAlloc--
 				}
 			case rGlob:
-				c.emitLoadG(j, c.rAlloc)
 				if c.mutLoc && isRoot {
-					c.emitIGet(i, c.rAlloc, c.rDest, 0)
+					c.emitIGet(i, j, c.rDest, storeFromGlobal, storeFromLocal)
 					c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 					c.rAlloc--
 					return c.rDest, rLoc
 				} else {
-					c.emitIGet(i, c.rAlloc, lreg, 0)
+					c.emitIGet(i, j, dest, storeFromGlobal, storeFromLocal)
 					c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 					c.rAlloc--
 				}
 			case rKonst:
 				if c.mutLoc && isRoot {
-					c.emitIGet(i, j, c.rDest, 1)
+					c.emitIGet(i, j, c.rDest, storeFromKonst, storeFromLocal)
 					c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 					c.rAlloc--
 					return c.rDest, rLoc
 				} else {
-					c.emitIGet(i, j, lreg, 1)
+					c.emitIGet(i, j, dest, storeFromKonst, storeFromLocal)
 					c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 					c.rAlloc--
 				}
 			case rFree:
-				c.emitLoadF(j, c.rAlloc)
 				if c.mutLoc && isRoot {
-					c.emitIGet(i, c.rAlloc, c.rDest, 0)
+					c.emitIGet(i, j, c.rDest, storeFromFree, storeFromLocal)
 					c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 					c.rAlloc--
 					return c.rDest, rLoc
 				} else {
-					c.emitIGet(i, c.rAlloc, lreg, 0)
+					c.emitIGet(i, j, dest, storeFromFree, storeFromLocal)
 					c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 					c.rAlloc--
 				}
@@ -864,53 +846,46 @@ func (c *compiler) compileExpr(node ast.Node, isRoot bool) (int, int) {
 			j, t := c.compileExpr(n.Selector, false)
 			switch t {
 			case rLoc:
-				c.emitMove(j, c.rAlloc)
-				c.emitLoadG(i, lreg)
 				if c.mutLoc && isRoot {
-					c.emitIGet(lreg, c.rAlloc, c.rDest, 0)
+					c.emitIGet(i, j, c.rDest, storeFromLocal, storeFromGlobal)
 					c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 					c.rAlloc--
 					return c.rDest, rLoc
 				} else {
-					c.emitIGet(lreg, c.rAlloc, lreg, 0)
+					c.emitIGet(i, j, dest, storeFromLocal, storeFromGlobal)
 					c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 					c.rAlloc--
 				}
 			case rGlob:
-				c.emitLoadG(i, lreg)
-				c.emitLoadG(j, lreg+1)
 				if c.mutLoc && isRoot {
-					c.emitIGet(lreg, lreg+1, c.rDest, 0)
+					c.emitIGet(i, j, c.rDest, storeFromGlobal, storeFromGlobal)
 					c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 					c.rAlloc--
 					return c.rDest, rLoc
 				} else {
-					c.emitIGet(lreg, lreg+1, lreg, 0)
+					c.emitIGet(i, j, dest, storeFromGlobal, storeFromGlobal)
 					c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 					c.rAlloc--
 				}
 			case rKonst:
-				c.emitLoadG(i, lreg)
 				if c.mutLoc && isRoot {
-					c.emitIGet(lreg, j, c.rDest, 1)
+					c.emitIGet(i, j, c.rDest, storeFromKonst, storeFromGlobal)
 					c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 					c.rAlloc--
 					return c.rDest, rLoc
 				} else {
-					c.emitIGet(lreg, j, lreg, 1)
+					c.emitIGet(i, j, dest, storeFromKonst, storeFromGlobal)
 					c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 					c.rAlloc--
 				}
 			case rFree:
-				c.emitLoadG(i, lreg)
-				c.emitLoadF(j, lreg+1)
 				if c.mutLoc && isRoot {
-					c.emitIGet(lreg, lreg+1, c.rDest, 0)
+					c.emitIGet(i, j, c.rDest, storeFromFree, storeFromGlobal)
 					c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 					c.rAlloc--
 					return c.rDest, rLoc
 				} else {
-					c.emitIGet(lreg, lreg+1, lreg, 0)
+					c.emitIGet(i, j, dest, storeFromFree, storeFromGlobal)
 					c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 					c.rAlloc--
 				}
@@ -920,58 +895,51 @@ func (c *compiler) compileExpr(node ast.Node, isRoot bool) (int, int) {
 			j, t := c.compileExpr(n.Selector, false)
 			switch t {
 			case rLoc:
-				c.emitMove(j, c.rAlloc)
-				c.emitLoadF(i, lreg)
 				if c.mutLoc && isRoot {
-					c.emitIGet(lreg, c.rAlloc, c.rDest, 0)
+					c.emitIGet(i, j, c.rDest, storeFromLocal, storeFromFree)
 					c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 					c.rAlloc--
 					return c.rDest, rLoc
 				} else {
-					c.emitIGet(lreg, c.rAlloc, lreg, 0)
+					c.emitIGet(i, j, dest, storeFromLocal, storeFromFree)
 					c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 					c.rAlloc--
 				}
 			case rGlob:
-				c.emitLoadF(i, lreg)
-				c.emitLoadG(j, lreg+1)
 				if c.mutLoc && isRoot {
-					c.emitIGet(lreg, lreg+1, c.rDest, 0)
+					c.emitIGet(i, j, c.rDest, storeFromGlobal, storeFromFree)
 					c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 					c.rAlloc--
 				} else {
-					c.emitIGet(lreg, lreg+1, lreg, 0)
+					c.emitIGet(i, j, dest, storeFromGlobal, storeFromFree)
 					c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 					c.rAlloc--
 				}
 			case rKonst:
-				c.emitLoadF(i, lreg)
 				if c.mutLoc && isRoot {
-					c.emitIGet(lreg, j, c.rDest, 1)
+					c.emitIGet(i, j, c.rDest, storeFromKonst, storeFromFree)
 					c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 					c.rAlloc--
 					return c.rDest, rLoc
 				} else {
-					c.emitIGet(lreg, j, lreg, 1)
+					c.emitIGet(i, j, dest, storeFromKonst, storeFromFree)
 					c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 					c.rAlloc--
 				}
 			case rFree:
-				c.emitLoadF(i, lreg)
-				c.emitLoadF(j, lreg+1)
 				if c.mutLoc && isRoot {
-					c.emitIGet(lreg, lreg+1, c.rDest, 0)
+					c.emitIGet(i, j, c.rDest, storeFromFree, storeFromFree)
 					c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 					c.rAlloc--
 					return c.rDest, rLoc
 				} else {
-					c.emitIGet(lreg, lreg+1, lreg, 0)
+					c.emitIGet(i, j, dest, storeFromFree, storeFromFree)
 					c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 					c.rAlloc--
 				}
 			}
 		}
-		return lreg, rLoc
+		return dest, rLoc
 	case *ast.Slice:
 		v, s := c.compileExpr(n.Value, false)
 		c.exprToReg(v, s)
@@ -1069,7 +1037,7 @@ func (c *compiler) compileExpr(node ast.Node, isRoot bool) (int, int) {
 		i = c.rAlloc
 		c.rAlloc++
 		j, _ := c.compileExpr(n.Prop, false)
-		c.emitIGet(i, j, o, storeFromKonst)
+		c.emitIGet(i, j, o, storeFromKonst, storeFromLocal)
 		c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
 		for _, v := range n.Args {
 			i, s := c.compileExpr(v, false)
