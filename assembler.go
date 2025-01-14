@@ -36,18 +36,16 @@ const (
 )
 
 const (
-	shift2     = 2
-	shift4     = 4
-	shift16    = 16
-	shift20    = 20
-	shift24    = 24
-	shift32    = 32
-	shift48    = 48
-	shift56    = 56
-	clean2bits = 0b00000011
-	clean8     = 0x000000000000000F
-	clean16    = 0x000000000000FFFF
-	clean24    = 0x0000000000FFFFFF
+	shift4  = 4
+	shift16 = 16
+	shift20 = 20
+	shift24 = 24
+	shift32 = 32
+	shift48 = 48
+	shift56 = 56
+	clean8  = 0x000000000000000F
+	clean16 = 0x000000000000FFFF
+	clean24 = 0x0000000000FFFFFF
 )
 
 func (c *compiler) appendHeader() {
@@ -119,17 +117,39 @@ func (c *compiler) emitBinopQ(kidx, regAddr, to int, operator token.Token) {
 	c.currentFn.Code = append(c.currentFn.Code, i)
 }
 
-func (c *compiler) emitSuperEq(lidx, ridx, to, scopeLeft, scopeRight int, operator token.Token) {
-	var s byte = byte(scopeRight)
-	s |= byte(scopeLeft) << shift2
-	if operator == token.NEQ {
-		s |= 1 << shift4
-	}
+func (c *compiler) emitEq(lidx, ridx, to int, operator token.Token) {
 	var i uint64 = uint64(to)
-	i |= uint64(ridx) << shift16
-	i |= uint64(lidx) << shift32
-	i |= uint64(s) << shift48
+	i |= uint64(lidx) << shift16
+	i |= uint64(ridx) << shift32
+	i |= uint64(operator) << shift48
 	i |= eq << shift56
+	c.currentFn.Code = append(c.currentFn.Code, i)
+}
+
+func (c *compiler) emitEqG(lidx, ridx, to int, operator token.Token) {
+	var i uint64 = uint64(to)
+	i |= uint64(lidx) << shift16
+	i |= uint64(ridx) << shift32
+	i |= uint64(operator) << shift48
+	i |= eqG << shift56
+	c.currentFn.Code = append(c.currentFn.Code, i)
+}
+
+func (c *compiler) emitEqK(lidx, ridx, to int, operator token.Token) {
+	var i uint64 = uint64(to)
+	i |= uint64(lidx) << shift16
+	i |= uint64(ridx) << shift32
+	i |= uint64(operator) << shift48
+	i |= eqK << shift56
+	c.currentFn.Code = append(c.currentFn.Code, i)
+}
+
+func (c *compiler) emitEqQ(lidx, ridx, to int, operator token.Token) {
+	var i uint64 = uint64(to)
+	i |= uint64(lidx) << shift16
+	i |= uint64(ridx) << shift32
+	i |= uint64(operator) << shift48
+	i |= eqQ << shift56
 	c.currentFn.Code = append(c.currentFn.Code, i)
 }
 

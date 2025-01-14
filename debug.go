@@ -3,6 +3,7 @@ package vida
 import (
 	"fmt"
 
+	"github.com/ever-eduardo/vida/token"
 	"github.com/ever-eduardo/vida/verror"
 )
 
@@ -120,55 +121,26 @@ func (vm *vM) debug() (Result, error) {
 			}
 			vm.Frame.stack[B] = val
 		case eq:
-			var val Bool
-			var s byte = byte(P >> shift16)
-			l := s >> shift2 & clean2bits
-			r := s & clean2bits
-			switch l {
-			case storeFromLocal:
-				switch r {
-				case storeFromLocal:
-					val = vm.Frame.stack[P&clean16].Equals(vm.Frame.stack[A])
-				case storeFromKonst:
-					val = vm.Frame.stack[P&clean16].Equals((*vm.Module.Konstants)[A])
-				case storeFromGlobal:
-					val = vm.Frame.stack[P&clean16].Equals((*vm.Module.Store)[A])
-				default:
-					val = vm.Frame.stack[P&clean16].Equals(vm.Frame.lambda.Free[A])
-				}
-			case storeFromKonst:
-				switch r {
-				case storeFromLocal:
-					val = (*vm.Module.Konstants)[P&clean16].Equals(vm.Frame.stack[A])
-				case storeFromGlobal:
-					val = (*vm.Module.Konstants)[P&clean16].Equals((*vm.Module.Store)[A])
-				default:
-					val = (*vm.Module.Konstants)[P&clean16].Equals(vm.Frame.lambda.Free[A])
-				}
-			case storeFromGlobal:
-				switch r {
-				case storeFromLocal:
-					val = (*vm.Module.Store)[P&clean16].Equals(vm.Frame.stack[A])
-				case storeFromKonst:
-					val = (*vm.Module.Store)[P&clean16].Equals((*vm.Module.Konstants)[A])
-				case storeFromGlobal:
-					val = (*vm.Module.Store)[P&clean16].Equals((*vm.Module.Store)[A])
-				default:
-					val = (*vm.Module.Store)[P&clean16].Equals(vm.Frame.lambda.Free[A])
-				}
-			default:
-				switch r {
-				case storeFromLocal:
-					val = vm.Frame.lambda.Free[P&clean16].Equals(vm.Frame.stack[A])
-				case storeFromKonst:
-					val = vm.Frame.lambda.Free[P&clean16].Equals((*vm.Module.Konstants)[A])
-				case storeFromGlobal:
-					val = vm.Frame.lambda.Free[P&clean16].Equals((*vm.Module.Store)[A])
-				default:
-					val = vm.Frame.lambda.Free[P&clean16].Equals(vm.Frame.lambda.Free[A])
-				}
+			val := vm.Frame.stack[A].Equals(vm.Frame.stack[P&clean16])
+			if P>>shift16 == uint64(token.NEQ) {
+				val = !val
 			}
-			if s>>4 == 1 {
+			vm.Frame.stack[B] = val
+		case eqG:
+			val := (*vm.Module.Store)[A].Equals((*vm.Module.Store)[P&clean16])
+			if P>>shift16 == uint64(token.NEQ) {
+				val = !val
+			}
+			vm.Frame.stack[B] = val
+		case eqK:
+			val := vm.Frame.stack[P&clean16].Equals((*vm.Module.Konstants)[A])
+			if P>>shift16 == uint64(token.NEQ) {
+				val = !val
+			}
+			vm.Frame.stack[B] = val
+		case eqQ:
+			val := (*vm.Module.Konstants)[A].Equals(vm.Frame.stack[P&clean16])
+			if P>>shift16 == uint64(token.NEQ) {
 				val = !val
 			}
 			vm.Frame.stack[B] = val
