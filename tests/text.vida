@@ -24,7 +24,7 @@ assert(text.split("", "Bernardo O'Higgins"))
 
 
 // Check equality
-loc checkListEquality = fn l, r {
+loc checkListEquality = fun l, r {
     for i = 0, len(l) {
         assert(l[i] == r[i])
     }
@@ -169,7 +169,7 @@ let _b = "caf\u00e9"
 let _c = "\xe6\x97\xa5" // 日
 let _j = "Japan 日本"
 
-let all = fn iterable, pred {
+let all = fun iterable, pred {
     for k, v in iterable {
         if not pred(v) {
             ret false

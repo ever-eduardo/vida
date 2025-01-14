@@ -5,7 +5,7 @@ let alpha = "abcdefghijklmnopqrstuvwxyz"
 
 let mod = len(alpha)
 
-let indexOf = fn cp, s {
+let indexOf = fun cp, s {
     for i, v in s {
         if cp == v {
             ret i
@@ -13,9 +13,9 @@ let indexOf = fn cp, s {
     }
 }
 
-let getK = fn => rand.nextI(mod)
+let getK = fun => rand.nextI(mod)
 
-let encode = fn k, m, alpha {
+let encode = fun k, m, alpha {
     loc r = ""
     for _, v in m {
         r = r + alpha[(indexOf(v, alpha) + k) % mod]
@@ -23,7 +23,7 @@ let encode = fn k, m, alpha {
     ret r
 }
 
-let decode = fn k, c, alpha {
+let decode = fun k, c, alpha {
     loc r = ""
     for _, v in c {
         r = r + alpha[(indexOf(v, alpha) - k) % mod]

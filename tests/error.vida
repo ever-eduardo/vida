@@ -4,7 +4,7 @@ loc errors = {
     whenFalse = error(90)
 }
 
-loc g = fn v {
+loc g = fun v {
     if v {
         ret errors.whenTrue
     }
@@ -73,7 +73,7 @@ assert((r and val) == r)
 val = nil
 assert((r and val) == r)
 
-val = fn => nil
+val = fun => nil
 assert((r and val) == r)
 
 val = print
@@ -103,6 +103,6 @@ assert((r or val) == val)
 val = nil
 assert((r or val) == val)
 
-val = fn => nil
+val = fun => nil
 assert((r or val) == val)
 

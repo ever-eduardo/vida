@@ -5,7 +5,7 @@
 
 
 let iComparable = {
-    comparedTo = fn self, r {
+    comparedTo = fun self, r {
         if self.val < r.val {
             ret -1
         }
@@ -16,20 +16,20 @@ let iComparable = {
     }
 }
 
-let less = fn v, w {
+let less = fun v, w {
     if v--comparedTo(w) < 0 {
         ret true
     }
     ret false
 }
 
-let swap = fn comparables, i, j {
+let swap = fun comparables, i, j {
     loc temp = comparables[i]
     comparables[i] = comparables[j]
     comparables[j] = temp
 }
 
-let isSorted = fn comparables {
+let isSorted = fun comparables {
     for i = 1, len(comparables) {
         if less(comparables[i], comparables[i-1]) {
             ret false
@@ -44,7 +44,7 @@ let number = {
 }
 
 
-let shellSort = fn comparables {
+let shellSort = fun comparables {
     loc N = len(comparables)
     loc h = 1
     while h < N/3 {
@@ -66,7 +66,7 @@ let shellSort = fn comparables {
 
 let N = 13
 
-let fillList = fn xs, N {
+let fillList = fun xs, N {
     loc count = N
     for i = 0, len(xs) {
         xs[i] = count

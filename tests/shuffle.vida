@@ -1,13 +1,13 @@
 
 loc rand = load("rand")
 
-loc swap = fn xs, i, j {
+loc swap = fun xs, i, j {
     loc aux = xs[i]
     xs[i] = xs[j]
     xs[j] = aux
 }
 
-loc shuffle = fn xs {
+loc shuffle = fun xs {
     loc N = len(xs)
     loc r = nil
     for i = 0, N {
@@ -17,7 +17,7 @@ loc shuffle = fn xs {
     ret xs
 }
 
-loc generateList = fn N {
+loc generateList = fun N {
     loc xs = mkls(N)
     for i = 0, N {
         xs[i] = i

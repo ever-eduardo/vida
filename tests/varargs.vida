@@ -1,4 +1,4 @@
-let f = fn acc, xs... {
+let f = fun acc, xs... {
     if acc == 0 {
         ret xs
     }
@@ -14,9 +14,9 @@ print(xs)
 loc r = f(N, ...xs)
 print(r)
 
-loc curry = fn f => fn x... => fn y... => f(f(...x), ...y)
+loc curry = fun f => fun x... => fun y... => f(f(...x), ...y)
 
-loc g = fn xs... {
+loc g = fun xs... {
     loc s = 0
     for _, v in xs {
         s = s + v

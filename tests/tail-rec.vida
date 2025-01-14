@@ -1,7 +1,7 @@
 
 let N = 10_000_000
 
-let recursive = fn x, N {
+let recursive = fun x, N {
     if x >= N {
         ret x
     }

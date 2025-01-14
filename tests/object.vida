@@ -39,7 +39,7 @@ object.inject(void, alp, his)
 
 assert(len(void) == oldVoidLength + len(alp) + len(his))
 
-loc checkProps = fn void {
+loc checkProps = fun void {
     for in 1000 {
         loc v = clone(void)
         assert(v.hello == void.hello and v.world == void.world and v.alpha == void.alpha)

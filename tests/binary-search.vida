@@ -6,7 +6,7 @@ for i = 0, len(data) {
     data[i] = i
 }
 
-let binarySearch = fn xs, key {
+let binarySearch = fun xs, key {
     loc lo = 0
     loc hi = len(xs)-1
     while lo <= hi {

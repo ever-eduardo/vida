@@ -5,7 +5,7 @@
 let rand = load("rand")
 
 let iComparable = {
-    comparedTo= fn self, r {
+    comparedTo= fun self, r {
         if self.val < r.val {
             ret -1
         }
@@ -16,20 +16,20 @@ let iComparable = {
     }
 }
 
-let less = fn v, w {
+let less = fun v, w {
     if v--comparedTo(w) < 0 {
         ret true
     }
     ret false
 }
 
-let swap = fn comparables, i, j {
+let swap = fun comparables, i, j {
     loc temp = comparables[i]
     comparables[i] = comparables[j]
     comparables[j] = temp
 }
 
-let isSorted = fn comparables {
+let isSorted = fun comparables {
     for i = 1, len(comparables) {
         if less(comparables[i], comparables[i-1]) {
             ret false
@@ -38,7 +38,7 @@ let isSorted = fn comparables {
     ret true
 }
 
-let insertionSort = fn comparables {
+let insertionSort = fun comparables {
     loc N = len(comparables)
     for i = 0, N {
         for j = i, 0, -1 {
@@ -57,7 +57,7 @@ let number = {
     comparedTo= iComparable.comparedTo
 }
 
-let newNumber = fn x {
+let newNumber = fun x {
     loc n = clone(number)
     n.val = x
     ret n

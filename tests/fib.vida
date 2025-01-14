@@ -1,4 +1,4 @@
-let fib = fn x {
+let fib = fun x {
     if x == 0 {
         ret 0
     } else if x == 1 {

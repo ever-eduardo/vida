@@ -4,7 +4,7 @@ loc puts = pr
 loc field = "f"
 loc N = 5
 
-let data = [[[[[[[[[[{f= fn=>puts}]]]]]]]]]]
+let data = [[[[[[[[[[{f= fun=>puts}]]]]]]]]]]
 let obj = {
     one= {
         two= {

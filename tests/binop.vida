@@ -2,7 +2,7 @@
 let a = 100
 let b = 200
 
-let globalGlobal = fn {
+let globalGlobal = fun {
     assert(a+b == 300)
     assert(a-b == -100)
     assert(a*b == 20000)
@@ -20,7 +20,7 @@ let globalGlobal = fn {
     assert(b!=a)
 }
 
-let globalLocal = fn b {
+let globalLocal = fun b {
     assert(a+b == 300)
     assert(a-b == -100)
     assert(a*b == 20000)
@@ -38,7 +38,7 @@ let globalLocal = fn b {
     assert(b!=a)
 }
 
-let globalKonst = fn {
+let globalKonst = fun {
     assert(a+200 == 300)
     assert(a-200 == -100)
     assert(a*200 == 20000)
@@ -56,7 +56,7 @@ let globalKonst = fn {
     assert(200!=a)
 }
 
-let localLocal = fn a, b {
+let localLocal = fun a, b {
     assert(a+b == 300)
     assert(a-b == -100)
     assert(a*b == 20000)
@@ -74,8 +74,8 @@ let localLocal = fn a, b {
     assert(b!=a)
 }
 
-let globalFree = fn b {
-    ret fn {
+let globalFree = fun b {
+    ret fun {
         assert(a+b == 300)
         assert(a-b == -100)
         assert(a*b == 20000)
@@ -94,7 +94,7 @@ let globalFree = fn b {
     }
 }
 
-let localKonst = fn a {
+let localKonst = fun a {
     assert(a+200 == 300)
     assert(a-200 == -100)
     assert(a*200 == 20000)
@@ -112,8 +112,8 @@ let localKonst = fn a {
     assert(200!=a)
 }
 
-let localFree = fn b {
-    ret fn a {
+let localFree = fun b {
+    ret fun a {
         assert(a+b == 300)
         assert(a-b == -100)
         assert(a*b == 20000)
@@ -132,7 +132,7 @@ let localFree = fn b {
     }
 }
 
-let konstKonst = fn {
+let konstKonst = fun {
     assert(100+200 == 300)
     assert(100-200 == -100)
     assert(100*200 == 20000)
@@ -148,8 +148,8 @@ let konstKonst = fn {
     assert(100!=200)
 }
 
-let konstFree = fn b {
-    ret fn {
+let konstFree = fun b {
+    ret fun {
         assert(100+b == 300)
         assert(100-b == -100)
         assert(100*b == 20000)
@@ -168,8 +168,8 @@ let konstFree = fn b {
     }
 }
 
-let freeFree = fn a, b {
-    ret fn {
+let freeFree = fun a, b {
+    ret fun {
         assert(a+b == 300)
         assert(a-b == -100)
         assert(a*b == 20000)

@@ -3,7 +3,7 @@ loc miniList = [1 2 3]
 
 loc data = { hello world }
 
-loc f = fn => [data, miniList, nil]
+loc f = fun => [data, miniList, nil]
 
 loc e = error("hello world")
 

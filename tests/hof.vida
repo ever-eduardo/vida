@@ -1,6 +1,6 @@
 
 
-let map = fn xs, f {
+let map = fun xs, f {
     loc newXS = mkls(len(xs))
     for i, v in xs {
         newXS[i] = f(v)
@@ -8,7 +8,7 @@ let map = fn xs, f {
     ret newXS
 }
 
-let filter = fn xs, pred {
+let filter = fun xs, pred {
     loc newXS = []
     for i, v in xs {
         if pred(v) {
@@ -18,7 +18,7 @@ let filter = fn xs, pred {
     ret newXS
 }
 
-let reduce = fn xs, acc, f {
+let reduce = fun xs, acc, f {
     for i, v in xs {
         acc = f(acc, v)
     }
@@ -34,20 +34,20 @@ let r = reduce(
         filter(
         map(
             xs,
-            fn x => x * x * x),
-            fn x => x < threshold),
+            fun x => x * x * x),
+            fun x => x < threshold),
             1,
-            fn x, y => x * y)
+            fun x, y => x * y)
 
 print(r)
 assert(r == one)
 
-loc K = fn x => fn y => x
-loc I = fn x => x
-loc CONS = fn x => fn y => fn f => f(x)(y)
-loc HEAD = fn xs => xs(K)
-loc TAIL = fn xs => xs(K(I))
-let FOREACH = fn f => fn xs {
+loc K = fun x => fun y => x
+loc I = fun x => x
+loc CONS = fun x => fun y => fun f => f(x)(y)
+loc HEAD = fun xs => xs(K)
+loc TAIL = fun xs => xs(K(I))
+let FOREACH = fun f => fun xs {
     if xs {
         f(HEAD(xs))
         FOREACH(f)(TAIL(xs))

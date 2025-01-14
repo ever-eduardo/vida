@@ -1,7 +1,7 @@
 
 loc a = "hello"
 loc b = nil
-loc f = fn => a + format("%v", b)
+loc f = fun => a + format("%v", b)
 loc result = f()
 assert(result == "hellonil")
 
@@ -9,9 +9,9 @@ loc data = {
     id = 42
     name = "data"
     email = "data@data.data"
-    getId = fn self => self.id
-    getName = fn self => self.name
-    getEmail = fn self => self.email
+    getId = fun self => self.id
+    getName = fun self => self.name
+    getEmail = fun self => self.email
 }
 
 for in 1000 {

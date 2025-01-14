@@ -10,7 +10,7 @@ loc rand = load("rand")
 
 
 loc iComparable = {
-    comparedTo = fn self, r {
+    comparedTo = fun self, r {
         if self.val < r.val {
             ret -1
         }
@@ -23,7 +23,7 @@ loc iComparable = {
 
 
 loc iPrinter = {
-    print = fn self {
+    print = fun self {
         p(self.val)
     }
 }
@@ -32,7 +32,7 @@ loc iPrinter = {
 loc data = {val = nil, comparedTo = iComparable.comparedTo, print = iPrinter.print}
 
 
-loc makeData = fn N, rnd, upperLimit {
+loc makeData = fun N, rnd, upperLimit {
     loc xs = mkls(N)
     for i = 0, N {
         loc c = clone(data)
@@ -43,14 +43,14 @@ loc makeData = fn N, rnd, upperLimit {
 }
 
 
-loc printData = fn xs {
+loc printData = fun xs {
     for _, v in xs {
         v--print()
     }
 }
 
 
-loc less = fn v, w {
+loc less = fun v, w {
     if v--comparedTo(w) < 0 {
         ret true
     }
@@ -58,14 +58,14 @@ loc less = fn v, w {
 }
 
 
-loc swap = fn comparables, i, j {
+loc swap = fun comparables, i, j {
     loc temp = comparables[i]
     comparables[i] = comparables[j]
     comparables[j] = temp
 }
 
 
-loc isSorted = fn comparables, lo, hi {
+loc isSorted = fun comparables, lo, hi {
     for i = lo+1, hi {
         if less(comparables[i], comparables[i-1]) {
             ret false
@@ -75,7 +75,7 @@ loc isSorted = fn comparables, lo, hi {
 }
 
 
-loc merge = fn comparables, auxList, lo, mid, hi {
+loc merge = fun comparables, auxList, lo, mid, hi {
     for k = lo, hi+1 {
         auxList[k] = comparables[k]
     }
@@ -101,7 +101,7 @@ loc merge = fn comparables, auxList, lo, mid, hi {
 }
 
 
-let sort = fn comparables, auxList, lo, hi {
+let sort = fun comparables, auxList, lo, hi {
     if hi <= lo {
         ret nil
     }
@@ -112,7 +112,7 @@ let sort = fn comparables, auxList, lo, hi {
 }
 
 
-loc mergeSort = fn comparables {
+loc mergeSort = fun comparables {
     loc N = len(comparables)
     loc auxList = mkls(N)
     sort(comparables, auxList, 0, N-1)

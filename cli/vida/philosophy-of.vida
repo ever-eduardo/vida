@@ -2,7 +2,7 @@
 loc text = load("text")
 loc os = load("os")
 
-loc clear = fn {
+loc clear = fun {
     if os.name() == "windows" {
         if not os.run("cmd", "/C", "cls") {
             os.run("powershell", "-c", "clear")
@@ -33,7 +33,7 @@ loc vida = [
     "Ergonomics"
 ]
 
-loc printThePhilosophyOf = fn xs {
+loc printThePhilosophyOf = fun xs {
     clear()
     print(format("%v   %v%v", header, text.center(title, width), header))
     for i, v in xs {

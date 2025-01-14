@@ -14,7 +14,7 @@ loc state = enum {
     error
 }
 
-loc getBullet = fn state {
+loc getBullet = fun state {
     if state == state.todo {
         ret box
     }
@@ -29,13 +29,13 @@ loc getBullet = fn state {
 
 loc item = { text, state }
 
-item.description = fn self, pos {
+item.description = fun self, pos {
     loc bullet = getBullet(self.state)
     ret format("  %3v  %2v  %v", pos, bullet, self.text)
 }
 
 
-loc printList = fn xs {
+loc printList = fun xs {
     print("\n\n\n\nSuggestions for Vida Enhancement\n\n\n")
 
     for k, v in xs {
@@ -46,22 +46,19 @@ loc printList = fn xs {
 }
 
 loc suggestionsList = [
-    "A time lib",
-    "A regex lib",
-    "A path lib",
-    "Analysis of code generation looking for optimization opportunities",
-    "Binary serialization of values",
-    "Bytes and String buffer values",
-    "The object core library",
-    "Organize corelib",
-    "An 'in' member checking binary op",
-    "A '**' power binary op",
+    "A time lib"
+    "A regex lib"
+    "A path lib"
+    "Analysis of code generation looking for optimization opportunities"
+    "Binary serialization of values"
+    "Bytes and String buffer values"
+    "The object core library"
+    "Organize corelib -- perhaps having only few functions as prelude and import the core lib for more builtin stuff"
+    "A '**' power binary op"
     "Creating a testing libray MVP"
     "Metaprogramming"
     "Thinking Functional (Lambda)"
-    "Iterator helpers like foreach, every, some, all, none, exist"
-    "Make objects and lists toggle between mutable and immutable ones."
-    "concurrency"
+    "cooperative multitasking concurrency"
 ]
 
 printList(suggestionsList)

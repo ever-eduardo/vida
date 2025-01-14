@@ -5,7 +5,7 @@ loc rec androidPhone = {
     series
     size
     price
-    new = fn => clone(androidPhone)
+    new = fun => clone(androidPhone)
 }
 
 
@@ -15,9 +15,9 @@ for in 1000 {
 }
 
 
-loc rec alpha = fn x {
-    loc rec gamma = fn x {
-        loc rec omega = fn x {
+loc rec alpha = fun x {
+    loc rec gamma = fun x {
+        loc rec omega = fun x {
             if x <= 0 {
                 ret x
             }
@@ -51,7 +51,7 @@ loc rec game = {
 assert(game.repr == game.id + game.id)
 
 
-loc rec fib = fn n {
+loc rec fib = fun n {
     if n == 0 or n == 1 {
         ret n
     }
