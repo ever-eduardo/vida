@@ -9,14 +9,11 @@ const (
 	binopG
 	binopK
 	binopQ
+	eq
 	list
 	object
 	iGet
 	iSet
-	eq
-	eqG
-	eqK
-	eqQ
 	slice
 	forSet
 	forLoop
@@ -38,14 +35,11 @@ var opcodes = [...]string{
 	binopG:   "BinopG",
 	binopK:   "BinopK",
 	binopQ:   "BinopQ",
+	eq:       "Eq",
 	list:     "List",
 	object:   "Object",
 	iGet:     "IGet",
 	iSet:     "ISet",
-	eq:       "Eq",
-	eqG:      "EqG",
-	eqK:      "EqK",
-	eqQ:      "EqQ",
 	slice:    "Slice",
 	forSet:   "For",
 	forLoop:  "Loop",
