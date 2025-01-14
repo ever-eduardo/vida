@@ -46,19 +46,14 @@ loc printList = fun xs {
 }
 
 loc suggestionsList = [
-    "A time lib"
-    "A regex lib"
-    "A path lib"
     "Analysis of code generation looking for optimization opportunities"
     "Binary serialization of values"
     "Bytes and String buffer values"
-    "The object core library"
-    "Organize corelib -- perhaps having only few functions as prelude and import the core lib for more builtin stuff"
     "A '**' power binary op"
     "Creating a testing libray MVP"
     "Metaprogramming"
     "Thinking Functional (Lambda)"
-    "cooperative multitasking concurrency"
+    "cooperative multitasking model of concurrency"
 ]
 
 printList(suggestionsList)

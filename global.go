@@ -30,11 +30,11 @@ var coreLibNames = []string{
 	"error",
 	"exception",
 	"isError",
-	"toString",
-	"toInt",
-	"toFloat",
-	"toBool",
-	"toNil",
+	"str",
+	"int",
+	"float",
+	"bool",
+	"copy",
 	"bytes",
 }
 
@@ -58,7 +58,7 @@ func loadCoreLib(store *[]Value) {
 		GFn(gfnToInt),
 		GFn(gfnToFloat),
 		GFn(gfnToBool),
-		GFn(gfnToNil),
+		GFn(gfnCopy),
 		GFn(gfnBytes),
 	)
 }
@@ -347,11 +347,61 @@ func gfnToBool(args ...Value) (Value, error) {
 	return NilValue, nil
 }
 
-func gfnToNil(args ...Value) (Value, error) {
-	if len(args) > 0 {
-		if v, ok := args[0].(*String); ok {
-			if v.Value == "nil" {
-				return NilValue, nil
+func gfnCopy(args ...Value) (Value, error) {
+	if len(args) > 1 {
+		switch dst := args[0].(type) {
+		case *List:
+			switch src := args[1].(type) {
+			case *List:
+				copy(dst.Value, src.Value)
+				return dst, nil
+			case *Bytes:
+				l := len(dst.Value)
+				b := len(src.Value)
+				if b < l {
+					l = b
+				}
+				for i := 0; i < l; i++ {
+					dst.Value[i] = Integer(src.Value[i])
+				}
+				return dst, nil
+			case *String:
+				l := len(dst.Value)
+				b := len(src.Value)
+				if b < l {
+					l = b
+				}
+				if src.Runes == nil {
+					src.Runes = []rune(src.Value)
+				}
+				for i := 0; i < l; i++ {
+					dst.Value[i] = &String{Value: string(src.Runes[i])}
+				}
+				return dst, nil
+			}
+		case *Bytes:
+			switch src := args[1].(type) {
+			case *List:
+				l := len(dst.Value)
+				b := len(src.Value)
+				if b < l {
+					l = b
+				}
+				var i int
+				var j int
+				for i = 0; i < l; i++ {
+					if v, ok := src.Value[i].(Integer); ok {
+						dst.Value[j] = byte(v)
+						j++
+					}
+				}
+				return dst, nil
+			case *Bytes:
+				copy(dst.Value, src.Value)
+				return dst, nil
+			case *String:
+				copy(dst.Value, []byte(src.Value))
+				return dst, nil
 			}
 		}
 	}
@@ -516,8 +566,9 @@ var coreLibDescription = []string{
 	Return nil when fail.
 	`,
 	`
-	Convertion from string to nil.
-	Always return nil
+	Copy a source value into a dest value,
+	Those values may be of type list, bytes or string.
+	It always does a shallow copy.
 	`,
 	`
 	Create an immutable byte list from a string value.
