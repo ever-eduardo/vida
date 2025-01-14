@@ -24,5 +24,76 @@ for in 1000 {
     data--getEmail()
 }
 
+loc src = [1 2 3 4 5] // This values should be all different
 
+data = [
+    [
+        [
+            [
+                [
+                    src[0]
+                    src[1]
+                    src[2]
+                    src[3]
+                    src[4]
+                ]
+            ]
+        ]
+    ]
+]
+
+loc i = 0
+let j = [0 1 2 3 4]
+
+assert(data[i][i][i][i][j[0]] == src[0])
+assert(data[i][i][i][i][j[1]] == src[1])
+assert(data[i][i][i][i][j[2]] == src[2])
+assert(data[i][i][i][i][j[3]] == src[3])
+assert(data[i][i][i][i][j[4]] == src[4])
+
+assert(data[i][i][i][i][j[0]] != src[4])
+assert(data[i][i][i][i][j[1]] != src[3])
+assert(data[i][i][i][i][j[2]] != src[0])
+assert(data[i][i][i][i][j[3]] != src[1])
+assert(data[i][i][i][i][j[4]] != src[0])
+
+
+data = [
+    1 1 1
+    0 0 0
+    2 2 2
+]
+
+assert(
+    data[0] == 1 and data[1] == 1 and data[2] == 1 or
+    data[3] == 1 and data[4] == 1 and data[5] == 1 or
+    data[6] == 1 and data[7] == 1 and data[8] == 1 or
+    data[0] == 1 and data[4] == 1 and data[8] == 1 or
+    data[2] == 1 and data[4] == 1 and data[6] == 1 or
+    data[0] == 1 and data[3] == 1 and data[6] == 1 or
+    data[1] == 1 and data[4] == 1 and data[7] == 1 or
+    data[2] == 1 and data[5] == 1 and data[8] == 1
+)
+
+assert(
+    data[0] == 1 and data[1] == 1 and data[2] == 0 or
+    data[3] == 0 and data[4] == 0 and data[5] == 0 or
+    data[6] == 1 and data[7] == 1 and data[8] == 0 or
+    data[0] == 1 and data[4] == 1 and data[8] == 0 or
+    data[2] == 1 and data[4] == 1 and data[6] == 0 or
+    data[0] == 1 and data[3] == 1 and data[6] == 0 or
+    data[1] == 1 and data[4] == 1 and data[7] == 0 or
+    data[2] == 1 and data[5] == 1 and data[8] == 0
+)
+
+assert(
+    data[0] == 1 and data[1] == 1 and data[2] == 2 or
+    data[3] == 1 and data[4] == 1 and data[5] == 2 or
+    data[6] == 2 and data[7] == 2 and data[8] == 2 or
+    data[0] == 1 and data[4] == 1 and data[8] == 2 or
+    data[2] == 1 and data[4] == 1 and data[6] == 2 or
+    data[0] == 1 and data[3] == 1 and data[6] == 2 or
+    data[1] == 1 and data[4] == 1 and data[7] == 2 or
+    data[2] == 1 and data[5] == 1 and data[8] == 2
+)
 
