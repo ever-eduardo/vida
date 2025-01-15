@@ -5,6 +5,7 @@ const objectLibName = "object"
 func loadObjectLib() Value {
 	m := &Object{Value: make(map[string]Value)}
 	m.Value["inject"] = injectProps()
+	m.Value["extend"] = extendObject()
 	m.Value["override"] = injectAndOverrideProps()
 	m.Value["check"] = checkProps()
 	m.UpdateKeys()
@@ -74,6 +75,25 @@ func checkProps() GFn {
 				}
 				return Bool(true), nil
 			}
+		}
+		return NilValue, nil
+	}
+}
+
+func extendObject() GFn {
+	return func(args ...Value) (Value, error) {
+		if len(args) > 1 {
+			extension := make(map[string]Value)
+			for _, val := range args {
+				if obj, ok := val.(*Object); ok {
+					for k, v := range obj.Value {
+						if _, isPresent := extension[k]; !isPresent {
+							extension[k] = v
+						}
+					}
+				}
+			}
+			return &Object{Value: extension}, nil
 		}
 		return NilValue, nil
 	}
