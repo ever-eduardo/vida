@@ -19,7 +19,7 @@ var coreLibNames = []string{
 	"print",
 	"len",
 	"append",
-	"mkls",
+	"list",
 	"load",
 	"type",
 	"assert",
@@ -542,7 +542,7 @@ var coreLibDescription = []string{
 	`
 	Create an exception to signal some exceptional or unexpected
 	behavior. It will always generate a runtime error. 
-	When an argumentis given, it is shown in the error message.
+	When an argument is given, it is shown in the error message.
 	Example: exception(message)
 	`,
 	`
