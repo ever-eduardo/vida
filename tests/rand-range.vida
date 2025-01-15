@@ -7,7 +7,7 @@ loc randRange = fun a, b {
 }
 
 loc makeList = fun N, a, b {
-    loc xs = mkls(N)
+    loc xs = list(N)
     for i = 0, N {
         xs[i] = randRange(a, b)
     }

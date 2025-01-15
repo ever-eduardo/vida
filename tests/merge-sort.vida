@@ -33,7 +33,7 @@ loc data = {val = nil, comparedTo = iComparable.comparedTo, print = iPrinter.pri
 
 
 loc makeData = fun N, rnd, upperLimit {
-    loc xs = mkls(N)
+    loc xs = list(N)
     for i = 0, N {
         loc c = clone(data)
         c.val = rnd(upperLimit)
@@ -114,7 +114,7 @@ let sort = fun comparables, auxList, lo, hi {
 
 loc mergeSort = fun comparables {
     loc N = len(comparables)
-    loc auxList = mkls(N)
+    loc auxList = list(N)
     sort(comparables, auxList, 0, N-1)
 }
 

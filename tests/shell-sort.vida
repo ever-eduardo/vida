@@ -76,8 +76,8 @@ let fillList = fun xs, N {
 }
 
 
-let randomInt = fillList(mkls(N), N)
-let data = mkls(N)
+let randomInt = fillList(list(N), N)
+let data = list(N)
 
 for i, v in randomInt {
     loc val = clone(number)

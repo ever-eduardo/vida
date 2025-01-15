@@ -147,8 +147,6 @@ void = {
 
 checkProps(void)
 
-
-
 void = {
     hello = "hello"
     world = 90
@@ -156,3 +154,27 @@ void = {
 }
 
 checkProps(void)
+
+loc Vehicle = {
+    engines = 1
+    ignition = fun self => print("Vehicle Engine Ignition")
+    drive = fun self {
+        self--ignition()
+        print("Vehicle is moving forward")
+    }
+}
+
+loc Car = object.extend({
+    wheels = 4
+    drive = fun self {
+        Vehicle.drive(self)
+        print("Car is rolling the wheels", self.wheels)
+    }
+}, Vehicle)
+
+assert(Car.wheels and Car.wheels == 4)
+assert(Car.engines and Car.engines == 1)
+assert(Car.drive)
+assert(Car.ignition)
+assert(Car != Vehicle)
+

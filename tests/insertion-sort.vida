@@ -65,7 +65,7 @@ let newNumber = fun x {
 
 let N = 1_000
 let upperLimit = N
-let numbers = mkls(N)
+let numbers = list(N)
 
 for i, _ in numbers {
     numbers[i] = newNumber(rand.nextI(N))

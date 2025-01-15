@@ -18,7 +18,7 @@ loc shuffle = fun xs {
 }
 
 loc generateList = fun N {
-    loc xs = mkls(N)
+    loc xs = list(N)
     for i = 0, N {
         xs[i] = i
     }
