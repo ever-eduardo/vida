@@ -484,9 +484,9 @@ var coreLibDescription = []string{
 	and m of any type, return a list of n elements all 
 	initialized to the m value.
 	Examples: 
-		mkls() -> [],
-		mkls(10) -> [nil, ..., nil],
-		mkls(n, v) -> [v, v, ... , v]
+		list() -> [],
+		list(10) -> [nil, ..., nil],
+		list(n, v) -> [v, v, ... , v]
 	`,
 	`
 	Load a specific library from the stdlib.
