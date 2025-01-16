@@ -97,3 +97,26 @@ assert(
     data[2] == 1 and data[5] == 1 and data[8] == 2
 )
 
+loc cmp = {
+    hello = 0
+    world = 1
+    gamma = 2
+}
+
+assert(
+    data[0] == cmp.hello and data[1] == cmp.hello and data[2] == cmp.hello or
+    data[3] == cmp.hello and data[4] == cmp.hello and data[5] == cmp.hello or
+    data[6] == cmp.hello and data[7] == cmp.hello and data[8] == cmp.hello
+)
+
+assert(
+    data[0] == cmp.world and data[1] == cmp.world and data[2] == cmp.world or
+    data[3] == cmp.world and data[4] == cmp.world and data[5] == cmp.world or
+    data[6] == cmp.world and data[7] == cmp.world and data[8] == cmp.world
+)
+
+assert(
+    data[0] == cmp.gamma and data[1] == cmp.gamma and data[2] == cmp.gamma or
+    data[3] == cmp.gamma and data[4] == cmp.gamma and data[5] == cmp.gamma or
+    data[6] == cmp.gamma and data[7] == cmp.gamma and data[8] == cmp.gamma
+)
