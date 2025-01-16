@@ -1441,40 +1441,40 @@ func (c *compiler) compileBinaryExpr(n *ast.BinaryExpr, isRoot bool) (int, int) 
 }
 
 func (c *compiler) compileBinaryEq(n *ast.BinaryExpr, isRoot bool) (int, int) {
-	lidx, lscope := c.compileExpr(n.Lhs, false)
-	lreg := c.rAlloc
-	switch lscope {
+	i, iscope := c.compileExpr(n.Lhs, false)
+	k := c.rAlloc
+	switch iscope {
 	case rKonst:
-		ridx, rscope := c.compileExpr(n.Rhs, false)
-		switch rscope {
+		j, jscope := c.compileExpr(n.Rhs, false)
+		switch jscope {
 		case rKonst:
-			val := (*c.kb.Konstants)[lidx].Equals((*c.kb.Konstants)[ridx])
+			val := (*c.kb.Konstants)[i].Equals((*c.kb.Konstants)[j])
 			if n.Op == token.NEQ {
 				val = !val
 			}
 			return c.integrateKonst(val)
 		case rGlob:
-			c.emitLoad(ridx, lreg, loadFromGlobal)
+			c.emitLoad(j, k, loadFromGlobal)
 			if c.mutLoc && isRoot {
-				c.emitEqQ(lidx, lreg, c.rDest, n.Op)
+				c.emitEqQ(i, k, c.rDest, n.Op)
 				return c.rDest, rLoc
 			} else {
-				c.emitEqQ(lidx, lreg, lreg, n.Op)
+				c.emitEqQ(i, k, k, n.Op)
 			}
 		case rLoc:
 			if c.mutLoc && isRoot {
-				c.emitEqQ(lidx, ridx, c.rDest, n.Op)
+				c.emitEqQ(i, j, c.rDest, n.Op)
 				return c.rDest, rLoc
 			} else {
-				c.emitEqQ(lidx, ridx, lreg, n.Op)
+				c.emitEqQ(i, j, k, n.Op)
 			}
 		case rFree:
-			c.emitLoad(ridx, lreg, loadFromFree)
+			c.emitLoad(j, k, loadFromFree)
 			if c.mutLoc && isRoot {
-				c.emitEqQ(lidx, lreg, c.rDest, n.Op)
+				c.emitEqQ(i, k, c.rDest, n.Op)
 				return c.rDest, rLoc
 			} else {
-				c.emitEqQ(lidx, lreg, lreg, n.Op)
+				c.emitEqQ(i, k, k, n.Op)
 			}
 		}
 	case rGlob:
@@ -1482,41 +1482,41 @@ func (c *compiler) compileBinaryEq(n *ast.BinaryExpr, isRoot bool) (int, int) {
 		switch rscope {
 		case rGlob:
 			if c.mutLoc && isRoot {
-				c.emitEqG(lidx, ridx, c.rDest, n.Op)
+				c.emitEqG(i, ridx, c.rDest, n.Op)
 				return c.rDest, rLoc
 			} else {
-				c.emitEqG(lidx, ridx, lreg, n.Op)
+				c.emitEqG(i, ridx, k, n.Op)
 			}
 		case rKonst:
-			c.emitLoad(lidx, lreg, loadFromGlobal)
+			c.emitLoad(i, k, loadFromGlobal)
 			if c.mutLoc && isRoot {
-				c.emitEqK(ridx, lreg, c.rDest, n.Op)
+				c.emitEqK(ridx, k, c.rDest, n.Op)
 				return c.rDest, rLoc
 			} else {
-				c.emitEqK(ridx, lreg, lreg, n.Op)
+				c.emitEqK(ridx, k, k, n.Op)
 			}
 		case rLoc:
-			c.emitLoad(ridx, lreg, loadFromLocal)
+			c.emitLoad(ridx, k, loadFromLocal)
 			c.rAlloc++
-			c.emitLoad(lidx, c.rAlloc, loadFromGlobal)
+			c.emitLoad(i, c.rAlloc, loadFromGlobal)
 			if c.mutLoc && isRoot {
-				c.emitEq(c.rAlloc, lreg, c.rDest, n.Op)
+				c.emitEq(c.rAlloc, k, c.rDest, n.Op)
 				c.rAlloc--
 				return c.rDest, rLoc
 			} else {
-				c.emitEq(c.rAlloc, lreg, lreg, n.Op)
+				c.emitEq(c.rAlloc, k, k, n.Op)
 				c.rAlloc--
 			}
 		case rFree:
 			c.rAlloc++
-			c.emitLoad(lidx, lreg, loadFromGlobal)
+			c.emitLoad(i, k, loadFromGlobal)
 			c.emitLoad(ridx, c.rAlloc, loadFromFree)
 			if c.mutLoc && isRoot {
-				c.emitEq(lreg, c.rAlloc, c.rDest, n.Op)
+				c.emitEq(k, c.rAlloc, c.rDest, n.Op)
 				c.rAlloc--
 				return c.rDest, rLoc
 			} else {
-				c.emitEq(lreg, c.rAlloc, lreg, n.Op)
+				c.emitEq(k, c.rAlloc, k, n.Op)
 				c.rAlloc--
 			}
 		}
@@ -1526,40 +1526,40 @@ func (c *compiler) compileBinaryEq(n *ast.BinaryExpr, isRoot bool) (int, int) {
 		switch rscope {
 		case rLoc:
 			if c.mutLoc && isRoot {
-				c.emitEq(lidx, ridx, c.rDest, n.Op)
+				c.emitEq(i, ridx, c.rDest, n.Op)
 				c.rAlloc--
 				return c.rDest, rLoc
 			} else {
-				c.emitEq(lidx, ridx, lreg, n.Op)
+				c.emitEq(i, ridx, k, n.Op)
 				c.rAlloc--
 			}
 		case rGlob:
 			c.emitLoad(ridx, c.rAlloc, loadFromGlobal)
 			if c.mutLoc && isRoot {
-				c.emitEq(lidx, c.rAlloc, c.rDest, n.Op)
+				c.emitEq(i, c.rAlloc, c.rDest, n.Op)
 				c.rAlloc--
 				return c.rDest, rLoc
 			} else {
-				c.emitEq(lidx, c.rAlloc, lreg, n.Op)
+				c.emitEq(i, c.rAlloc, k, n.Op)
 				c.rAlloc--
 			}
 		case rKonst:
 			if c.mutLoc && isRoot {
-				c.emitEqK(ridx, lidx, c.rDest, n.Op)
+				c.emitEqK(ridx, i, c.rDest, n.Op)
 				c.rAlloc--
 				return c.rDest, rLoc
 			} else {
-				c.emitEqK(ridx, lidx, lreg, n.Op)
+				c.emitEqK(ridx, i, k, n.Op)
 				c.rAlloc--
 			}
 		case rFree:
 			c.emitLoad(ridx, c.rAlloc, loadFromFree)
 			if c.mutLoc && isRoot {
-				c.emitEq(lidx, c.rAlloc, c.rDest, n.Op)
+				c.emitEq(i, c.rAlloc, c.rDest, n.Op)
 				c.rAlloc--
 				return c.rDest, rLoc
 			} else {
-				c.emitEq(lidx, c.rAlloc, lreg, n.Op)
+				c.emitEq(i, c.rAlloc, k, n.Op)
 				c.rAlloc--
 			}
 		}
@@ -1567,46 +1567,46 @@ func (c *compiler) compileBinaryEq(n *ast.BinaryExpr, isRoot bool) (int, int) {
 		ridx, rscope := c.compileExpr(n.Rhs, false)
 		switch rscope {
 		case rLoc:
-			c.emitLoad(lidx, lreg, loadFromFree)
+			c.emitLoad(i, k, loadFromFree)
 			if c.mutLoc && isRoot {
-				c.emitEq(lreg, ridx, c.rDest, n.Op)
+				c.emitEq(k, ridx, c.rDest, n.Op)
 				return c.rDest, rLoc
 			} else {
-				c.emitEq(lreg, ridx, lreg, n.Op)
+				c.emitEq(k, ridx, k, n.Op)
 			}
 		case rGlob:
 			c.rAlloc++
-			c.emitLoad(lidx, lreg, loadFromFree)
+			c.emitLoad(i, k, loadFromFree)
 			c.emitLoad(ridx, c.rAlloc, loadFromGlobal)
 			if c.mutLoc && isRoot {
-				c.emitEq(lreg, c.rAlloc, c.rDest, n.Op)
+				c.emitEq(k, c.rAlloc, c.rDest, n.Op)
 				c.rAlloc--
 				return c.rDest, rLoc
 			} else {
-				c.emitEq(lreg, c.rAlloc, lreg, n.Op)
+				c.emitEq(k, c.rAlloc, k, n.Op)
 				c.rAlloc--
 			}
 		case rKonst:
-			c.emitLoad(lidx, lreg, loadFromFree)
+			c.emitLoad(i, k, loadFromFree)
 			if c.mutLoc && isRoot {
-				c.emitEqK(ridx, lreg, c.rDest, n.Op)
+				c.emitEqK(ridx, k, c.rDest, n.Op)
 				return c.rDest, rLoc
 			} else {
-				c.emitEqK(ridx, lreg, lreg, n.Op)
+				c.emitEqK(ridx, k, k, n.Op)
 			}
 		case rFree:
 			c.rAlloc++
-			c.emitLoad(lidx, lreg, loadFromFree)
+			c.emitLoad(i, k, loadFromFree)
 			c.emitLoad(ridx, c.rAlloc, loadFromFree)
 			if c.mutLoc && isRoot {
-				c.emitEq(lreg, c.rAlloc, c.rDest, n.Op)
+				c.emitEq(k, c.rAlloc, c.rDest, n.Op)
 				c.rAlloc--
 				return c.rDest, rLoc
 			} else {
-				c.emitEq(lreg, c.rAlloc, lreg, n.Op)
+				c.emitEq(k, c.rAlloc, k, n.Op)
 				c.rAlloc--
 			}
 		}
 	}
-	return lreg, rLoc
+	return k, rLoc
 }
