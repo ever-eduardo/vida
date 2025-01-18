@@ -6,6 +6,7 @@ const (
 	store
 	prefix
 	binop
+	eq
 	binopG
 	binopK
 	binopQ
@@ -13,10 +14,6 @@ const (
 	object
 	iGet
 	iSet
-	eq
-	eqG
-	eqK
-	eqQ
 	slice
 	forSet
 	forLoop
@@ -35,6 +32,7 @@ var opcodes = [...]string{
 	store:    "Store",
 	prefix:   "Prefix",
 	binop:    "Binop",
+	eq:       "Eq",
 	binopG:   "BinopG",
 	binopK:   "BinopK",
 	binopQ:   "BinopQ",
@@ -42,10 +40,6 @@ var opcodes = [...]string{
 	object:   "Object",
 	iGet:     "IGet",
 	iSet:     "ISet",
-	eq:       "Eq",
-	eqG:      "EqG",
-	eqK:      "EqK",
-	eqQ:      "EqQ",
 	slice:    "Slice",
 	forSet:   "For",
 	forLoop:  "Loop",

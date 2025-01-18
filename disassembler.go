@@ -76,7 +76,7 @@ func printInstr(instr, ip uint64, isRunningDebug bool) string {
 		sb.WriteString(fmt.Sprintf(" %3v %3v", A, B))
 	case prefix:
 		sb.WriteString(fmt.Sprintf(" %3v %3v %3v", token.Token(P).String(), A, B))
-	case binopG, binop, binopK, binopQ, eq, eqG, eqK, eqQ:
+	case binopG, binop, binopK, binopQ:
 		sb.WriteString(fmt.Sprintf(" %3v %3v %3v %3v", token.Token(P>>shift16).String(), P&clean16, A, B))
 	case call, store:
 		sb.WriteString(fmt.Sprintf(" %3v %3v %3v %3v", P>>shift16, P&clean16, A, B))
@@ -84,6 +84,17 @@ func printInstr(instr, ip uint64, isRunningDebug bool) string {
 		sb.WriteString(fmt.Sprintf(" %3v", B))
 	case iSet, iGet:
 		sb.WriteString(fmt.Sprintf(" %3v %3v %3v %3v %3v", (P>>shift16)>>shift4, P>>shift16&clean8, P&clean16, A, B))
+	case eq:
+		var op token.Token
+		var s byte = byte(P >> shift16)
+		if s>>shift4 == 0 {
+			op = token.EQ
+		} else {
+			op = token.NEQ
+		}
+		l := s >> shift2 & clean2bits
+		r := s & clean2bits
+		sb.WriteString(fmt.Sprintf(" %3v %3v %3v %3v %3v %3v", op.String(), l, r, P&clean16, A, B))
 	}
 	return sb.String()
 }

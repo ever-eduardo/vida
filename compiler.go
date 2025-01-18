@@ -1454,157 +1454,130 @@ func (c *compiler) compileBinaryEq(n *ast.BinaryExpr, isRoot bool) (int, int) {
 			}
 			return c.integrateKonst(val)
 		case rGlob:
-			c.emitLoad(j, k, loadFromGlobal)
 			if c.mutLoc && isRoot {
-				c.emitEqQ(i, k, c.rDest, n.Op)
+				c.emitSuperEq(i, j, c.rDest, loadFromKonst, loadFromGlobal, n.Op)
 				return c.rDest, rLoc
 			} else {
-				c.emitEqQ(i, k, k, n.Op)
+				c.emitSuperEq(i, j, k, loadFromKonst, loadFromGlobal, n.Op)
 			}
 		case rLoc:
 			if c.mutLoc && isRoot {
-				c.emitEqQ(i, j, c.rDest, n.Op)
+				c.emitSuperEq(i, j, c.rDest, loadFromKonst, loadFromLocal, n.Op)
 				return c.rDest, rLoc
 			} else {
-				c.emitEqQ(i, j, k, n.Op)
+				c.emitSuperEq(i, j, k, loadFromKonst, loadFromLocal, n.Op)
 			}
 		case rFree:
-			c.emitLoad(j, k, loadFromFree)
 			if c.mutLoc && isRoot {
-				c.emitEqQ(i, k, c.rDest, n.Op)
+				c.emitSuperEq(i, j, c.rDest, loadFromKonst, loadFromFree, n.Op)
 				return c.rDest, rLoc
 			} else {
-				c.emitEqQ(i, k, k, n.Op)
+				c.emitSuperEq(i, j, k, loadFromKonst, loadFromFree, n.Op)
 			}
 		}
 	case rGlob:
-		ridx, rscope := c.compileExpr(n.Rhs, false)
+		j, rscope := c.compileExpr(n.Rhs, false)
 		switch rscope {
 		case rGlob:
 			if c.mutLoc && isRoot {
-				c.emitEqG(i, ridx, c.rDest, n.Op)
+				c.emitSuperEq(i, j, c.rDest, loadFromGlobal, loadFromGlobal, n.Op)
 				return c.rDest, rLoc
 			} else {
-				c.emitEqG(i, ridx, k, n.Op)
+				c.emitSuperEq(i, j, k, loadFromGlobal, loadFromGlobal, n.Op)
 			}
 		case rKonst:
-			c.emitLoad(i, k, loadFromGlobal)
 			if c.mutLoc && isRoot {
-				c.emitEqK(ridx, k, c.rDest, n.Op)
+				c.emitSuperEq(i, j, c.rDest, storeFromGlobal, storeFromKonst, n.Op)
 				return c.rDest, rLoc
 			} else {
-				c.emitEqK(ridx, k, k, n.Op)
+				c.emitSuperEq(i, j, k, storeFromGlobal, storeFromKonst, n.Op)
 			}
 		case rLoc:
-			c.emitLoad(ridx, k, loadFromLocal)
-			c.rAlloc++
-			c.emitLoad(i, c.rAlloc, loadFromGlobal)
 			if c.mutLoc && isRoot {
-				c.emitEq(c.rAlloc, k, c.rDest, n.Op)
-				c.rAlloc--
+				c.emitSuperEq(i, j, c.rDest, loadFromGlobal, loadFromLocal, n.Op)
 				return c.rDest, rLoc
 			} else {
-				c.emitEq(c.rAlloc, k, k, n.Op)
-				c.rAlloc--
+				c.emitSuperEq(i, j, k, storeFromGlobal, storeFromLocal, n.Op)
 			}
 		case rFree:
-			c.rAlloc++
-			c.emitLoad(i, k, loadFromGlobal)
-			c.emitLoad(ridx, c.rAlloc, loadFromFree)
 			if c.mutLoc && isRoot {
-				c.emitEq(k, c.rAlloc, c.rDest, n.Op)
-				c.rAlloc--
+				c.emitSuperEq(i, j, c.rDest, loadFromGlobal, loadFromFree, n.Op)
 				return c.rDest, rLoc
 			} else {
-				c.emitEq(k, c.rAlloc, k, n.Op)
-				c.rAlloc--
+				c.emitSuperEq(i, j, k, loadFromGlobal, loadFromFree, n.Op)
 			}
 		}
 	case rLoc:
 		c.rAlloc++
-		ridx, rscope := c.compileExpr(n.Rhs, false)
+		j, rscope := c.compileExpr(n.Rhs, false)
 		switch rscope {
 		case rLoc:
 			if c.mutLoc && isRoot {
-				c.emitEq(i, ridx, c.rDest, n.Op)
+				c.emitSuperEq(i, j, c.rDest, storeFromLocal, storeFromLocal, n.Op)
 				c.rAlloc--
 				return c.rDest, rLoc
 			} else {
-				c.emitEq(i, ridx, k, n.Op)
+				c.emitSuperEq(i, j, k, storeFromLocal, storeFromLocal, n.Op)
 				c.rAlloc--
 			}
 		case rGlob:
-			c.emitLoad(ridx, c.rAlloc, loadFromGlobal)
 			if c.mutLoc && isRoot {
-				c.emitEq(i, c.rAlloc, c.rDest, n.Op)
+				c.emitSuperEq(i, j, c.rDest, storeFromLocal, storeFromGlobal, n.Op)
 				c.rAlloc--
 				return c.rDest, rLoc
 			} else {
-				c.emitEq(i, c.rAlloc, k, n.Op)
+				c.emitSuperEq(i, j, k, storeFromLocal, storeFromGlobal, n.Op)
 				c.rAlloc--
 			}
 		case rKonst:
 			if c.mutLoc && isRoot {
-				c.emitEqK(ridx, i, c.rDest, n.Op)
+				c.emitSuperEq(i, j, c.rDest, loadFromLocal, loadFromKonst, n.Op)
 				c.rAlloc--
 				return c.rDest, rLoc
 			} else {
-				c.emitEqK(ridx, i, k, n.Op)
+				c.emitSuperEq(i, j, k, loadFromLocal, loadFromKonst, n.Op)
 				c.rAlloc--
 			}
 		case rFree:
-			c.emitLoad(ridx, c.rAlloc, loadFromFree)
 			if c.mutLoc && isRoot {
-				c.emitEq(i, c.rAlloc, c.rDest, n.Op)
+				c.emitSuperEq(i, j, c.rDest, loadFromLocal, loadFromFree, n.Op)
 				c.rAlloc--
 				return c.rDest, rLoc
 			} else {
-				c.emitEq(i, c.rAlloc, k, n.Op)
+				c.emitSuperEq(i, j, k, loadFromLocal, loadFromFree, n.Op)
 				c.rAlloc--
 			}
 		}
 	case rFree:
-		ridx, rscope := c.compileExpr(n.Rhs, false)
+		j, rscope := c.compileExpr(n.Rhs, false)
 		switch rscope {
 		case rLoc:
-			c.emitLoad(i, k, loadFromFree)
 			if c.mutLoc && isRoot {
-				c.emitEq(k, ridx, c.rDest, n.Op)
+				c.emitSuperEq(i, j, c.rDest, loadFromFree, loadFromLocal, n.Op)
 				return c.rDest, rLoc
 			} else {
-				c.emitEq(k, ridx, k, n.Op)
+				c.emitSuperEq(i, j, k, loadFromFree, loadFromLocal, n.Op)
 			}
 		case rGlob:
-			c.rAlloc++
-			c.emitLoad(i, k, loadFromFree)
-			c.emitLoad(ridx, c.rAlloc, loadFromGlobal)
 			if c.mutLoc && isRoot {
-				c.emitEq(k, c.rAlloc, c.rDest, n.Op)
-				c.rAlloc--
+				c.emitSuperEq(i, j, c.rDest, storeFromFree, storeFromGlobal, n.Op)
 				return c.rDest, rLoc
 			} else {
-				c.emitEq(k, c.rAlloc, k, n.Op)
-				c.rAlloc--
+				c.emitSuperEq(i, j, k, storeFromFree, storeFromGlobal, n.Op)
 			}
 		case rKonst:
-			c.emitLoad(i, k, loadFromFree)
 			if c.mutLoc && isRoot {
-				c.emitEqK(ridx, k, c.rDest, n.Op)
+				c.emitSuperEq(i, j, c.rDest, storeFromFree, storeFromKonst, n.Op)
 				return c.rDest, rLoc
 			} else {
-				c.emitEqK(ridx, k, k, n.Op)
+				c.emitSuperEq(i, j, k, storeFromFree, storeFromKonst, n.Op)
 			}
 		case rFree:
-			c.rAlloc++
-			c.emitLoad(i, k, loadFromFree)
-			c.emitLoad(ridx, c.rAlloc, loadFromFree)
 			if c.mutLoc && isRoot {
-				c.emitEq(k, c.rAlloc, c.rDest, n.Op)
-				c.rAlloc--
+				c.emitSuperEq(i, j, c.rDest, loadFromFree, loadFromFree, n.Op)
 				return c.rDest, rLoc
 			} else {
-				c.emitEq(k, c.rAlloc, k, n.Op)
-				c.rAlloc--
+				c.emitSuperEq(i, j, k, loadFromFree, loadFromFree, n.Op)
 			}
 		}
 	}
