@@ -1,0 +1,53 @@
+
+//
+// Module functional list
+// This module provides high order functions for lists.
+// Version 1.2025
+//
+
+loc functional = {}
+
+functional.map = fun l, f {
+    loc xs = list(len(l))
+    for i, v in l {
+        xs[i] = f(v)
+    }
+    ret xs
+}
+
+functional.filter = fun l, pred {
+    loc xs = []
+    for _, v in l {
+        if pred(v) {
+            append(xs, v)
+        }
+    }
+    ret xs
+}
+
+functional.all = fun l, pred {
+    for _, v in l {
+        if not pred(v) {
+            ret false
+        }
+    }
+    ret true
+}
+
+functional.some = fun l, pred {
+    for _, v in l {
+        if pred(v) {
+            ret true
+        }
+    }
+    ret false
+}
+
+functional.reduce = fun l, f, init {
+    for _, v in l {
+        init = f(init, v)
+    }
+    ret init
+}
+
+export(functional)
