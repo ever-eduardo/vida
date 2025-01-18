@@ -46,8 +46,8 @@ loc printList = fun xs {
 }
 
 loc suggestionsList = [
-    "object lib api"
-    "save compiled artefacts"
+    "object lib api (extract)"
+    "save compiled artefacts (serialization)"
     "Analysis of code generation looking for optimization opportunities"
     "Think concepts like module, lib, packages"
     "Bytes and String buffer values"
@@ -55,7 +55,7 @@ loc suggestionsList = [
     "Create a libray for basic testing"
     "Metaprogramming"
     "Thinking Functional (Lambda)"
-    "cooperative multitasking model of concurrency"
+    "A cooperative multitasking model of concurrency"
 ]
 
 printList(suggestionsList)
