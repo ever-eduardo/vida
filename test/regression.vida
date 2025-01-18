@@ -120,3 +120,15 @@ assert(
     data[3] == cmp.gamma and data[4] == cmp.gamma and data[5] == cmp.gamma or
     data[6] == cmp.gamma and data[7] == cmp.gamma and data[8] == cmp.gamma
 )
+
+
+loc ___a = [1 2 3 4 5]
+loc ___ref = ___a
+let ___i = 0
+___a[___i] = ___i
+loc ___b = 90
+loc ___c = ___b + ___b
+
+assert(___b == 90)
+assert(___c == ___b + ___b)
+assert(___a == ___ref)
