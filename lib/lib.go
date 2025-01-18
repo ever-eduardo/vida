@@ -1,4 +1,4 @@
-package libs
+package lib
 
 import "github.com/ever-eduardo/vida"
 

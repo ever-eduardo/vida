@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/ever-eduardo/vida"
-	libs "github.com/ever-eduardo/vida/libs"
+	"github.com/ever-eduardo/vida/lib"
 )
 
 func main() {
@@ -27,7 +27,7 @@ func main() {
 }
 
 func executeModule(modulePath string) {
-	i, err := vida.NewInterpreter(modulePath, libs.Loadlibs())
+	i, err := vida.NewInterpreter(modulePath, lib.Loadlibs())
 	handleError(err, modulePath)
 	r, err := i.MeasureRunTime()
 	handleError(err, modulePath)

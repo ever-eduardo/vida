@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/ever-eduardo/vida"
-	libs "github.com/ever-eduardo/vida/libs"
+	"github.com/ever-eduardo/vida/lib"
 )
 
 const (
@@ -64,7 +64,7 @@ func main() {
 
 func debug(args []string) {
 	clear()
-	libs := libs.Loadlibs()
+	libs := lib.Loadlibs()
 	if len(args) > 2 {
 		printVersion()
 		i, err := vida.NewDebugger(args[2], libs)
@@ -79,7 +79,7 @@ func debug(args []string) {
 }
 
 func run(args []string) {
-	libs := libs.Loadlibs()
+	libs := lib.Loadlibs()
 	if len(args) > 2 {
 		i, err := vida.NewInterpreter(args[2], libs)
 		handleError(err)
@@ -97,7 +97,7 @@ func run(args []string) {
 func time(args []string) {
 	clear()
 	printVersion()
-	libs := libs.Loadlibs()
+	libs := lib.Loadlibs()
 	if len(args) > 2 {
 		i, err := vida.NewInterpreter(args[2], libs)
 		handleError(err)
