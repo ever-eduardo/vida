@@ -412,7 +412,7 @@ func (c *compiler) compileStmt(node ast.Node) {
 				c.emitISet(i, j, k, storeFromGlobal, storeFromFree)
 			}
 			c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
-			c.rAlloc -= 2
+			c.rAlloc--
 		case rKonst:
 			c.rAlloc++
 			k, u := c.compileExpr(n.Expr, true)
@@ -442,7 +442,7 @@ func (c *compiler) compileStmt(node ast.Node) {
 				c.emitISet(i, j, k, storeFromFree, storeFromGlobal)
 			}
 			c.linesMap[c.currentFn.ModuleName][len(c.currentFn.Code)] = n.Line
-			c.rAlloc -= 2
+			c.rAlloc--
 		}
 		c.rAlloc--
 		c.fromRefStmt = false
