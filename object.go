@@ -3,7 +3,7 @@ package vida
 func loadObjectLib() Value {
 	m := &Object{Value: make(map[string]Value)}
 	m.Value["inject"] = injectProps()
-	m.Value["extend"] = extendObject()
+	m.Value["extract"] = extractProps()
 	m.Value["override"] = injectAndOverrideProps()
 	m.Value["check"] = checkProps()
 	m.UpdateKeys()
@@ -78,20 +78,20 @@ func checkProps() GFn {
 	}
 }
 
-func extendObject() GFn {
+func extractProps() GFn {
 	return func(args ...Value) (Value, error) {
 		if len(args) > 1 {
-			extension := make(map[string]Value)
-			for _, val := range args {
-				if obj, ok := val.(*Object); ok {
-					for k, v := range obj.Value {
-						if _, isPresent := extension[k]; !isPresent {
-							extension[k] = v
+			if o, ok := args[0].(*Object); ok {
+				for _, v := range args[1:] {
+					if m, ok := v.(*Object); ok && m != o {
+						for k := range m.Value {
+							delete(o.Value, k)
 						}
 					}
 				}
+				o.UpdateKeys()
+				return o, nil
 			}
-			return &Object{Value: extension}, nil
 		}
 		return NilValue, nil
 	}
