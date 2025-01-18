@@ -1,7 +1,5 @@
 package vida
 
-const objectLibName = "object"
-
 func loadObjectLib() Value {
 	m := &Object{Value: make(map[string]Value)}
 	m.Value["inject"] = injectProps()

@@ -1,6 +1,3 @@
-
-loc object = load("object")
-
 assert(object)
 
 loc void = {}

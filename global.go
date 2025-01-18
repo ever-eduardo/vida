@@ -15,6 +15,8 @@ type LibsLoader map[string]func() Value
 
 var libsLoader LibsLoader
 
+const DefaultPrompt = "Input >> "
+
 var coreLibNames = []string{
 	"print",
 	"len",
@@ -36,6 +38,7 @@ var coreLibNames = []string{
 	"bool",
 	"copy",
 	"bytes",
+	"object",
 }
 
 func loadCoreLib(store *[]Value) {
@@ -60,6 +63,7 @@ func loadCoreLib(store *[]Value) {
 		GFn(gfnToBool),
 		GFn(gfnCopy),
 		GFn(gfnBytes),
+		loadObjectLib(),
 	)
 }
 
@@ -200,7 +204,7 @@ func gfnReadLine(args ...Value) (Value, error) {
 	if len(args) > 0 {
 		fmt.Print(args[0])
 	} else {
-		fmt.Print("Input >> ")
+		fmt.Print(DefaultPrompt)
 	}
 	scanner := bufio.NewScanner(os.Stdin)
 	for scanner.Scan() {
@@ -232,9 +236,6 @@ func gfnDel(args ...Value) (Value, error) {
 func gfnLoadLib(args ...Value) (Value, error) {
 	if len(args) > 0 {
 		if v, ok := args[0].(*String); ok {
-			if v.Value == objectLibName {
-				return loadObjectLib(), nil
-			}
 			if l, isPresent := libsLoader[v.Value]; isPresent {
 				return l(), nil
 			}
@@ -578,6 +579,8 @@ var coreLibDescription = []string{
 	If a list is passed as argument, then bytes will
 	iterate over the list and convert every integer to
 	a byte value truncating it to its uint8 bits value.
+
+	The corelib object library.
 	`,
 }
 
