@@ -207,16 +207,23 @@ Loop:
 			var args []ast.Node
 			var ellipsis int
 			p.advance()
+			if p.current.Token == token.ELLIPSIS {
+				p.advance()
+				ellipsis = 1
+				args = append(args, p.expression(token.LowestPrec))
+				p.advance()
+				goto afterParen
+			}
 			for p.current.Token != token.RPAREN && p.current.Token != token.EOF {
+				args = append(args, p.expression(token.LowestPrec))
+				p.advance()
 				if p.current.Token == token.ELLIPSIS {
 					p.advance()
-					ellipsis = 1
+					ellipsis = 2
 					args = append(args, p.expression(token.LowestPrec))
 					p.advance()
 					goto afterParen
 				}
-				args = append(args, p.expression(token.LowestPrec))
-				p.advance()
 				for p.current.Token == token.COMMA {
 					p.advance()
 					if p.current.Token == token.ELLIPSIS {
@@ -229,7 +236,6 @@ Loop:
 					args = append(args, p.expression(token.LowestPrec))
 					p.advance()
 				}
-				goto afterParen
 			}
 		afterParen:
 			p.expect(token.RPAREN)
@@ -252,16 +258,23 @@ Loop:
 			p.advance()
 			p.expect(token.LPAREN)
 			p.advance()
+			if p.current.Token == token.ELLIPSIS {
+				p.advance()
+				ellipsis = 1
+				args = append(args, p.expression(token.LowestPrec))
+				p.advance()
+				goto endCall
+			}
 			for p.current.Token != token.RPAREN && p.current.Token != token.EOF {
+				args = append(args, p.expression(token.LowestPrec))
+				p.advance()
 				if p.current.Token == token.ELLIPSIS {
 					p.advance()
-					ellipsis = 1
+					ellipsis = 2
 					args = append(args, p.expression(token.LowestPrec))
 					p.advance()
 					goto endCall
 				}
-				args = append(args, p.expression(token.LowestPrec))
-				p.advance()
 				for p.current.Token == token.COMMA {
 					p.advance()
 					if p.current.Token == token.ELLIPSIS {
@@ -274,7 +287,6 @@ Loop:
 					args = append(args, p.expression(token.LowestPrec))
 					p.advance()
 				}
-				goto endCall
 			}
 		endCall:
 			p.expect(token.RPAREN)
@@ -574,22 +586,15 @@ func (p *parser) operand() ast.Node {
 		for p.current.Token == token.IDENTIFIER {
 			f.Args = append(f.Args, p.current.Lit)
 			p.advance()
-			for p.current.Token == token.COMMA {
-				p.advance()
-				p.expect(token.IDENTIFIER)
-				f.Args = append(f.Args, p.current.Lit)
-				p.advance()
-				if p.current.Token == token.ELLIPSIS {
-					f.IsVar = true
-					p.advance()
-					goto endParams
-				}
-			}
 			if p.current.Token == token.ELLIPSIS {
 				f.IsVar = true
 				p.advance()
+				goto endParams
 			}
-			goto endParams
+			if p.current.Token == token.COMMA {
+				p.advance()
+				p.expect(token.IDENTIFIER)
+			}
 		}
 	endParams:
 		if p.current.Token == token.ARROW {
@@ -704,16 +709,23 @@ func (p *parser) callExpr(e ast.Node) ast.Node {
 	p.advance()
 	var args []ast.Node
 	var ellipsis int
+	if p.current.Token == token.ELLIPSIS {
+		p.advance()
+		ellipsis = 1
+		args = append(args, p.expression(token.LowestPrec))
+		p.advance()
+		goto afterParen
+	}
 	for p.current.Token != token.RPAREN && p.current.Token != token.EOF {
+		args = append(args, p.expression(token.LowestPrec))
+		p.advance()
 		if p.current.Token == token.ELLIPSIS {
 			p.advance()
-			ellipsis = 1
+			ellipsis = 2
 			args = append(args, p.expression(token.LowestPrec))
 			p.advance()
 			goto afterParen
 		}
-		args = append(args, p.expression(token.LowestPrec))
-		p.advance()
 		for p.current.Token == token.COMMA {
 			p.advance()
 			if p.current.Token == token.ELLIPSIS {
@@ -726,7 +738,6 @@ func (p *parser) callExpr(e ast.Node) ast.Node {
 			args = append(args, p.expression(token.LowestPrec))
 			p.advance()
 		}
-		goto afterParen
 	}
 afterParen:
 	p.expect(token.RPAREN)
@@ -743,16 +754,23 @@ func (p *parser) methodCallExpr(e ast.Node) ast.Node {
 	p.advance()
 	p.expect(token.LPAREN)
 	p.advance()
+	if p.current.Token == token.ELLIPSIS {
+		p.advance()
+		ellipsis = 1
+		args = append(args, p.expression(token.LowestPrec))
+		p.advance()
+		goto afterParen
+	}
 	for p.current.Token != token.RPAREN && p.current.Token != token.EOF {
+		args = append(args, p.expression(token.LowestPrec))
+		p.advance()
 		if p.current.Token == token.ELLIPSIS {
 			p.advance()
-			ellipsis = 1
+			ellipsis = 2
 			args = append(args, p.expression(token.LowestPrec))
 			p.advance()
 			goto afterParen
 		}
-		args = append(args, p.expression(token.LowestPrec))
-		p.advance()
 		for p.current.Token == token.COMMA {
 			p.advance()
 			if p.current.Token == token.ELLIPSIS {
@@ -765,7 +783,6 @@ func (p *parser) methodCallExpr(e ast.Node) ast.Node {
 			args = append(args, p.expression(token.LowestPrec))
 			p.advance()
 		}
-		goto afterParen
 	}
 afterParen:
 	p.expect(token.RPAREN)
