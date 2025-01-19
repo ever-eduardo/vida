@@ -14,7 +14,7 @@ global		:=	'let' ident '=' expr
 local		:=	'loc' 'rec'? ident '=' expr
 mut			:=	iden '=' expr
 data		:=	ident select select* '=' expr
-call		:=	iden select* '(' ...expr | (expr (',' expr)* (',' ...expr)?)? ')'
+call		:=	iden select* '(' ...expr | (expr (','? expr)* (','? ...expr)?)? ')'
 block		:=	'{' statement* '}'
 loopBlock	:=	'{' statement* break* continue* '}'
 for			:=	'for' ident '=' expr (',' expr (',' expr)?)? loopBlock
@@ -71,13 +71,13 @@ Object		:=	'{'((iden | pair) ((',')? ident | pair)* (',')?)?'}'
 pair		:=	ident '=' expr
 Error		:=	'error' '(' expr? ')'
 Import		:=	'import' '(' String ')'
-Function	:=	'fun' (iden... | iden (',' iden)* (',' iden...)? )? fBody | '=>' expr
+Function	:=	'fun' (iden... | iden (','? iden)* (','? iden...)? )? fBody | '=>' expr
 fBody		:=	'{' statement* ret?* '}'
 Enumeration :=	'enum' '{' ident+ '}'
 			|	'enum' '{' ident '=' '-'|'+'|'~'? Integer iden* '}'
 select		:=	'[' expr | '..' | '..' expr | expr '..' | expr '..' expr ']' select*
 			|	'.' ident select*
-			|	'(' ...expr | (expr (',' expr)*)?  (',' ...expr)? ')' select*
+			|	'(' ...expr | (expr (','? expr)*)?  (','? ...expr)? ')' select*
 			|	'--' ident '(' ...expr | (expr (',' expr)*)? (',' ...expr)? ')' select*
 break		:=	'break'
 continue	:=	'continue'
