@@ -132,3 +132,159 @@ loc ___c = ___b + ___b
 assert(___b == 90)
 assert(___c == ___b + ___b)
 assert(___a == ___ref)
+
+
+data = [1,]
+assert(len(data) == 1 and data[0] == 1)
+
+data = [1 2,]
+assert(len(data) == 2 and data[0] == 1 and data[1] == 2)
+
+data = [1, 2, ]
+assert(len(data) == 2 and data[0] == 1 and data[1] == 2)
+
+data = [1 2 3]
+assert(len(data) == 3 and data[0] == 1 and data[1] == 2 and data[2] == 3)
+
+data = [1, 2, 3,]
+assert(len(data) == 3 and data[0] == 1 and data[1] == 2 and data[2] == 3)
+
+data = [1, 2 3]
+assert(len(data) == 3 and data[0] == 1 and data[1] == 2 and data[2] == 3)
+
+data = [1 2, 3]
+assert(len(data) == 3 and data[0] == 1 and data[1] == 2 and data[2] == 3)
+
+data = [1 2 3,]
+assert(len(data) == 3 and data[0] == 1 and data[1] == 2 and data[2] == 3)
+
+data = [1, 2, 3]
+assert(len(data) == 3 and data[0] == 1 and data[1] == 2 and data[2] == 3)
+
+data = [1 2, 3,]
+assert(len(data) == 3 and data[0] == 1 and data[1] == 2 and data[2] == 3)
+
+data = [1, 2 3,]
+assert(len(data) == 3 and data[0] == 1 and data[1] == 2 and data[2] == 3)
+
+data = [1, 2, 3]
+assert(len(data) == 3 and data[0] == 1 and data[1] == 2 and data[2] == 3)
+
+data = {}
+assert(len(data) == 0 and data.hello == nil)
+
+data = { hello beautiful world }
+assert(len(data) == 3 and not data.hello and not data.beautiful and not data.world)
+
+data = { hello, beautiful, world, }
+assert(len(data) == 3 and not data.hello and not data.beautiful and not data.world)
+
+data = { hello, beautiful world }
+assert(len(data) == 3 and not data.hello and not data.beautiful and not data.world)
+
+data = { hello beautiful, world }
+assert(len(data) == 3 and not data.hello and not data.beautiful and not data.world)
+
+data = { hello beautiful world, }
+assert(len(data) == 3 and not data.hello and not data.beautiful and not data.world)
+
+data = { hello, beautiful, world }
+assert(len(data) == 3 and not data.hello and not data.beautiful and not data.world)
+
+data = { hello beautiful, world, }
+assert(len(data) == 3 and not data.hello and not data.beautiful and not data.world)
+
+data = { hello, beautiful world, }
+assert(len(data) == 3 and not data.hello and not data.beautiful and not data.world)
+
+data = { hello, beautiful, world }
+assert(len(data) == 3 and not data.hello and not data.beautiful and not data.world)
+
+loc i = 90
+
+data = {
+    hello = i
+    beautiful = i
+    world = i
+}
+assert(len(data) == 3 and data.hello == i and data.beautiful == i and data.world == i)
+assert(len(data) == 3 and -data.hello == -i and -data.beautiful == -i and -data.world == -i)
+
+data = {
+    hello = i
+    beautiful
+    world
+}
+assert(len(data) == 3 and data.hello == i and data.beautiful == nil and data.world == nil)
+assert(len(data) == 3 and -data.hello == -i and not data.beautiful and not data.world)
+
+data = {
+    hello
+    beautiful = i
+    world
+}
+assert(len(data) == 3 and data.hello == nil and data.beautiful == i and data.world == nil)
+assert(len(data) == 3 and not data.hello and -data.beautiful == -i and not data.world)
+
+data = {
+    hello
+    beautiful
+    world = i
+}
+assert(len(data) == 3 and data.hello == nil and data.beautiful == nil and data.world == i)
+assert(len(data) == 3 and not data.hello and not data.beautiful and -data.world == -i)
+
+
+data = {
+    hello
+    beautiful = i
+    world = i
+}
+assert(len(data) == 3 and data.hello == nil and data.beautiful == i and data.world == i)
+assert(len(data) == 3 and not data.hello and -data.beautiful == -i and -data.world == -i)
+
+
+data = {
+    hello = i
+    beautiful = i
+    world
+}
+assert(len(data) == 3 and data.hello == i and data.beautiful == i and data.world == nil)
+assert(len(data) == 3 and -data.hello == -i and -data.beautiful == -i and not data.world)
+
+data = {
+    hello = i
+    beautiful
+    world = i
+}
+assert(len(data) == 3 and data.hello == i and data.beautiful == nil and data.world == i)
+assert(len(data) == 3 and -data.hello == -i and not data.beautiful and -data.world == -i)
+
+
+i = [10 20 30]
+f = fun x y z => [x y z]
+
+assert(f(i[0] i[1] i[2])[0] == i[0])
+assert(f(i[0] i[1] i[2])[1] == i[1])
+assert(f(i[0] i[1] i[2])[2] == i[2])
+
+assert(f(i[0], i[1], i[2])[0] == i[0])
+assert(f(i[0], i[1], i[2])[1] == i[1])
+assert(f(i[0], i[1], i[2])[2] == i[2])
+
+assert(f(i[0], i[1] i[2])[0] == i[0])
+assert(f(i[0], i[1] i[2])[1] == i[1])
+assert(f(i[0], i[1] i[2])[2] == i[2])
+
+assert(f(i[0] i[1], i[2])[0] == i[0])
+assert(f(i[0] i[1], i[2])[1] == i[1])
+assert(f(i[0] i[1], i[2])[2] == i[2])
+
+assert(f(i[0], i[1], i[2])[0] == i[0])
+assert(f(i[0], i[1], i[2])[1] == i[1])
+assert(f(i[0], i[1], i[2])[2] == i[2])
+
+assert(f(i[0] i[1], i[2])[0] == i[0])
+assert(f(i[0] i[1], i[2])[1] == i[1])
+assert(f(i[0] i[1], i[2])[2] == i[2])
+
