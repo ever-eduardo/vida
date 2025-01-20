@@ -46,7 +46,8 @@ loc printList = fun xs {
 }
 
 loc suggestionsList = [
-    "save compiled artefacts (serialization)"
+    "Organize the Corelib"
+    "Save compiled artefacts in files (serialization)"
     "Think concepts like module, lib, packages"
     "Bytes and String buffer values"
     "A '**' power binary op"
