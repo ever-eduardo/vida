@@ -53,6 +53,7 @@ loc suggestionsList = [
     "Create a libray for basic testing"
     "Metaprogramming"
     "Thinking Functional (Lambda)"
+    "Go API"
     "A cooperative multitasking model of concurrency"
 ]
 
