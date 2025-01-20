@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"reflect"
 	"strconv"
 
 	"github.com/ever-eduardo/vida/verror"
@@ -39,6 +40,8 @@ var coreLibNames = []string{
 	"copy",
 	"bytes",
 	"object",
+	"deepEqual",
+	"__Corelib",
 }
 
 func loadCoreLib(store *[]Value) {
@@ -64,6 +67,8 @@ func loadCoreLib(store *[]Value) {
 		GFn(gfnCopy),
 		GFn(gfnBytes),
 		loadObjectLib(),
+		GFn(DeepEqual),
+		GFn(gfnCorelib),
 	)
 }
 
@@ -409,6 +414,42 @@ func gfnCopy(args ...Value) (Value, error) {
 	return NilValue, nil
 }
 
+func DeepEqual(args ...Value) (Value, error) {
+	if len(args) > 1 {
+		return Bool(reflect.DeepEqual(args[0], args[1])), nil
+	}
+	return NilValue, nil
+}
+
+func gfnCorelib(args ...Value) (Value, error) {
+	m := &Object{Value: make(map[string]Value)}
+	m.Value[coreLibNames[0]] = GFn(gfnPrint)
+	m.Value[coreLibNames[1]] = GFn(gfnLen)
+	m.Value[coreLibNames[2]] = GFn(gfnAppend)
+	m.Value[coreLibNames[3]] = GFn(gfnMakeList)
+	m.Value[coreLibNames[4]] = GFn(gfnLoadLib)
+	m.Value[coreLibNames[5]] = GFn(gfnType)
+	m.Value[coreLibNames[6]] = GFn(gfnAssert)
+	m.Value[coreLibNames[7]] = GFn(gfnFormat)
+	m.Value[coreLibNames[8]] = GFn(gfnReadLine)
+	m.Value[coreLibNames[9]] = GFn(gfnClone)
+	m.Value[coreLibNames[10]] = GFn(gfnDel)
+	m.Value[coreLibNames[11]] = GFn(gfnError)
+	m.Value[coreLibNames[12]] = GFn(gfnExcept)
+	m.Value[coreLibNames[13]] = GFn(gfnIsError)
+	m.Value[coreLibNames[14]] = GFn(gfnToString)
+	m.Value[coreLibNames[15]] = GFn(gfnToInt)
+	m.Value[coreLibNames[16]] = GFn(gfnToFloat)
+	m.Value[coreLibNames[17]] = GFn(gfnToBool)
+	m.Value[coreLibNames[18]] = GFn(gfnCopy)
+	m.Value[coreLibNames[19]] = GFn(gfnBytes)
+	m.Value[coreLibNames[20]] = loadObjectLib()
+	m.Value[coreLibNames[21]] = GFn(DeepEqual)
+	m.Value[coreLibNames[22]] = GFn(gfnCorelib)
+	m.UpdateKeys()
+	return m, nil
+}
+
 func StringLength(input *String) Integer {
 	if input.Runes == nil {
 		input.Runes = []rune(input.Value)
@@ -581,6 +622,13 @@ var coreLibDescription = []string{
 	a byte value truncating it to its uint8 bits value.
 
 	The corelib object library.
+	`,
+	`
+	Uses go's deepEqual function for value equality.
+	Beware of its inconsistencies.
+	`,
+	`
+	Create a copy of the Corelib.
 	`,
 }
 
