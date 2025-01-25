@@ -342,7 +342,7 @@ func (file *FileHandler) String() string {
 }
 
 func (file *FileHandler) Type() string {
-	return "fileHandler"
+	return "io.fileHandler"
 }
 
 func (file *FileHandler) Clone() vida.Value {
