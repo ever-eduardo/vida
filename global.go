@@ -144,6 +144,13 @@ func gfnAppend(args ...Value) (Value, error) {
 		case *List:
 			v.Value = append(v.Value, args[1:]...)
 			return v, nil
+		case *Bytes:
+			for _, val := range args[1:] {
+				if i, ok := val.(Integer); ok {
+					v.Value = append(v.Value, byte(i))
+				}
+			}
+			return v, nil
 		}
 	}
 	return NilValue, nil
@@ -301,8 +308,7 @@ func gfnToInt(args ...Value) (Value, error) {
 		case Nil:
 			return Integer(0), nil
 		}
-	}
-	if l == 2 {
+	} else if l == 2 {
 		if v, ok := args[0].(*String); ok {
 			if b, ok := args[1].(Integer); ok {
 				i, e := strconv.ParseInt(v.Value, int(b), 64)
@@ -514,6 +520,8 @@ var coreLibDescription = []string{
 	Return the list passed as first argument.
 	Examples: let xs be a list, then 
 	append(xs, value), append(xs a b c) -> xs
+	If the list is a list of bytes, only convert
+	integer values to uint8 bits values.
 	`,
 	`
 	Create a list. 
@@ -619,10 +627,10 @@ var coreLibDescription = []string{
 	It always does a shallow copy.
 	`,
 	`
-	Create an immutable byte list from a string value.
-	It can create the list by passing its size,
-	as first argumeent, and an optional integer 
-	as their initial value as second arg.
+	Create a list of bytes from a string value.
+	It can create a list of bytes by passing its size,
+	as first argument, and an optional integer 
+	as their initial value as second one.
 	If a list is passed as argument, then bytes will
 	iterate over the list and convert every integer to
 	a byte value truncating it to its uint8 bits value.
