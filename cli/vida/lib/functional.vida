@@ -61,4 +61,31 @@ functional.takeWhile = fun l, pred {
     ret xs
 }
 
+functional.zip = fun l, r {
+    loc length = nil
+    loc ll = len(l)
+    loc lr = len(r)
+    if ll < lr {
+        length = ll
+    } else {
+        length = lr
+    }
+    loc xs = list(length)
+    for i = 0, length {
+        xs[i] = [l[i], r[i]]
+    }
+    ret xs
+}
+
+functional.unzip = fun l {
+    loc ll = len(l)
+    loc a = list(ll)
+    loc b = list(ll)
+    for i, v in l {
+        a[i] = v[0]
+        b[i] = v[1]
+    }
+    ret [a, b]
+}
+
 export(functional)
