@@ -2,7 +2,7 @@
 //
 // Module functional list
 // This module provides high order functions for lists.
-// Version 1.2025
+// Version 1.0.0
 //
 
 loc functional = {}
@@ -34,7 +34,7 @@ functional.all = fun l, pred {
     ret true
 }
 
-functional.some = fun l, pred {
+functional.any = fun l, pred {
     for _, v in l {
         if pred(v) {
             ret true
@@ -48,6 +48,17 @@ functional.reduce = fun l, f, init {
         init = f(init, v)
     }
     ret init
+}
+
+functional.takeWhile = fun l, pred {
+    loc xs = list()
+    for _, v in l {
+        if not pred(v) {
+            ret xs
+        }
+        append(xs, v)
+    }
+    ret xs
 }
 
 export(functional)
