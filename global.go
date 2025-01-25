@@ -41,7 +41,7 @@ var coreLibNames = []string{
 	"bytes",
 	"object",
 	"deepEqual",
-	"__Corelib",
+	"__corelib",
 }
 
 func loadCoreLib(store *[]Value) {
@@ -499,54 +499,60 @@ func IsMemberOf(args ...Value) (Value, error) {
 
 var coreLibDescription = []string{
 	`
-	Print one or more values separated by a comma.
-	Always return nil.
-	Examples: print(value), print(a, b, c) -> nil
+	Print one or more values.
+	Commas between values are optional.
+	Examples: print(v0 v1 v2), print(a, b, c) -> nil
 	`,
 	`
 	Return an integer representing the length of lists, 
-	objects or strings. In case of a string value, 
+	objects, bytes or strings. In case of a string value, 
 	the function returns the number of unicode codepoints.
 	Example: len(value) -> int
 	`,
 	`
-	Append one of more values separated by comma 
-	at the end of a list.
+	Add one of more values at the end of a list.
 	Return the list passed as first argument.
 	Examples: let xs be a list, then 
-	append(xs, value), append(xs, a, b, c) -> xs
+	append(xs, value), append(xs a b c) -> xs
 	`,
 	`
 	Create a list. 
 	Receive 0, 1 or 2 arguments. 
 	Whith zero argumeents, return an empty list. 
-	With 1 argument n, with n of type intenger,
-	return a list of n elements initialized to nil.
+	With 1 argument n of type intenger,
+	return a list of n elements all initialized to nil.
 	With 2 argumeents (n, m), with n of type integer,
-	and m of any type, return a list of n elements all 
+	and m of type T, return a list of n elements all 
 	initialized to the m value.
 	Examples: 
 		list() -> [],
-		list(10) -> [nil, ..., nil],
+		list(10) -> [nil, ... , nil],
 		list(n, v) -> [v, v, ... , v]
 	`,
 	`
-	Load a specific library from the stdlib.
-	Receive an argument n of type string, and return an object
-	containing the constants and functionality. If thee library
-	does not exist, return nil.
+	Load a library from the package lib.
+	Those librarires are written in go, and they are
+	intended to extend the functionality of the language.
+	Receive an argument s of type string, and return an object
+	containing the lib functionality.
+	If the library denoted by s does not exist, return nil.
 	Example: load("math"), load("random")
 	`,
 	`
 	Return the type of a value as string.
-	Example: type(123) -> "int"
+	Example: type(123) -> "int".
+	A suggested convention to avoid type name clashes,
+	is to name types other than the built-in ones,
+	with this pattern ({lib name}.)+{type name}.
+	Example: type(43) -> "int" (Built-in type)
+	type(file) -> "io.file" (From the io library) 
 	`,
 	`
-	Make an assertion about an expression, and optionally print a
-	message in case of assertion failure.
-	If the assertion fails, then it will always produce 
-	a runtime error. Otherwise, it just return a nil value.
-	Example: assert(false), assert(true)
+	Make an assertion about an expression.
+	If the expression represents a false value, then
+	It fails and returns a run time error.
+	Otherwise, it returns a nil value.
+	Example: assert(false), assert(true), assert(not nil)
 	`,
 	`
 	Return a string with the given format.
@@ -605,7 +611,7 @@ var coreLibDescription = []string{
 	`,
 	`
 	Convertion from string to boolean.
-	Return nil when fail.
+	Return nil when fails.
 	`,
 	`
 	Copy a source value into a dest value,
@@ -620,15 +626,20 @@ var coreLibDescription = []string{
 	If a list is passed as argument, then bytes will
 	iterate over the list and convert every integer to
 	a byte value truncating it to its uint8 bits value.
-
-	The corelib object library.
+	`,
+	`
+	It is the built-in object with some functionality
+	for working with objects.
 	`,
 	`
 	Uses go's deepEqual function for value equality.
 	Beware of its inconsistencies.
 	`,
 	`
-	Create a copy of the Corelib.
+	It is a functions to create a copy of the Corelib. 
+	It use case is just in case you have
+	overwriteen its initial values.
+	Example loc corelib = __corelib()
 	`,
 }
 
