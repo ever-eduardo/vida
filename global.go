@@ -172,6 +172,22 @@ func gfnMakeList(args ...Value) (Value, error) {
 				}
 				return &List{Value: arr}, nil
 			}
+		case *Object:
+			if f, ok := v.Value["from"]; ok && f.Type() == "int" {
+				if t, ok := v.Value["to"]; ok && t.Type() == "int" {
+					from := f.(Integer)
+					to := t.(Integer)
+					if from < to {
+						l := to - from
+						xs := make([]Value, l)
+						for i := Integer(0); i < l; i++ {
+							xs[i] = Integer(from)
+							from++
+						}
+						return &List{Value: xs}, nil
+					}
+				}
+			}
 		}
 	}
 	return &List{}, nil

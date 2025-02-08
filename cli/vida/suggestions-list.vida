@@ -54,7 +54,7 @@ loc suggestionsList = [
     "Metaprogramming"
     "Thinking Functional (Lambda)"
     "Go API"
-    "A cooperative multitasking model of concurrency"
+    "A model of concurrency"
 ]
 
 printList(suggestionsList)
