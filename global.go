@@ -41,6 +41,7 @@ var coreLibNames = []string{
 	"bytes",
 	"object",
 	"deepEqual",
+	"time",
 	"__corelib",
 }
 
@@ -68,6 +69,7 @@ func loadCoreLib(store *[]Value) {
 		GFn(gfnBytes),
 		loadObjectLib(),
 		GFn(DeepEqual),
+		loadTimeLib(),
 		GFn(gfnCorelib),
 	)
 }
@@ -467,7 +469,8 @@ func gfnCorelib(args ...Value) (Value, error) {
 	m.Value[coreLibNames[19]] = GFn(gfnBytes)
 	m.Value[coreLibNames[20]] = loadObjectLib()
 	m.Value[coreLibNames[21]] = GFn(DeepEqual)
-	m.Value[coreLibNames[22]] = GFn(gfnCorelib)
+	m.Value[coreLibNames[22]] = loadTimeLib()
+	m.Value[coreLibNames[23]] = GFn(gfnCorelib)
 	m.UpdateKeys()
 	return m, nil
 }
@@ -542,7 +545,7 @@ var coreLibDescription = []string{
 	`
 	Create a list. 
 	Receive 0, 1 or 2 arguments. 
-	Whith zero argumeents, return an empty list. 
+	Whith zero arguments, return an empty list. 
 	With 1 argument n of type intenger,
 	return a list of n elements all initialized to nil.
 	With 2 argumeents (n, m), with n of type integer,
@@ -567,7 +570,7 @@ var coreLibDescription = []string{
 	Example: type(123) -> "int".
 	A suggested convention to avoid type name clashes,
 	is to name types other than the built-in ones,
-	with this pattern ({lib name}.)+{type name}.
+	with this pattern {lib name} + . + {type name}.
 	Example: type(43) -> "int" (Built-in type)
 	type(file) -> "io.file" (From the io library) 
 	`,
@@ -579,19 +582,21 @@ var coreLibDescription = []string{
 	Example: assert(false), assert(true), assert(not nil)
 	`,
 	`
-	Return a string with the given format.
+	Return a string with the given format. String interpolation
+	can be done very well with it.
 	The most common verb formats are: %v, %T, %f, %d, %b, %x
 	Example: format("This is the number %v", 15)
 	`,
 	`
-	Show a prompt and wait for an input from the user.
+	Show a prompt and wait for the input from the user.
+	It is a blocking function.
 	If no prompt is given, it shows a default one.
 	Return a string representing the user input.
 	Example: input("Write something here") -> string
 	`,
 	`
-	Make a copy of value semantics values or a deep copy 
-	of a reference semantics values.
+	Make a copy of value-semantics values or a deep copy 
+	of reference-semantics values.
 	Example: clone(someValue)
 	`,
 	`
@@ -602,7 +607,7 @@ var coreLibDescription = []string{
 	`
 	Create an error value. An error value may be used to signal
 	some behavior considered an error. The boolean value of an
-	error value is always false. When an argument is give, it will
+	error value is always false. When an argument is given, it will
 	be the printable message for the client of the functionality
 	with the unexpected behavior.
 	Example: 
@@ -622,19 +627,20 @@ var coreLibDescription = []string{
 	Example: if isError(value) {handle the error here}
 	`,
 	`
-	Return a string representation of a value.
+	Return a string representation of any value.
 	`,
 	`
-	Convertion from string to integer. The second optional argumeent
+	Attempt a type convertion from string to integer. 
+	The second optional argument
 	is an integer representing a base from 2 to 36.
 	Return nil when fail.
 	`,
 	`
-	Convertion from string to float.
+	Attempt a type convertion from string to float.
 	Return nil when fail.
 	`,
 	`
-	Convertion from string to boolean.
+	Attemp a type convertion from string to boolean.
 	Return nil when fails.
 	`,
 	`
@@ -646,29 +652,34 @@ var coreLibDescription = []string{
 	Create a list of bytes from a string value.
 	It can create a list of bytes by passing its size,
 	as first argument, and an optional integer 
-	as their initial value as second one.
-	If a list is passed as argument, then bytes will
+	as their initial value as second argument.
+	If a list is passed as argument, then it will
 	iterate over the list and convert every integer to
 	a byte value truncating it to its uint8 bits value.
 	`,
 	`
-	It is the built-in object with some functionality
+	It is the built-in object library with some functionality
 	for working with objects.
 	`,
 	`
-	Uses go's deepEqual function for value equality.
+	Use Go's deepEqual function for value equality.
 	Beware of its inconsistencies.
 	`,
 	`
-	It is a functions to create a copy of the Corelib. 
-	It use case is just in case you have
-	overwriteen its initial values.
-	Example loc corelib = __corelib()
+	Date and time functionalities.
+	`,
+	`
+	It is a function to create a copy of the Core library.
+	The core library is the default library of Vida. 
+	It is useful when you have
+	overwriten some of its initial values.
+	Example:
+		let corelib = __corelib()
 	`,
 }
 
 func PrintCoreLibInformation() {
-	fmt.Printf("CoreLib:\n\n")
+	fmt.Printf("Core:\n\n")
 	for i := 0; i < len(coreLibNames); i++ {
 		fmt.Printf("  %v %v\n\n", coreLibNames[i], coreLibDescription[i])
 	}
