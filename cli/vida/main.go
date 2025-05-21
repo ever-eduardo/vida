@@ -6,8 +6,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/ever-eduardo/vida"
-	"github.com/ever-eduardo/vida/lib"
+	"github.com/alkemist-17/vida"
+	"github.com/alkemist-17/vida/lib"
 )
 
 const (

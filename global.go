@@ -7,7 +7,7 @@ import (
 	"reflect"
 	"strconv"
 
-	"github.com/ever-eduardo/vida/verror"
+	"github.com/alkemist-17/vida/verror"
 )
 
 var NilValue = Nil{}

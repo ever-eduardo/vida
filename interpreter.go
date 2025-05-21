@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/ever-eduardo/vida/ast"
-	"github.com/ever-eduardo/vida/lexer"
-	"github.com/ever-eduardo/vida/token"
+	"github.com/alkemist-17/vida/ast"
+	"github.com/alkemist-17/vida/lexer"
+	"github.com/alkemist-17/vida/token"
 )
 
 type Interpreter struct {

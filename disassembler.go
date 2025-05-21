@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/ever-eduardo/vida/token"
+	"github.com/alkemist-17/vida/token"
 )
 
 func PrintBytecode(m *Module, moduleName string) string {

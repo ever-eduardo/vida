@@ -3,7 +3,7 @@ package vida
 import (
 	"fmt"
 
-	"github.com/ever-eduardo/vida/verror"
+	"github.com/alkemist-17/vida/verror"
 )
 
 func (vm *vM) Inspect(ip int) {

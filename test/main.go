@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/ever-eduardo/vida"
-	"github.com/ever-eduardo/vida/lib"
+	"github.com/alkemist-17/vida"
+	"github.com/alkemist-17/vida/lib"
 )
 
 func main() {

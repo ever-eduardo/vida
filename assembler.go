@@ -3,7 +3,7 @@ package vida
 import (
 	"fmt"
 
-	"github.com/ever-eduardo/vida/token"
+	"github.com/alkemist-17/vida/token"
 )
 
 const (

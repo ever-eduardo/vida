@@ -1,6 +1,6 @@
 package ast
 
-import "github.com/ever-eduardo/vida/token"
+import "github.com/alkemist-17/vida/token"
 
 type Node interface {
 	_node()

@@ -1,3 +1,3 @@
-module github.com/ever-eduardo/vida
+module github.com/alkemist-17/vida
 
-go 1.24.0
+go 1.24.3

@@ -3,7 +3,7 @@ package vida
 import (
 	"os"
 
-	"github.com/ever-eduardo/vida/verror"
+	"github.com/alkemist-17/vida/verror"
 )
 
 const vidaFileExtension = ".vida"

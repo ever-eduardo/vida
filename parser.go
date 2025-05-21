@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/ever-eduardo/vida/ast"
-	"github.com/ever-eduardo/vida/lexer"
-	"github.com/ever-eduardo/vida/token"
-	"github.com/ever-eduardo/vida/verror"
+	"github.com/alkemist-17/vida/ast"
+	"github.com/alkemist-17/vida/lexer"
+	"github.com/alkemist-17/vida/token"
+	"github.com/alkemist-17/vida/verror"
 )
 
 type parser struct {
