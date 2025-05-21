@@ -26,7 +26,7 @@ assert(Color.red == 0)
 assert(Color.green == 1)
 assert(Color.blue == 2)
 
-loc CardSuit = enum {
+var CardSuit = enum {
     spades = 10
     hearts
     diamonds
@@ -38,7 +38,7 @@ assert(CardSuit.hearts == 11)
 assert(CardSuit.diamonds == 12)
 assert(CardSuit.clubs == 13)
 
-loc Konst = enum {
+var Konst = enum {
     c1 = 1
     c2
     _

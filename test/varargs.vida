@@ -7,24 +7,24 @@ let f = fun acc, xs... {
     ret f(acc-1, ...xs)
 }
 
-loc N = 10_000_000
-loc xs = [0, N]
+var N = 10_000_000
+var xs = [0, N]
 
 print(xs)
-loc r = f(N, ...xs)
+var r = f(N, ...xs)
 print(r)
 
-loc curry = fun f => fun x... => fun y... => f(f(...x), ...y)
+var curry = fun f => fun x... => fun y... => f(f(...x), ...y)
 
-loc g = fun xs... {
-    loc s = 0
+var g = fun xs... {
+    var s = 0
     for _, v in xs {
         s = s + v
     }
     ret s
 }
 
-loc c = curry(g)
+var c = curry(g)
 
 assert(c(1,2,3)(4,5) == 15)
 assert(c(...list(100, 2))(...list(100, 1)) == 300)

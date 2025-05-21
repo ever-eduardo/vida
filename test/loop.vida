@@ -1,7 +1,7 @@
 
 
-loc x = 0
-loc N = 100
+var x = 0
+var N = 100
 
 while true {
     break
@@ -10,7 +10,7 @@ while true {
 
 assert(x == 0)
 
-loc limit = 10_000_000
+var limit = 10_000_000
 
 assert(x <= limit)
 
@@ -74,8 +74,8 @@ for in 10_000_000 {
 assert(x == 10_000_000)
 
 while true {
-    loc k = nil
-    loc N = 10_000_000
+    var k = nil
+    var N = 10_000_000
     for i = 0, N+1, 10 {
         if i < N {
             k = i

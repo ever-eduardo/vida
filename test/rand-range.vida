@@ -1,26 +1,26 @@
-loc rand = load("rand")
-loc N = 1_000_000
+var rand = load("rand")
+var N = 1_000_000
 
-loc randRange = fun a, b {
+var randRange = fun a, b {
     assert(b > a)
     ret rand.nextI(b - a) + a
 }
 
-loc makeList = fun N, a, b {
-    loc xs = list(N)
+var makeList = fun N, a, b {
+    var xs = list(N)
     for i = 0, N {
         xs[i] = randRange(a, b)
     }
     ret xs
 }
 
-loc checkRange = fun xs, a, b {
+var checkRange = fun xs, a, b {
     for _, v in xs {
         assert(a <= v and v < b)
     }
 }
 
-loc a = 1_000_000
-loc b = 2_000_000
+var a = 1_000_000
+var b = 2_000_000
 
 checkRange(makeList(N, a, b), a, b)

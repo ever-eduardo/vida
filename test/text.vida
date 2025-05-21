@@ -1,7 +1,7 @@
-loc text = load("text")
+var text = load("text")
 assert(text)
 
-loc data = "Hello, World"
+var data = "Hello, World"
 
 assert(text.hasPrefix(data, "Hell"))
 assert(not text.hasPrefix(data, "amber"))
@@ -24,14 +24,14 @@ assert(text.split("", "Bernardo O'Higgins"))
 
 
 // Check equality
-loc checkListEquality = fun l, r {
+var checkListEquality = fun l, r {
     for i = 0, len(l) {
         assert(l[i] == r[i])
     }
 }
 
 // words
-loc words = [
+var words = [
     "philanthropy",
     "serendipity",
     "nebula",
@@ -58,7 +58,7 @@ assert(text.hasSuffix(words[4], "ception"))
 assert(text.hasSuffix(words[5], "ality"))
 
 // fields
-loc data = text.fields("philanthropy serendipity nebula origin perception cardinality")
+var data = text.fields("philanthropy serendipity nebula origin perception cardinality")
 
 checkListEquality(words, data)
 
@@ -68,8 +68,8 @@ data = text.split("philanthropy, serendipity, nebula, origin, perception, cardin
 checkListEquality(words, data)
 
 // repeat
-loc someText = "Some Serendipity Star"
-loc factor = 1024
+var someText = "Some Serendipity Star"
+var factor = 1024
 data = text.repeat(someText, factor)
 assert(len(someText) * factor == len(data))
 factor = 0
@@ -103,7 +103,7 @@ assert(data == "Peter Piver vicked a veck of vickled vevvers")
 // center
 
 someText = "hello"
-loc sep = "-"
+var sep = "-"
 
 assert(text.center(someText, -10) == someText)
 assert(text.center(someText, 0) == someText)

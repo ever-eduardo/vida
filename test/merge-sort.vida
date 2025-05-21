@@ -3,13 +3,13 @@
 */
 
 
-loc p = print
+var p = print
 
 
-loc rand = load("rand")
+var rand = load("rand")
 
 
-loc iComparable = {
+var iComparable = {
     comparedTo = fun self, r {
         if self.val < r.val {
             ret -1
@@ -22,20 +22,20 @@ loc iComparable = {
 }
 
 
-loc iPrinter = {
+var iPrinter = {
     print = fun self {
         p(self.val)
     }
 }
 
 
-loc data = {val = nil, comparedTo = iComparable.comparedTo, print = iPrinter.print}
+var data = {val = nil, comparedTo = iComparable.comparedTo, print = iPrinter.print}
 
 
-loc makeData = fun N, rnd, upperLimit {
-    loc xs = list(N)
+var makeData = fun N, rnd, upperLimit {
+    var xs = list(N)
     for i = 0, N {
-        loc c = clone(data)
+        var c = clone(data)
         c.val = rnd(upperLimit)
         xs[i] = c
     }
@@ -43,14 +43,14 @@ loc makeData = fun N, rnd, upperLimit {
 }
 
 
-loc printData = fun xs {
+var printData = fun xs {
     for _, v in xs {
         v--print()
     }
 }
 
 
-loc less = fun v, w {
+var less = fun v, w {
     if v--comparedTo(w) < 0 {
         ret true
     }
@@ -58,14 +58,14 @@ loc less = fun v, w {
 }
 
 
-loc swap = fun comparables, i, j {
-    loc temp = comparables[i]
+var swap = fun comparables, i, j {
+    var temp = comparables[i]
     comparables[i] = comparables[j]
     comparables[j] = temp
 }
 
 
-loc isSorted = fun comparables, lo, hi {
+var isSorted = fun comparables, lo, hi {
     for i = lo+1, hi {
         if less(comparables[i], comparables[i-1]) {
             ret false
@@ -75,13 +75,13 @@ loc isSorted = fun comparables, lo, hi {
 }
 
 
-loc merge = fun comparables, auxList, lo, mid, hi {
+var merge = fun comparables, auxList, lo, mid, hi {
     for k = lo, hi+1 {
         auxList[k] = comparables[k]
     }
 
-    loc i = lo
-    loc j = mid+1
+    var i = lo
+    var j = mid+1
 
     for k = lo, hi+1 {
         if i > mid {
@@ -105,22 +105,22 @@ let sort = fun comparables, auxList, lo, hi {
     if hi <= lo {
         ret nil
     }
-    loc mid = lo + (hi - lo) / 2
+    var mid = lo + (hi - lo) / 2
     sort(comparables, auxList, lo, mid)
     sort(comparables, auxList, mid+1, hi)
     merge(comparables, auxList, lo, mid, hi)
 }
 
 
-loc mergeSort = fun comparables {
-    loc N = len(comparables)
-    loc auxList = list(N)
+var mergeSort = fun comparables {
+    var N = len(comparables)
+    var auxList = list(N)
     sort(comparables, auxList, 0, N-1)
 }
 
 
-loc N = 250_000
-loc upperLimit = N*5
-loc xs = makeData(N, rand.nextI, upperLimit)
+var N = 250_000
+var upperLimit = N*5
+var xs = makeData(N, rand.nextI, upperLimit)
 mergeSort(xs)
 p(isSorted(xs, 0, N))

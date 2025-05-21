@@ -1,10 +1,10 @@
 
-loc errors = {
+var errors = {
     whenTrue = error(42),
     whenFalse = error(90)
 }
 
-loc g = fun v {
+var g = fun v {
     if v {
         ret errors.whenTrue
     }
@@ -12,7 +12,7 @@ loc g = fun v {
 }
 
 
-loc r = g(true)
+var r = g(true)
 assert(r.message == errors.whenTrue.message)
 assert(r.message == error(errors.whenTrue.message).message)
 
@@ -49,7 +49,7 @@ if r {
     assert(isError(r))
 }
 
-loc val = 0b11111111
+var val = 0b11111111
 assert((r and val) == r)
 
 val = 45.67
@@ -79,7 +79,7 @@ assert((r and val) == r)
 val = print
 assert((r and val) == r)
 
-loc val = 0b11111111
+var val = 0b11111111
 assert((r or val) == val)
 
 val = 45.67

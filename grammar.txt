@@ -11,7 +11,7 @@ statement	:= 	global
 			|	while
 			|	export
 global		:=	'let' ident '=' expr
-local		:=	'loc' 'rec'? ident '=' expr
+local		:=	'var' 'rec'? ident '=' expr
 mut			:=	iden '=' expr
 data		:=	ident select select* '=' expr
 call		:=	iden select* '(' ...expr | (expr (','? expr)* (','? ...expr)?)? ')'

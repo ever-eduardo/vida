@@ -1,8 +1,8 @@
 
-loc pr = print
-loc puts = pr
-loc field = "f"
-loc N = 5
+var pr = print
+var puts = pr
+var field = "f"
+var N = 5
 
 let data = [[[[[[[[[[{f= fun=>puts}]]]]]]]]]]
 let obj = {
@@ -72,9 +72,9 @@ for i = -N, 1 {
                                                     eight.
                                                     nine.
                                                     ten
-                                                loc _h = 1
-                                                loc _x = -1
-                                                loc fff = field
+                                                var _h = 1
+                                                var _x = -1
+                                                var fff = field
                                                 data[i+N-N]
                                                     [N-N+j]
                                                     [k+12-12]
@@ -99,6 +99,6 @@ for i = -N, 1 {
 } 
 
 
-loc h = 10
+var h = 10
 assert(result == h-h+N+N+10-10+N+N)
 assert(h == obj.one.two.three.four.five.six.seven.eight.nine.ten)

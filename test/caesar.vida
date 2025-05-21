@@ -16,7 +16,7 @@ let indexOf = fun cp, s {
 let getK = fun => rand.nextI(mod)
 
 let encode = fun k, m, alpha {
-    loc r = ""
+    var r = ""
     for _, v in m {
         r = r + alpha[(indexOf(v, alpha) + k) % mod]
     }
@@ -24,7 +24,7 @@ let encode = fun k, m, alpha {
 }
 
 let decode = fun k, c, alpha {
-    loc r = ""
+    var r = ""
     for _, v in c {
         r = r + alpha[(indexOf(v, alpha) - k) % mod]
     }
@@ -35,10 +35,10 @@ let N = 1000
 let m = "hellothisisthecaesarcipherwithlotsofsecurityinecryptedmessages"
 
 for in N {
-    loc k = getK()
-    loc a = rand.shuffled(alpha)
-    loc c = encode(k, m, a)
-    loc r = decode(k, c, a)
+    var k = getK()
+    var a = rand.shuffled(alpha)
+    var c = encode(k, m, a)
+    var r = decode(k, c, a)
     assert(m == r)
 }
 

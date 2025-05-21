@@ -1,5 +1,5 @@
 
-loc depC = import("dep-C")
+var depC = import("dep-C")
 
 depC.fourTimesPi = fun self => self.Pi * 4
 

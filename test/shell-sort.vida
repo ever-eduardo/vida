@@ -24,7 +24,7 @@ let less = fun v, w {
 }
 
 let swap = fun comparables, i, j {
-    loc temp = comparables[i]
+    var temp = comparables[i]
     comparables[i] = comparables[j]
     comparables[j] = temp
 }
@@ -45,14 +45,14 @@ let number = {
 
 
 let shellSort = fun comparables {
-    loc N = len(comparables)
-    loc h = 1
+    var N = len(comparables)
+    var h = 1
     while h < N/3 {
         h = 3*h + 1
     }
     while h >= 1 {
         for i = h, N {
-            loc j = i
+            var j = i
             while j >= h and less(comparables[j], comparables[j-h]) {
                 swap(comparables, j, j-h)
                 j = j - h
@@ -67,7 +67,7 @@ let shellSort = fun comparables {
 let N = 13
 
 let fillList = fun xs, N {
-    loc count = N
+    var count = N
     for i = 0, len(xs) {
         xs[i] = count
         count = count + 1
@@ -80,7 +80,7 @@ let randomInt = fillList(list(N), N)
 let data = list(N)
 
 for i, v in randomInt {
-    loc val = clone(number)
+    var val = clone(number)
     val.val = v
     data[i] = val
 }

@@ -1,7 +1,7 @@
 
 
 let map = fun xs, f {
-    loc newXS = list(len(xs))
+    var newXS = list(len(xs))
     for i, v in xs {
         newXS[i] = f(v)
     }
@@ -9,7 +9,7 @@ let map = fun xs, f {
 }
 
 let filter = fun xs, pred {
-    loc newXS = []
+    var newXS = []
     for i, v in xs {
         if pred(v) {
             append(newXS, v)
@@ -42,11 +42,11 @@ let r = reduce(
 print(r)
 assert(r == one)
 
-loc K = fun x => fun y => x
-loc I = fun x => x
-loc CONS = fun x => fun y => fun f => f(x)(y)
-loc HEAD = fun xs => xs(K)
-loc TAIL = fun xs => xs(K(I))
+var K = fun x => fun y => x
+var I = fun x => x
+var CONS = fun x => fun y => fun f => f(x)(y)
+var HEAD = fun xs => xs(K)
+var TAIL = fun xs => xs(K(I))
 let FOREACH = fun f => fun xs {
     if xs {
         f(HEAD(xs))

@@ -1,6 +1,6 @@
 
-loc x = 0xFFFFFFFF
-loc y = 16
+var x = 0xFFFFFFFF
+var y = 16
 
 print(format("Bits: %032b", x))
 print(format("Bits: %032b", y))

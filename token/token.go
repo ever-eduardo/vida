@@ -125,7 +125,7 @@ var Tokens = [...]string{
 	FALSE:       "false",
 	NIL:         "nil",
 	LET:         "let",
-	LOC:         "loc",
+	LOC:         "var",
 	IF:          "if",
 	ELSE:        "else",
 	WHILE:       "while",

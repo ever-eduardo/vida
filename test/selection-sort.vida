@@ -22,7 +22,7 @@ let less = fun v, w {
 }
 
 let swap = fun comparables, i, j {
-    loc temp = comparables[i]
+    var temp = comparables[i]
     comparables[i] = comparables[j]
     comparables[j] = temp
 }
@@ -37,9 +37,9 @@ let isSorted = fun comparables {
 }
 
 let selectionSort = fun comparables {
-    loc N = len(comparables)
+    var N = len(comparables)
     for i = 0, N {
-        loc min = i
+        var min = i
         for j = i + 1, N {
             if less(comparables[j], comparables[min]) {
                 min = j
@@ -56,7 +56,7 @@ let number = {
 }
 
 let newNumber = fun x {
-    loc n = clone(number)
+    var n = clone(number)
     n.val = x
     ret n
 }

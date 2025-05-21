@@ -199,8 +199,8 @@ konstKonst()
 konstFree(b)()
 freeFree(a, b)()
 
-loc a = 100
-loc b = 200
+var a = 100
+var b = 200
 
 assert(a+b == 300)
 assert(a-b == -100)

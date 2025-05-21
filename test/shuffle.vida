@@ -1,15 +1,15 @@
 
-loc rand = load("rand")
+var rand = load("rand")
 
-loc swap = fun xs, i, j {
-    loc aux = xs[i]
+var swap = fun xs, i, j {
+    var aux = xs[i]
     xs[i] = xs[j]
     xs[j] = aux
 }
 
-loc shuffle = fun xs {
-    loc N = len(xs)
-    loc r = nil
+var shuffle = fun xs {
+    var N = len(xs)
+    var r = nil
     for i = 0, N {
         r = rand.nextI(i + 1)
         swap(xs, i, r)
@@ -17,24 +17,24 @@ loc shuffle = fun xs {
     ret xs
 }
 
-loc generateList = fun N {
-    loc xs = list(N)
+var generateList = fun N {
+    var xs = list(N)
     for i = 0, N {
         xs[i] = i
     }
     ret xs
 }
 
-loc N = 10_000_000
-loc xs = generateList(N)
+var N = 10_000_000
+var xs = generateList(N)
 
-loc r = shuffle(xs)
+var r = shuffle(xs)
 assert(r != nil)
 
-loc alpha = "abcdefghiklmopqrstuvwxyz"
+var alpha = "abcdefghiklmopqrstuvwxyz"
 
 for in 10 {
-    loc r = rand.shuffled(alpha) 
+    var r = rand.shuffled(alpha) 
     print(r)
     assert(len(r)==len(alpha))
 }

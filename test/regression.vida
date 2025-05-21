@@ -1,11 +1,11 @@
 
-loc a = "hello"
-loc b = nil
-loc f = fun => a + format("%v", b)
-loc result = f()
+var a = "hello"
+var b = nil
+var f = fun => a + format("%v", b)
+var result = f()
 assert(result == "hellonil")
 
-loc data = {
+var data = {
     id = 42
     name = "data"
     email = "data@data.data"
@@ -15,7 +15,7 @@ loc data = {
 }
 
 for in 1000 {
-    loc data = clone(data)
+    var data = clone(data)
     assert(data--getId() == data.id)
     assert(data--getName() == data.name)
     assert(data--getEmail() == data.email)
@@ -24,7 +24,7 @@ for in 1000 {
     data--getEmail()
 }
 
-loc src = [1 2 3 4 5] // This values should be all different
+var src = [1 2 3 4 5] // This values should be all different
 
 data = [
     [
@@ -42,7 +42,7 @@ data = [
     ]
 ]
 
-loc i = 0
+var i = 0
 let j = [0 1 2 3 4]
 
 assert(data[i][i][i][i][j[0]] == src[0])
@@ -97,7 +97,7 @@ assert(
     data[2] == 1 and data[5] == 1 and data[8] == 2
 )
 
-loc cmp = {
+var cmp = {
     hello = 0
     world = 1
     gamma = 2
@@ -122,12 +122,12 @@ assert(
 )
 
 
-loc ___a = [1 2 3 4 5]
-loc ___ref = ___a
+var ___a = [1 2 3 4 5]
+var ___ref = ___a
 let ___i = 0
 ___a[___i] = ___i
-loc ___b = 90
-loc ___c = ___b + ___b
+var ___b = 90
+var ___c = ___b + ___b
 
 assert(___b == 90)
 assert(___c == ___b + ___b)
@@ -200,7 +200,7 @@ assert(len(data) == 3 and not data.hello and not data.beautiful and not data.wor
 data = { hello, beautiful, world }
 assert(len(data) == 3 and not data.hello and not data.beautiful and not data.world)
 
-loc i = 90
+var i = 90
 
 data = {
     hello = i

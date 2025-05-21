@@ -1,20 +1,20 @@
 assert(object)
 
-loc void = {}
+var void = {}
 
-loc empty = void
+var empty = void
 
 assert(object.inject(void, void, void) == void and object.inject(void, void, void) == empty)
 
-loc gen = { calipso casipea ursaMaiorem }
+var gen = { calipso casipea ursaMaiorem }
 
 assert(object.inject(void, void, gen))
 assert(object.check(void, gen))
 
 void = {}
 
-loc alp = { hello = 42, world = 43 }
-loc his = { hello = true, world = false }
+var alp = { hello = 42, world = 43 }
+var his = { hello = true, world = false }
 
 assert(object.override(void, alp, his).hello == his.hello)
 assert(object.override(void, alp, his).world == his.world)
@@ -30,15 +30,15 @@ his = { tomorrow never die }
 
 assert(len(void) == 2)
 
-loc oldVoidLength = len(void)
+var oldVoidLength = len(void)
 
 object.inject(void, alp, his)
 
 assert(len(void) == oldVoidLength + len(alp) + len(his))
 
-loc checkProps = fun void {
+var checkProps = fun void {
     for in 1000 {
-        loc v = clone(void)
+        var v = clone(void)
         assert(v.hello == void.hello and v.world == void.world and v.alpha == void.alpha)
     }
 }

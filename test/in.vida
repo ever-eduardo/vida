@@ -1,15 +1,15 @@
 
-loc miniList = [1 2 3]
+var miniList = [1 2 3]
 
-loc data = { hello world }
+var data = { hello world }
 
-loc f = fun => [data, miniList, nil]
+var f = fun => [data, miniList, nil]
 
-loc e = error("hello world")
+var e = error("hello world")
 
-loc planet = { mercury venus earth mars }
+var planet = { mercury venus earth mars }
 
-loc b = bytes(100, 0xFF)
+var b = bytes(100, 0xFF)
 
 let xs = [
     1 
@@ -59,8 +59,8 @@ assert("count" in data)
 assert("to" in data)
 assert("ten" in data)
 
-loc __hello = "this"
-loc __world = "breath"
+var __hello = "this"
+var __world = "breath"
 
 assert(__hello in data)
 assert(__world in data)

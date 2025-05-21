@@ -8,8 +8,8 @@ let xs = [
     [1,2,3,4,5]
 ]
 
-loc a = 0
-loc b = 1
+var a = 0
+var b = 1
 
 let x = 0
 let y = 1

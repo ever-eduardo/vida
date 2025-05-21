@@ -1,6 +1,6 @@
 
 
-loc rec androidPhone = {
+var rec androidPhone = {
     os = "Android"
     series
     size
@@ -10,14 +10,14 @@ loc rec androidPhone = {
 
 
 for in 1000 {
-    loc phone = androidPhone.new()
+    var phone = androidPhone.new()
     assert(phone.os == androidPhone.os)
 }
 
 
-loc rec alpha = fun x {
-    loc rec gamma = fun x {
-        loc rec omega = fun x {
+var rec alpha = fun x {
+    var rec gamma = fun x {
+        var rec omega = fun x {
             if x <= 0 {
                 ret x
             }
@@ -34,15 +34,15 @@ loc rec alpha = fun x {
     ret alpha(x-1)
 }
 
-loc val = 10_000
+var val = 10_000
 assert(alpha(val)(val)(val) == 0)
 
 
-loc rec hello = hello
+var rec hello = hello
 assert(hello == nil)
 
 
-loc rec game = {
+var rec game = {
     id = 42
     name
     repr = game.id + game.id
@@ -51,7 +51,7 @@ loc rec game = {
 assert(game.repr == game.id + game.id)
 
 
-loc rec fib = fun n {
+var rec fib = fun n {
     if n == 0 or n == 1 {
         ret n
     }
