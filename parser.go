@@ -670,6 +670,9 @@ func (p *parser) operand() ast.Node {
 				p.advance()
 			}
 		}
+		if !p.ok {
+			return &ast.Nil{}
+		}
 		for p.current.Token != token.RCURLY {
 			p.expect(token.IDENTIFIER)
 			e.Variants = append(e.Variants, p.current.Lit)

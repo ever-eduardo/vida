@@ -1162,7 +1162,7 @@ func (e Enum) String() string {
 	if err != nil {
 		return "enum{...}"
 	}
-	return string(jsonbytes)
+	return fmt.Sprintf("enum %s", jsonbytes)
 }
 
 func (e Enum) Type() string {
