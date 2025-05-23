@@ -1,22 +1,31 @@
 
 //
-// Module functional list
-// This module provides high order functions for lists.
+// Module functional
+// This module provides some high order functions for working with lists.
 // Version 1.0.0
 //
 
-loc functional = {}
 
-functional.map = fun l, f {
-    loc xs = list(len(l))
+
+// Object to export
+var functional = {}
+
+
+
+// Map 
+functional.map = fun l f {
+    var xs = list(len(l))
     for i, v in l {
         xs[i] = f(v)
     }
     ret xs
 }
 
-functional.filter = fun l, pred {
-    loc xs = []
+
+
+// Filter
+functional.filter = fun l pred {
+    var xs = []
     for _, v in l {
         if pred(v) {
             append(xs, v)
@@ -25,7 +34,10 @@ functional.filter = fun l, pred {
     ret xs
 }
 
-functional.all = fun l, pred {
+
+
+// All
+functional.all = fun l pred {
     for _, v in l {
         if not pred(v) {
             ret false
@@ -34,7 +46,10 @@ functional.all = fun l, pred {
     ret true
 }
 
-functional.any = fun l, pred {
+
+
+// Any
+functional.any = fun l pred {
     for _, v in l {
         if pred(v) {
             ret true
@@ -43,49 +58,61 @@ functional.any = fun l, pred {
     ret false
 }
 
-functional.reduce = fun l, f, init {
+
+
+// Reduce
+functional.reduce = fun l f init {
     for _, v in l {
-        init = f(init, v)
+        init = f(init v)
     }
     ret init
 }
 
-functional.takeWhile = fun l, pred {
-    loc xs = list()
+
+
+// TakeWhile
+functional.takeWhile = fun l pred {
+    var xs = []
     for _, v in l {
         if not pred(v) {
             ret xs
         }
-        append(xs, v)
+        append(xs v)
     }
     ret xs
 }
 
-functional.zip = fun l, r {
-    loc length = nil
-    loc ll = len(l)
-    loc lr = len(r)
+
+
+// Zip
+functional.zip = fun l r {
+    var length = nil
+    var ll = len(l)
+    var lr = len(r)
     if ll < lr {
         length = ll
     } else {
         length = lr
     }
-    loc xs = list(length)
+    var xs = list(length)
     for i = 0, length {
-        xs[i] = [l[i], r[i]]
+        xs[i] = [l[i] r[i]]
     }
     ret xs
 }
 
+
+
+// UnZip
 functional.unzip = fun l {
-    loc ll = len(l)
-    loc a = list(ll)
-    loc b = list(ll)
+    var ll = len(l)
+    var a = list(ll)
+    var b = list(ll)
     for i, v in l {
         a[i] = v[0]
         b[i] = v[1]
     }
-    ret [a, b]
+    ret [a b]
 }
 
 export(functional)

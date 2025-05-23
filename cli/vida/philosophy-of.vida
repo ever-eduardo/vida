@@ -1,8 +1,8 @@
 
-loc text = load("text")
-loc os = load("os")
+var text = load("text")
+var os = load("os")
 
-loc clear = fun {
+var clear = fun {
     if os.name() == "windows" {
         if not os.run("cmd", "/C", "cls") {
             os.run("powershell", "-c", "clear")
@@ -12,13 +12,13 @@ loc clear = fun {
     }
 }
 
-loc title = "The Philosophy of Vida"
-loc header = "\n\n\n\n\n"
-loc footer = header
-loc bullet = "🌟"
-loc width = 39
-loc quoteWidth = 45
-loc quote = [
+var title = "The Philosophy of Vida"
+var header = "\n\n\n\n\n"
+var footer = header
+var bullet = "🌟"
+var width = 39
+var quoteWidth = 45
+var quote = [
     "Simplicity is a great virtue,",
     "but it requires hard work to achieve it", 
     "and education to appreciate it.",
@@ -28,12 +28,12 @@ loc quote = [
     "-Edsger Dijkstra"
 ]
 
-loc vida = [
+var vida = [
     "Simplicity",
     "Ergonomics"
 ]
 
-loc printThePhilosophyOf = fun xs {
+var printThePhilosophyOf = fun xs {
     clear()
     print(format("%v   %v%v", header, text.center(title, width), header))
     for i, v in xs {

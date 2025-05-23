@@ -1,20 +1,20 @@
 
 // Graphics
-loc box = "☐"
-loc check = "✅"
-loc uncheck = "❌"
-loc thinking = "🤔"
+var box = "☐"
+var check = "✅"
+var uncheck = "❌"
+var thinking = "🤔"
 
 
 // Data
-loc state = enum {
+var state = enum {
     todo
     done
     maybe
     error
 }
 
-loc getBullet = fun state {
+var getBullet = fun state {
     if state == state.todo {
         ret box
     }
@@ -27,15 +27,15 @@ loc getBullet = fun state {
     ret uncheck
 }
 
-loc item = { text, state }
+var item = { text, state }
 
 item.description = fun self, pos {
-    loc bullet = getBullet(self.state)
+    var bullet = getBullet(self.state)
     ret format("  %3v  %2v  %v", pos, bullet, self.text)
 }
 
 
-loc printList = fun xs {
+var printList = fun xs {
     print("\n\n\n\nSuggestions for Vida Enhancement\n\n\n")
 
     for k, v in xs {
@@ -45,7 +45,7 @@ loc printList = fun xs {
     print("\n\n\n")
 }
 
-loc suggestionsList = [
+var suggestionsList = [
     "Save compiled artefacts in files (serialization)"
     "Think concepts like module, lib, packages"
     "Bytes and String buffer values"
