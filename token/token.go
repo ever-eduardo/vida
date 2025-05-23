@@ -59,7 +59,7 @@ const (
 	NOT
 	NIL
 	LET
-	LOC
+	VAR
 	AND
 	OR
 	FOR
@@ -125,7 +125,7 @@ var Tokens = [...]string{
 	FALSE:       "false",
 	NIL:         "nil",
 	LET:         "let",
-	LOC:         "var",
+	VAR:         "var",
 	IF:          "if",
 	ELSE:        "else",
 	WHILE:       "while",

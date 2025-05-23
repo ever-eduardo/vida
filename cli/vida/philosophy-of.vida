@@ -30,7 +30,7 @@ var quote = [
 
 var vida = [
     "Simplicity",
-    "Ergonomics"
+    "Elegance"
 ]
 
 var printThePhilosophyOf = fun xs {

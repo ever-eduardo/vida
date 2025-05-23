@@ -10,6 +10,11 @@ import (
 	"github.com/alkemist-17/vida/verror"
 )
 
+const (
+	ellipsisFirst = iota + 1
+	ellipsisLast
+)
+
 type parser struct {
 	err     verror.VidaError
 	current token.TokenInfo
@@ -37,7 +42,7 @@ func (p *parser) parse() (*ast.Ast, error) {
 			p.ast.Statement = append(p.ast.Statement, p.mutOrCall(&p.ast.Statement))
 		case token.LET:
 			p.ast.Statement = append(p.ast.Statement, p.global())
-		case token.LOC:
+		case token.VAR:
 			p.ast.Statement = append(p.ast.Statement, p.localStmt())
 		case token.IF:
 			p.ast.Statement = append(p.ast.Statement, p.ifStmt(false))
@@ -128,7 +133,7 @@ func (p *parser) block(isInsideLoop bool) ast.Node {
 			block.Statement = append(block.Statement, p.mutOrCall(&block.Statement))
 		case token.LET:
 			block.Statement = append(block.Statement, p.global())
-		case token.LOC:
+		case token.VAR:
 			block.Statement = append(block.Statement, p.localStmt())
 		case token.IF:
 			block.Statement = append(block.Statement, p.ifStmt(isInsideLoop))
@@ -209,7 +214,7 @@ Loop:
 			p.advance()
 			if p.current.Token == token.ELLIPSIS {
 				p.advance()
-				ellipsis = 1
+				ellipsis = ellipsisFirst
 				args = append(args, p.expression(token.LowestPrec))
 				p.advance()
 				goto afterParen
@@ -219,7 +224,7 @@ Loop:
 				p.advance()
 				if p.current.Token == token.ELLIPSIS {
 					p.advance()
-					ellipsis = 2
+					ellipsis = ellipsisLast
 					args = append(args, p.expression(token.LowestPrec))
 					p.advance()
 					goto afterParen
@@ -228,7 +233,7 @@ Loop:
 					p.advance()
 					if p.current.Token == token.ELLIPSIS {
 						p.advance()
-						ellipsis = 2
+						ellipsis = ellipsisLast
 						args = append(args, p.expression(token.LowestPrec))
 						p.advance()
 						goto afterParen
@@ -260,7 +265,7 @@ Loop:
 			p.advance()
 			if p.current.Token == token.ELLIPSIS {
 				p.advance()
-				ellipsis = 1
+				ellipsis = ellipsisFirst
 				args = append(args, p.expression(token.LowestPrec))
 				p.advance()
 				goto endCall
@@ -270,7 +275,7 @@ Loop:
 				p.advance()
 				if p.current.Token == token.ELLIPSIS {
 					p.advance()
-					ellipsis = 2
+					ellipsis = ellipsisLast
 					args = append(args, p.expression(token.LowestPrec))
 					p.advance()
 					goto endCall
@@ -279,7 +284,7 @@ Loop:
 					p.advance()
 					if p.current.Token == token.ELLIPSIS {
 						p.advance()
-						ellipsis = 2
+						ellipsis = ellipsisLast
 						args = append(args, p.expression(token.LowestPrec))
 						p.advance()
 						goto endCall
@@ -714,7 +719,7 @@ func (p *parser) callExpr(e ast.Node) ast.Node {
 	var ellipsis int
 	if p.current.Token == token.ELLIPSIS {
 		p.advance()
-		ellipsis = 1
+		ellipsis = ellipsisFirst
 		args = append(args, p.expression(token.LowestPrec))
 		p.advance()
 		goto afterParen
@@ -724,7 +729,7 @@ func (p *parser) callExpr(e ast.Node) ast.Node {
 		p.advance()
 		if p.current.Token == token.ELLIPSIS {
 			p.advance()
-			ellipsis = 2
+			ellipsis = ellipsisLast
 			args = append(args, p.expression(token.LowestPrec))
 			p.advance()
 			goto afterParen
@@ -733,7 +738,7 @@ func (p *parser) callExpr(e ast.Node) ast.Node {
 			p.advance()
 			if p.current.Token == token.ELLIPSIS {
 				p.advance()
-				ellipsis = 2
+				ellipsis = ellipsisLast
 				args = append(args, p.expression(token.LowestPrec))
 				p.advance()
 				goto afterParen
@@ -759,7 +764,7 @@ func (p *parser) methodCallExpr(e ast.Node) ast.Node {
 	p.advance()
 	if p.current.Token == token.ELLIPSIS {
 		p.advance()
-		ellipsis = 1
+		ellipsis = ellipsisFirst
 		args = append(args, p.expression(token.LowestPrec))
 		p.advance()
 		goto afterParen
@@ -769,7 +774,7 @@ func (p *parser) methodCallExpr(e ast.Node) ast.Node {
 		p.advance()
 		if p.current.Token == token.ELLIPSIS {
 			p.advance()
-			ellipsis = 2
+			ellipsis = ellipsisLast
 			args = append(args, p.expression(token.LowestPrec))
 			p.advance()
 			goto afterParen
@@ -778,7 +783,7 @@ func (p *parser) methodCallExpr(e ast.Node) ast.Node {
 			p.advance()
 			if p.current.Token == token.ELLIPSIS {
 				p.advance()
-				ellipsis = 2
+				ellipsis = ellipsisLast
 				args = append(args, p.expression(token.LowestPrec))
 				p.advance()
 				goto afterParen
