@@ -1,4 +1,4 @@
-var text = load("text")
+var text = load("foundation/text")
 assert(text)
 
 var data = "Hello, World"

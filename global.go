@@ -207,6 +207,8 @@ func gfnLoadLib(args ...Value) (Value, error) {
 		if v, ok := args[0].(*String); ok {
 			if strings.HasPrefix(v.Value, "foundation/") {
 				switch v.Value[11:] {
+				case "text":
+					return loadFoundationText(), nil
 				case "binary":
 					return loadFoundationBinary(), nil
 				case "time":
