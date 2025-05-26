@@ -24,18 +24,18 @@ for in 1000 {
     data->getEmail()
 }
 
-var src = [1 2 3 4 5] // This values should be all different
+var src = [1, 2, 3, 4, 5] // This values should be all different
 
 data = [
     [
         [
             [
                 [
-                    src[0]
-                    src[1]
-                    src[2]
-                    src[3]
-                    src[4]
+                    src[0],
+                    src[1],
+                    src[2],
+                    src[3],
+                    src[4],
                 ]
             ]
         ]
@@ -43,7 +43,7 @@ data = [
 ]
 
 var i = 0
-let j = [0 1 2 3 4]
+let j = [0, 1, 2, 3, 4, ]
 
 assert(data[i][i][i][i][j[0]] == src[0])
 assert(data[i][i][i][i][j[1]] == src[1])
@@ -59,9 +59,9 @@ assert(data[i][i][i][i][j[4]] != src[0])
 
 
 data = [
-    1 1 1
-    0 0 0
-    2 2 2
+    1, 1, 1,
+    0, 0, 0,
+    2, 2, 2,
 ]
 
 assert(
@@ -122,7 +122,7 @@ assert(
 )
 
 
-var ___a = [1 2 3 4 5]
+var ___a = [1, 2, 3, 4, 5]
 var ___ref = ___a
 let ___i = 0
 ___a[___i] = ___i
@@ -137,34 +137,34 @@ assert(___a == ___ref)
 data = [1,]
 assert(len(data) == 1 and data[0] == 1)
 
-data = [1 2,]
+data = [1, 2,]
 assert(len(data) == 2 and data[0] == 1 and data[1] == 2)
 
 data = [1, 2, ]
 assert(len(data) == 2 and data[0] == 1 and data[1] == 2)
 
-data = [1 2 3]
+data = [1, 2, 3,]
 assert(len(data) == 3 and data[0] == 1 and data[1] == 2 and data[2] == 3)
 
 data = [1, 2, 3,]
 assert(len(data) == 3 and data[0] == 1 and data[1] == 2 and data[2] == 3)
 
-data = [1, 2 3]
-assert(len(data) == 3 and data[0] == 1 and data[1] == 2 and data[2] == 3)
-
-data = [1 2, 3]
-assert(len(data) == 3 and data[0] == 1 and data[1] == 2 and data[2] == 3)
-
-data = [1 2 3,]
+data = [1, 2, 3]
 assert(len(data) == 3 and data[0] == 1 and data[1] == 2 and data[2] == 3)
 
 data = [1, 2, 3]
 assert(len(data) == 3 and data[0] == 1 and data[1] == 2 and data[2] == 3)
 
-data = [1 2, 3,]
+data = [1, 2, 3,]
 assert(len(data) == 3 and data[0] == 1 and data[1] == 2 and data[2] == 3)
 
-data = [1, 2 3,]
+data = [1, 2, 3]
+assert(len(data) == 3 and data[0] == 1 and data[1] == 2 and data[2] == 3)
+
+data = [1, 2, 3,]
+assert(len(data) == 3 and data[0] == 1 and data[1] == 2 and data[2] == 3)
+
+data = [1, 2, 3,]
 assert(len(data) == 3 and data[0] == 1 and data[1] == 2 and data[2] == 3)
 
 data = [1, 2, 3]
@@ -261,8 +261,8 @@ assert(len(data) == 3 and data.hello == i and data.beautiful == nil and data.wor
 assert(len(data) == 3 and -data.hello == -i and not data.beautiful and -data.world == -i)
 
 
-i = [10 20 30]
-f = fun x, y, z => [x y z]
+i = [10, 20, 30]
+f = fun x, y, z => [x, y, z]
 
 assert(f(i[0], i[1], i[2])[0] == i[0])
 assert(f(i[0], i[1], i[2])[1] == i[1])

@@ -96,7 +96,7 @@ lib.zip = fun l, r {
     }
     var xs = list(length)
     for i in 0, length {
-        xs[i] = [l[i] r[i]]
+        xs[i] = [l[i], r[i]]
     }
     ret xs
 }
@@ -112,7 +112,7 @@ lib.unzip = fun l {
         a[i] = v[0]
         b[i] = v[1]
     }
-    ret [a b]
+    ret [a, b]
 }
 
 

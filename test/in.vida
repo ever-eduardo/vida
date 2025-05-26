@@ -1,5 +1,5 @@
 
-var miniList = [1 2 3]
+var miniList = [1, 2, 3]
 
 var data = { hello world }
 
@@ -12,21 +12,21 @@ var planet = { mercury venus earth mars }
 var b = bytes(100, 0xFF)
 
 let xs = [
-    1 
-    2 
-    3 
-    true 
-    false 
-    nil 
-    45.5
-    "example"
-    miniList
-    data
-    f
-    len
-    e
-    planet
-    b
+    1, 
+    2,
+    3,
+    true,
+    false,
+    nil,
+    45.5,
+    "example",
+    miniList,
+    data,
+    f,
+    len,
+    e,
+    planet,
+    b,
 ]
 
 assert(1 in xs)
