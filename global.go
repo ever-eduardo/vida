@@ -217,6 +217,8 @@ func gfnLoadLib(args ...Value) (Value, error) {
 					return loadFoundationTime(), nil
 				case "cast":
 					return loadFoundationCasting(), nil
+				case "os":
+					return loadFoundationOS(), nil
 				case "exception":
 					return loadFoundationException(), nil
 				case "corelib":
