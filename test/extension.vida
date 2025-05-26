@@ -1,0 +1,8 @@
+var hello = load("hello")
+
+assert(hello)
+
+var r = hello.sayHello()
+
+assert(r)
+assert(type(r) == "string")

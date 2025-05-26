@@ -9,7 +9,7 @@ const a uint64 = 'a'
 
 const major uint64 = 0
 const minor uint64 = 3
-const patch uint64 = 7
+const patch uint64 = 17
 const inception uint64 = 25
 const header uint64 = v<<56 | i<<48 | d<<40 | a<<32 | major<<24 | minor<<16 | patch<<8 | inception
 const name = "Vida 🌱🐝🌻"
@@ -28,15 +28,14 @@ func About() string {
 	
 	What is Vida?
 
-	Vida is a dynamic, simple and interpreted computer language.
-	Its first interpreter was written in Go.
+	Vida is a simple, elegant, interpreted computer language.
 	Vida has a minimal set of constructs that makes it 
 	easy to learn and suitable for most common programming tasks.
 	Vida is a high level language, and it can be extended 
 	by implementing the Value interface.
-	The stdlib is implemented in such way, so anyone can add to the
+	The core and foundation libs are implemented in such way, so anyone can add to the
 	language all what could be needed for your projects.
-	Vida can be embedded or used as self-sufficient language.
+	Vida can be embedded in a host environment or used as self-sufficient language.
 	Contributions are always welcome.
 	
 	Happy Vida coding!
