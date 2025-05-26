@@ -1,0 +1,15 @@
+
+var bin = load("foundation/binary")
+assert(bin)
+
+var time = load("foundation/time")
+assert(time)
+
+var cast = load("foundation/cast")
+assert(cast)
+
+var exception = load("foundation/exception")
+assert(exception)
+
+var corelib = load("foundation/corelib")
+assert(corelib)
