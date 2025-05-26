@@ -18,6 +18,8 @@ var extensionlibsLoader LibsLoader
 
 const DefaultInputPrompt = "Input > "
 
+const foundationInterfaceName = "std/"
+
 var coreLibNames = []string{
 	"print",
 	"len",
@@ -205,8 +207,8 @@ func gfnClone(args ...Value) (Value, error) {
 func gfnLoadLib(args ...Value) (Value, error) {
 	if len(args) > 0 {
 		if v, ok := args[0].(*String); ok {
-			if strings.HasPrefix(v.Value, "foundation/") {
-				switch v.Value[11:] {
+			if strings.HasPrefix(v.Value, foundationInterfaceName) {
+				switch v.Value[len(foundationInterfaceName):] {
 				case "text":
 					return loadFoundationText(), nil
 				case "math":
