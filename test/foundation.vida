@@ -1,15 +1,15 @@
 
-var bin = load("foundation/binary")
+var bin = load("std/binary")
 assert(bin)
 
-var time = load("foundation/time")
+var time = load("std/time")
 assert(time)
 
-var cast = load("foundation/cast")
+var cast = load("std/cast")
 assert(cast)
 
-var exception = load("foundation/exception")
+var exception = load("std/exception")
 assert(exception)
 
-var corelib = load("foundation/corelib")
+var corelib = load("std/corelib")
 assert(corelib)

@@ -1,5 +1,5 @@
 
-var cast = load("foundation/cast")
+var cast = load("std/cast")
 
 assert(cast.toBool("true") == true)
 assert(cast.toBool("false") == false)

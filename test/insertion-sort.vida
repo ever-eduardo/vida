@@ -2,7 +2,7 @@
 * Insertion Sort
 */
 
-let rand = load("foundation/random")
+let rand = load("std/random")
 
 let iComparable = {
     comparedTo= fun self, r {

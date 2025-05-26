@@ -1,6 +1,6 @@
 
-var text = load("text")
-var os = load("os")
+var text = load("std/text")
+var os = load("std/os")
 
 var clear = fun {
     if os.name() == "windows" {

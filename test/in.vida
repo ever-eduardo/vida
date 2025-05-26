@@ -1,4 +1,4 @@
-var binary = load("foundation/binary")
+var binary = load("std/binary")
 
 var miniList = [1, 2, 3]
 
