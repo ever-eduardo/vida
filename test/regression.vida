@@ -16,12 +16,12 @@ var data = {
 
 for in 1000 {
     var data = clone(data)
-    assert(data--getId() == data.id)
-    assert(data--getName() == data.name)
-    assert(data--getEmail() == data.email)
-    data--getId()
-    data--getName()
-    data--getEmail()
+    assert(data->getId() == data.id)
+    assert(data->getName() == data.name)
+    assert(data->getEmail() == data.email)
+    data->getId()
+    data->getName()
+    data->getEmail()
 }
 
 var src = [1 2 3 4 5] // This values should be all different
@@ -262,29 +262,29 @@ assert(len(data) == 3 and -data.hello == -i and not data.beautiful and -data.wor
 
 
 i = [10 20 30]
-f = fun x y z => [x y z]
-
-assert(f(i[0] i[1] i[2])[0] == i[0])
-assert(f(i[0] i[1] i[2])[1] == i[1])
-assert(f(i[0] i[1] i[2])[2] == i[2])
+f = fun x, y, z => [x y z]
 
 assert(f(i[0], i[1], i[2])[0] == i[0])
 assert(f(i[0], i[1], i[2])[1] == i[1])
 assert(f(i[0], i[1], i[2])[2] == i[2])
 
-assert(f(i[0], i[1] i[2])[0] == i[0])
-assert(f(i[0], i[1] i[2])[1] == i[1])
-assert(f(i[0], i[1] i[2])[2] == i[2])
-
-assert(f(i[0] i[1], i[2])[0] == i[0])
-assert(f(i[0] i[1], i[2])[1] == i[1])
-assert(f(i[0] i[1], i[2])[2] == i[2])
+assert(f(i[0], i[1], i[2])[0] == i[0])
+assert(f(i[0], i[1], i[2])[1] == i[1])
+assert(f(i[0], i[1], i[2])[2] == i[2])
 
 assert(f(i[0], i[1], i[2])[0] == i[0])
 assert(f(i[0], i[1], i[2])[1] == i[1])
 assert(f(i[0], i[1], i[2])[2] == i[2])
 
-assert(f(i[0] i[1], i[2])[0] == i[0])
-assert(f(i[0] i[1], i[2])[1] == i[1])
-assert(f(i[0] i[1], i[2])[2] == i[2])
+assert(f(i[0], i[1], i[2])[0] == i[0])
+assert(f(i[0], i[1], i[2])[1] == i[1])
+assert(f(i[0], i[1], i[2])[2] == i[2])
+
+assert(f(i[0], i[1], i[2])[0] == i[0])
+assert(f(i[0], i[1], i[2])[1] == i[1])
+assert(f(i[0], i[1], i[2])[2] == i[2])
+
+assert(f(i[0], i[1], i[2])[0] == i[0])
+assert(f(i[0], i[1], i[2])[1] == i[1])
+assert(f(i[0], i[1], i[2])[2] == i[2])
 

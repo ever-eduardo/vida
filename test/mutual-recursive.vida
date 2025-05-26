@@ -9,14 +9,14 @@ let N = 23
 
 let prod = fun x {
     totalCalls = totalCalls + 1
-    for i = 0, x {
+    for i in 0, x {
         cons(i)
     }
 }
 
 let cons = fun x {
     totalCalls = totalCalls + 1
-    for i = 0, x {
+    for i in 0, x {
         prod(i)
     }
 }

@@ -17,7 +17,7 @@ let iComparable = {
 }
 
 let less = fun v, w {
-    if v--comparedTo(w) < 0 {
+    if v->comparedTo(w) < 0 {
         ret true
     }
     ret false
@@ -30,7 +30,7 @@ let swap = fun comparables, i, j {
 }
 
 let isSorted = fun comparables {
-    for i = 1, len(comparables) {
+    for i in 1, len(comparables) {
         if less(comparables[i], comparables[i-1]) {
             ret false
         }
@@ -40,8 +40,8 @@ let isSorted = fun comparables {
 
 let insertionSort = fun comparables {
     var N = len(comparables)
-    for i = 0, N {
-        for j = i, 0, -1 {
+    for i in 0, N {
+        for j in i, 0, -1 {
             if less(comparables[j], comparables[j-1]) {
                 swap(comparables, j, j-1)
             } else {

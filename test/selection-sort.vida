@@ -15,7 +15,7 @@ let iComparable = {
 }
 
 let less = fun v, w {
-    if v--comparedTo(w) < 0 {
+    if v->comparedTo(w) < 0 {
         ret true
     }
     ret false
@@ -28,7 +28,7 @@ let swap = fun comparables, i, j {
 }
 
 let isSorted = fun comparables {
-    for i = 1, len(comparables) {
+    for i in 1, len(comparables) {
         if less(comparables[i], comparables[i-1]) {
             ret false
         }
@@ -38,9 +38,9 @@ let isSorted = fun comparables {
 
 let selectionSort = fun comparables {
     var N = len(comparables)
-    for i = 0, N {
+    for i in 0, N {
         var min = i
-        for j = i + 1, N {
+        for j in i + 1, N {
             if less(comparables[j], comparables[min]) {
                 min = j
             }

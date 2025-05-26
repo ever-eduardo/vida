@@ -90,7 +90,7 @@ r = idx[hello.one.two.three.four.five.code-world.one.two.three.four.five.code] +
 
 assert(r==idx[0]+idx[1]+idx[2]+idx[3]+idx[4])
 
-for i = 0, 10_000_000 {
+for i in 0, 10_000_000 {
     r = r + hello.zero + world.zero + data.zero
 }
 

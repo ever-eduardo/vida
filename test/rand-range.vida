@@ -8,7 +8,7 @@ var randRange = fun a, b {
 
 var makeList = fun N, a, b {
     var xs = list(N)
-    for i = 0, N {
+    for i in 0, N {
         xs[i] = randRange(a, b)
     }
     ret xs

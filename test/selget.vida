@@ -28,16 +28,16 @@ let obj = {
 }
 
 
-for i = -N, 1 {
-    for j = -N, 1 {
-        for k = -N, 1 {
-            for l = -N, 1 {
-                for m = -N, 1 {
-                    for n = -N, 1 {
-                        for o = -N, 1 {
-                            for p = -N, 1 {
-                                for q = -N, 1 {
-                                    for r = -N, 1 {
+for i in -N, 1 {
+    for j in -N, 1 {
+        for k in -N, 1 {
+            for l in -N, 1 {
+                for m in -N, 1 {
+                    for n in -N, 1 {
+                        for o in -N, 1 {
+                            for p in -N, 1 {
+                                for q in -N, 1 {
+                                    for r in -N, 1 {
                                         if  i == 0 and
                                             j == 0 and
                                             k == 0 and

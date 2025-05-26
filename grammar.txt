@@ -1,8 +1,8 @@
-module		:=	statement*
+script		:=	statement*
 statement	:= 	global
 			| 	local
 			|	mut
-			|	data
+			|	dsmut
 			|	call
 			|	block
 			|	for
@@ -13,11 +13,11 @@ statement	:= 	global
 global		:=	'let' ident '=' expr
 local		:=	'var' 'rec'? ident '=' expr
 mut			:=	iden '=' expr
-data		:=	ident select select* '=' expr
-call		:=	iden select* '(' ...expr | (expr (','? expr)* (','? ...expr)?)? ')'
+dsmut		:=	ident select select* '=' expr
+call		:=	iden select* '(' ...expr | expr (',' expr)* (',' ...expr)? | λ ')'
 block		:=	'{' statement* '}'
 loopBlock	:=	'{' statement* break* continue* '}'
-for			:=	'for' ident '=' expr (',' expr (',' expr)?)? loopBlock
+for			:=	'for' ident 'in' expr (',' expr (',' expr)?)? loopBlock
 ifor		:=	'for' ident ',' ident 'in' expr loopBlock
 			|	'for' 'in' expr loopBlock
 if			:=	'if' expr block | loopBlock elif* else?
@@ -66,19 +66,19 @@ binop		:=	'and'
 			|	'in'
 String		:=	'"' Any valid utf-8 encoded byte '"'
 			|	'`' Any valid utf-8 encoded byte '`'
-List		:=	'['(expr (','? expr)* ','?)?']'
-Object		:=	'{'((iden | pair) ((',')? ident | pair)* (',')?)?'}'
+List		:=	'[' expr (',' expr)* ','? | λ ']'
+Object		:=	'{' (iden | pair) ((',')? ident | pair)* (',')? | λ '}'
 pair		:=	ident '=' expr
 Error		:=	'error' '(' expr? ')'
 Import		:=	'import' '(' String ')'
-Function	:=	'fun' (iden... | iden (','? iden)* (','? iden...)? )? fBody | '=>' expr
+Function	:=	'fun' (iden... | iden (',' iden)* (',' iden...)? )? fBody | '=>' expr
 fBody		:=	'{' statement* ret?* '}'
 Enumeration :=	'enum' '{' ident+ '}'
 			|	'enum' '{' ident '=' '-'|'+'|'~'? Integer iden* '}'
 select		:=	'[' expr | '..' | '..' expr | expr '..' | expr '..' expr ']' select*
 			|	'.' ident select*
-			|	'(' ...expr | (expr (','? expr)*)?  (','? ...expr)? ')' select*
-			|	'--' ident '(' ...expr | (expr (','? expr)*)? (','? ...expr)? ')' select*
+			|	'(' ...expr | expr (',' expr)* (',' ...expr)? | λ ')' | select*
+			|	'->' ident '(' ...expr | expr (',' expr)* (',' ...expr)? | λ ')' select*
 break		:=	'break'
 continue	:=	'continue'
 ret			:=	'ret' expr

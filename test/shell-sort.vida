@@ -17,7 +17,7 @@ let iComparable = {
 }
 
 let less = fun v, w {
-    if v--comparedTo(w) < 0 {
+    if v->comparedTo(w) < 0 {
         ret true
     }
     ret false
@@ -30,7 +30,7 @@ let swap = fun comparables, i, j {
 }
 
 let isSorted = fun comparables {
-    for i = 1, len(comparables) {
+    for i in 1, len(comparables) {
         if less(comparables[i], comparables[i-1]) {
             ret false
         }
@@ -51,7 +51,7 @@ let shellSort = fun comparables {
         h = 3*h + 1
     }
     while h >= 1 {
-        for i = h, N {
+        for i in h, N {
             var j = i
             while j >= h and less(comparables[j], comparables[j-h]) {
                 swap(comparables, j, j-h)
@@ -68,7 +68,7 @@ let N = 13
 
 let fillList = fun xs, N {
     var count = N
-    for i = 0, len(xs) {
+    for i in 0, len(xs) {
         xs[i] = count
         count = count + 1
     }

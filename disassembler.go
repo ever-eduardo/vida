@@ -7,17 +7,17 @@ import (
 	"github.com/alkemist-17/vida/token"
 )
 
-func PrintBytecode(m *Module, moduleName string) string {
+func PrintBytecode(script *Script, name string) string {
 	clear()
-	fmt.Println("Compiled Code for", moduleName)
+	fmt.Println("Compiled Code for", name)
 	var sb strings.Builder
-	sb.WriteString(printHeader(m))
+	sb.WriteString(printHeader(script))
 	var s string
-	for i := 1; i < len(m.MainFunction.CoreFn.Code); i++ {
-		s = printInstr(m.MainFunction.CoreFn.Code[i], uint64(i), false)
+	for i := 1; i < len(script.MainFunction.CoreFn.Code); i++ {
+		s = printInstr(script.MainFunction.CoreFn.Code[i], uint64(i), false)
 		sb.WriteString(s)
 	}
-	for idx, v := range *m.Konstants {
+	for idx, v := range *script.Konstants {
 		if f, ok := v.(*CoreFunction); ok {
 			sb.WriteString(fmt.Sprintf("\n\nFunction %v/%v/%v", idx, f.Arity, f.Free))
 			var s string
@@ -27,16 +27,16 @@ func PrintBytecode(m *Module, moduleName string) string {
 			}
 		}
 	}
-	sb.WriteString(printKonstants(*m.Konstants))
+	sb.WriteString(printKonstants(*script.Konstants))
 	return sb.String()
 }
 
-func printHeader(m *Module) string {
+func printHeader(script *Script) string {
 	var sb strings.Builder
 	var major, minor, patch uint64
-	major = m.MainFunction.CoreFn.Code[0] >> 24 & 255
-	minor = m.MainFunction.CoreFn.Code[0] >> 16 & 255
-	patch = m.MainFunction.CoreFn.Code[0] >> 8 & 255
+	major = script.MainFunction.CoreFn.Code[0] >> 24 & 255
+	minor = script.MainFunction.CoreFn.Code[0] >> 16 & 255
+	patch = script.MainFunction.CoreFn.Code[0] >> 8 & 255
 	sb.WriteString(fmt.Sprintf("Vida Version %v.%v.%v", major, minor, patch))
 	sb.WriteRune(10)
 	sb.WriteRune(10)

@@ -1,0 +1,39 @@
+
+//
+// Test Suite
+// Global and local asignments
+//
+
+
+let v1 = 21
+assert(v1 == 21, "Global asignment test failure")
+
+let v2 = v1
+assert(v2 == v1 and v1 == 21, "Global asignment test failure")
+
+let v3 = v2
+assert(v3 == v2 and v2 == v1 and v1 == 21, "Global asignment test failure")
+
+v1 = v1 + 2
+assert(v1 == 23, "Global asignment test failure")
+
+v2 = v2 + 2
+assert(v2 == v1 and v1 == 23, "Global asignment test failure")
+
+v3 = v3
+assert(v3 == v2 - 2 and v3 == v1 - 2, "Global asignment test failure")
+
+let v1 = 52
+assert(
+    v1 == 52 and v1 == v1, "Global asignment test failure")
+
+var v1 = "local asignment"
+assert(v1 == "local asignment", "Local shadow asignment test failure")
+
+var v2 = v1
+assert(v1 == "local asignment" and v2 == "local asignment", "Local shadow asignment test failure")
+
+var v3 = v2
+assert(v1 == "local asignment" and v2 == "local asignment" and v2 == "local asignment", "Local shadow asignment test failure")
+
+

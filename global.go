@@ -16,7 +16,7 @@ type LibsLoader map[string]func() Value
 
 var libsLoader LibsLoader
 
-const DefaultPrompt = "Input >> "
+const DefaultPrompt = "Input > "
 
 var coreLibNames = []string{
 	"print",
@@ -126,7 +126,7 @@ func gfnAssert(args ...Value) (Value, error) {
 		if args[0].Boolean() {
 			return NilValue, nil
 		}
-		err := fmt.Errorf("%s", fmt.Sprintf("\n\n  [%v]\n\n", verror.AssertionErrType))
+		err := fmt.Errorf("%s", fmt.Sprintf("\n\n  [%v]\n   Message : %v\n\n", verror.AssertionErrType, "Generic Assertion Failure Message"))
 		return NilValue, err
 	}
 	if argsLength > 1 {

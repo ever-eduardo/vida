@@ -17,7 +17,7 @@ const (
 )
 
 type VidaError struct {
-	ModuleName string
+	ScriptName string
 	Message    string
 	ErrType    string
 	Line       uint
@@ -26,18 +26,18 @@ type VidaError struct {
 func (e VidaError) Error() string {
 	switch e.ErrType {
 	case ExceptionErrType, AssertionErrType:
-		return fmt.Sprintf("\n\n  [%v]\n   Module    : %v\n   Near line : %v\n   Message   : %v\n\n", e.ErrType, e.ModuleName, e.Line, e.Message)
+		return fmt.Sprintf("\n\n  [%v]\n   Script    : %v\n   Near line : %v\n   Message   : %v\n\n", e.ErrType, e.ScriptName, e.Line, e.Message)
 	default:
 		if e.Line == 0 {
-			return fmt.Sprintf("\n\n  [%v Error]\n   Module  : %v\n   Message : %v\n\n", e.ErrType, e.ModuleName, e.Message)
+			return fmt.Sprintf("\n\n  [%v Error]\n   Script  : %v\n   Message : %v\n\n", e.ErrType, e.ScriptName, e.Message)
 		}
-		return fmt.Sprintf("\n\n  [%v Error]\n   Module    : %v\n   Near line : %v\n   Message   : %v\n\n", e.ErrType, e.ModuleName, e.Line, e.Message)
+		return fmt.Sprintf("\n\n  [%v Error]\n   Script    : %v\n   Near line : %v\n   Message   : %v\n\n", e.ErrType, e.ScriptName, e.Line, e.Message)
 	}
 }
 
-func New(moduleName string, message string, errorType string, line uint) VidaError {
+func New(scriptName string, message string, errorType string, line uint) VidaError {
 	return VidaError{
-		ModuleName: moduleName,
+		ScriptName: scriptName,
 		Line:       line,
 		Message:    message,
 		ErrType:    errorType,
@@ -45,19 +45,19 @@ func New(moduleName string, message string, errorType string, line uint) VidaErr
 }
 
 type StackFrameInfo struct {
-	ModuleName string
+	ScriptName string
 	Line       uint
 }
 
-func NewStackFrameInfo(moduleName string, line uint) StackFrameInfo {
+func NewStackFrameInfo(scriptName string, line uint) StackFrameInfo {
 	return StackFrameInfo{
-		ModuleName: moduleName,
+		ScriptName: scriptName,
 		Line:       line,
 	}
 }
 
 func (sfi StackFrameInfo) Error() string {
-	return fmt.Sprintf("   Module    : %v\n   Near line : %v\n", sfi.ModuleName, sfi.Line)
+	return fmt.Sprintf("   Script    : %v\n   Near line : %v\n", sfi.ScriptName, sfi.Line)
 }
 
 var (

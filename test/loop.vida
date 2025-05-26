@@ -35,9 +35,9 @@ while true {
 
 assert(x == limit)
 
-for i = 0, N {
-    for j = 0, N {
-        for k = 0, N {
+for i in 0, N {
+    for j in 0, N {
+        for k in 0, N {
             assert(0 <= i and i < N)
             assert(0 <= j and j < N)
             assert(0 <= k and k < N)
@@ -48,13 +48,13 @@ for i = 0, N {
     assert(0 <= i and i < N)
 }
 
-for i = -N, -1, -1 {
+for i in -N, -1, -1 {
     assert(-N <= i and i < -1)
 }
 
-for i = N {
-    for j = N {
-        for k = N {
+for i in N {
+    for j in N {
+        for k in N {
             assert(0 <= i and i < N)
             assert(0 <= j and j < N)
             assert(0 <= k and k < N)
@@ -76,7 +76,7 @@ assert(x == 10_000_000)
 while true {
     var k = nil
     var N = 10_000_000
-    for i = 0, N+1, 10 {
+    for i in 0, N+1, 10 {
         if i < N {
             k = i
             continue

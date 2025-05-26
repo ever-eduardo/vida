@@ -34,7 +34,7 @@ var data = {val = nil, comparedTo = iComparable.comparedTo, print = iPrinter.pri
 
 var makeData = fun N, rnd, upperLimit {
     var xs = list(N)
-    for i = 0, N {
+    for i in 0, N {
         var c = clone(data)
         c.val = rnd(upperLimit)
         xs[i] = c
@@ -45,13 +45,13 @@ var makeData = fun N, rnd, upperLimit {
 
 var printData = fun xs {
     for _, v in xs {
-        v--print()
+        v->print()
     }
 }
 
 
 var less = fun v, w {
-    if v--comparedTo(w) < 0 {
+    if v->comparedTo(w) < 0 {
         ret true
     }
     ret false
@@ -66,7 +66,7 @@ var swap = fun comparables, i, j {
 
 
 var isSorted = fun comparables, lo, hi {
-    for i = lo+1, hi {
+    for i in lo+1, hi {
         if less(comparables[i], comparables[i-1]) {
             ret false
         }
@@ -76,14 +76,14 @@ var isSorted = fun comparables, lo, hi {
 
 
 var merge = fun comparables, auxList, lo, mid, hi {
-    for k = lo, hi+1 {
+    for k in lo, hi+1 {
         auxList[k] = comparables[k]
     }
 
     var i = lo
     var j = mid+1
 
-    for k = lo, hi+1 {
+    for k in lo, hi+1 {
         if i > mid {
             comparables[k] = auxList[j]
             j = j + 1

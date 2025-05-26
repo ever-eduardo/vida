@@ -24,9 +24,9 @@ type parser struct {
 	ok      bool
 }
 
-func newParser(src []byte, moduleName string) *parser {
+func newParser(src []byte, scriptName string) *parser {
 	p := parser{
-		lexer: lexer.New(src, moduleName),
+		lexer: lexer.New(src, scriptName),
 		ok:    true,
 		ast:   &ast.Ast{},
 	}
@@ -70,7 +70,7 @@ func (p *parser) parse() (*ast.Ast, error) {
 			if p.current.Token == token.UNEXPECTED {
 				p.err = p.lexer.LexicalError
 			} else {
-				p.err = verror.New(p.lexer.ModuleName, "expected high level statement", verror.SyntaxErrType, p.current.Line)
+				p.err = verror.New(p.lexer.ScriptName, "expected high level statement", verror.SyntaxErrType, p.current.Line)
 			}
 			return nil, p.err
 		}
@@ -83,7 +83,7 @@ func (p *parser) mutOrCall(statements *[]ast.Node) ast.Node {
 		p.next.Token == token.LBRACKET ||
 		p.next.Token == token.LPAREN ||
 		p.next.Token == token.METHOD_CALL {
-		return p.mutateDataStructureOrCall(statements)
+		return p.mutDSOrCall(statements)
 	}
 	line := p.current.Line
 	i := p.current.Lit
@@ -109,7 +109,7 @@ func (p *parser) localStmt() ast.Node {
 	p.advance()
 	e := p.expression(token.LowestPrec)
 	p.advance()
-	return &ast.Loc{Identifier: i, Expr: e, IsRecursive: isRecursive}
+	return &ast.Var{Identifier: i, Expr: e, IsRecursive: isRecursive}
 }
 
 func (p *parser) global() ast.Node {
@@ -148,7 +148,7 @@ func (p *parser) block(isInsideLoop bool) ast.Node {
 				block.Statement = append(block.Statement, p.breakStmt())
 			} else {
 				if p.ok {
-					p.err = verror.New(p.lexer.ModuleName, "found a break keyword outside of a loop", verror.SyntaxErrType, p.current.Line)
+					p.err = verror.New(p.lexer.ScriptName, "found a break keyword outside of a loop", verror.SyntaxErrType, p.current.Line)
 					p.ok = false
 				}
 				return block
@@ -158,7 +158,7 @@ func (p *parser) block(isInsideLoop bool) ast.Node {
 				block.Statement = append(block.Statement, p.continueStmt())
 			} else {
 				if p.ok {
-					p.err = verror.New(p.lexer.ModuleName, "found a continue keyword outside of a loop", verror.SyntaxErrType, p.current.Line)
+					p.err = verror.New(p.lexer.ScriptName, "found a continue keyword outside of a loop", verror.SyntaxErrType, p.current.Line)
 					p.ok = false
 				}
 				return block
@@ -172,7 +172,7 @@ func (p *parser) block(isInsideLoop bool) ast.Node {
 			}
 		default:
 			if p.ok {
-				p.err = verror.New(p.lexer.ModuleName, "expected a block statement", verror.SyntaxErrType, p.current.Line)
+				p.err = verror.New(p.lexer.ScriptName, "expected a block statement", verror.SyntaxErrType, p.current.Line)
 				p.ok = false
 			}
 			return block
@@ -181,7 +181,7 @@ func (p *parser) block(isInsideLoop bool) ast.Node {
 	return block
 }
 
-func (p *parser) mutateDataStructureOrCall(statements *[]ast.Node) ast.Node {
+func (p *parser) mutDSOrCall(statements *[]ast.Node) ast.Node {
 	*statements = append(*statements, &ast.ReferenceStmt{Value: p.current.Lit, Line: p.current.Line})
 	var i ast.Node
 Loop:
@@ -212,24 +212,18 @@ Loop:
 			var args []ast.Node
 			var ellipsis int
 			p.advance()
-			if p.current.Token == token.ELLIPSIS {
-				p.advance()
-				ellipsis = ellipsisFirst
-				args = append(args, p.expression(token.LowestPrec))
-				p.advance()
-				goto afterParen
-			}
-			for p.current.Token != token.RPAREN && p.current.Token != token.EOF {
-				args = append(args, p.expression(token.LowestPrec))
-				p.advance()
+			if p.current.Token != token.RPAREN && p.current.Token != token.EOF {
 				if p.current.Token == token.ELLIPSIS {
 					p.advance()
-					ellipsis = ellipsisLast
+					ellipsis = ellipsisFirst
 					args = append(args, p.expression(token.LowestPrec))
 					p.advance()
 					goto afterParen
 				}
-				for p.current.Token == token.COMMA {
+				args = append(args, p.expression(token.LowestPrec))
+				p.advance()
+				for p.current.Token != token.RPAREN && p.current.Token != token.EOF {
+					p.expect(token.COMMA)
 					p.advance()
 					if p.current.Token == token.ELLIPSIS {
 						p.advance()
@@ -263,37 +257,31 @@ Loop:
 			p.advance()
 			p.expect(token.LPAREN)
 			p.advance()
-			if p.current.Token == token.ELLIPSIS {
-				p.advance()
-				ellipsis = ellipsisFirst
-				args = append(args, p.expression(token.LowestPrec))
-				p.advance()
-				goto endCall
-			}
-			for p.current.Token != token.RPAREN && p.current.Token != token.EOF {
-				args = append(args, p.expression(token.LowestPrec))
-				p.advance()
+			if p.current.Token != token.RPAREN && p.current.Token != token.EOF {
 				if p.current.Token == token.ELLIPSIS {
 					p.advance()
-					ellipsis = ellipsisLast
+					ellipsis = ellipsisFirst
 					args = append(args, p.expression(token.LowestPrec))
 					p.advance()
-					goto endCall
+					goto endOfArgs
 				}
-				for p.current.Token == token.COMMA {
+				args = append(args, p.expression(token.LowestPrec))
+				p.advance()
+				for p.current.Token != token.RPAREN && p.current.Token != token.EOF {
+					p.expect(token.COMMA)
 					p.advance()
 					if p.current.Token == token.ELLIPSIS {
 						p.advance()
 						ellipsis = ellipsisLast
 						args = append(args, p.expression(token.LowestPrec))
 						p.advance()
-						goto endCall
+						goto endOfArgs
 					}
 					args = append(args, p.expression(token.LowestPrec))
 					p.advance()
 				}
 			}
-		endCall:
+		endOfArgs:
 			p.expect(token.RPAREN)
 			if p.next.Token != token.LBRACKET &&
 				p.next.Token != token.DOT &&
@@ -336,7 +324,7 @@ func (p *parser) forLoop() ast.Node {
 		return p.iterforLoop(id)
 	}
 	var init, end, step ast.Node
-	p.expect(token.ASSIGN)
+	p.expect(token.IN)
 	p.advance()
 	init = p.expression(token.LowestPrec)
 	p.advance()
@@ -468,7 +456,7 @@ Loop:
 				e = p.selector(e)
 			default:
 				if p.ok {
-					p.err = verror.New(p.lexer.ModuleName, "expected an identifier", verror.SyntaxErrType, p.current.Line)
+					p.err = verror.New(p.lexer.ScriptName, "expected an identifier", verror.SyntaxErrType, p.current.Line)
 					p.ok = false
 				}
 				return &ast.Nil{}
@@ -491,7 +479,7 @@ func (p *parser) operand() ast.Node {
 			return &ast.Integer{Value: int64(i)}
 		} else {
 			if p.ok {
-				p.err = verror.New(p.lexer.ModuleName, "integer literal could not be processed", verror.SyntaxErrType, p.current.Line)
+				p.err = verror.New(p.lexer.ScriptName, "integer literal could not be processed", verror.SyntaxErrType, p.current.Line)
 				p.ok = false
 			}
 			return &ast.Nil{}
@@ -501,7 +489,7 @@ func (p *parser) operand() ast.Node {
 			return &ast.Float{Value: f}
 		}
 		if p.ok {
-			p.err = verror.New(p.lexer.ModuleName, "float literal could not be processed", verror.SyntaxErrType, p.current.Line)
+			p.err = verror.New(p.lexer.ScriptName, "float literal could not be processed", verror.SyntaxErrType, p.current.Line)
 			p.ok = false
 		}
 		return &ast.Nil{}
@@ -509,7 +497,7 @@ func (p *parser) operand() ast.Node {
 		s, e := strconv.Unquote(p.current.Lit)
 		if e != nil {
 			if p.ok {
-				p.err = verror.New(p.lexer.ModuleName, "string literal could not be processed", verror.SyntaxErrType, p.current.Line)
+				p.err = verror.New(p.lexer.ScriptName, "string literal could not be processed", verror.SyntaxErrType, p.current.Line)
 				p.ok = false
 			}
 			return &ast.Nil{}
@@ -526,14 +514,23 @@ func (p *parser) operand() ast.Node {
 	case token.LBRACKET:
 		xs := &ast.List{}
 		p.advance()
-		for p.current.Token != token.RBRACKET {
+		for p.current.Token != token.RBRACKET && p.current.Token != token.EOF {
 			e := p.expression(token.LowestPrec)
-			xs.ExprList = append(xs.ExprList, e)
 			p.advance()
-			if p.current.Token == token.COMMA {
+			xs.ExprList = append(xs.ExprList, e)
+			for p.current.Token == token.COMMA {
 				p.advance()
+				if p.current.Token == token.RBRACKET {
+					p.expect(token.RBRACKET)
+					return xs
+				}
+				e := p.expression(token.LowestPrec)
+				p.advance()
+				xs.ExprList = append(xs.ExprList, e)
 			}
+			goto endList
 		}
+	endList:
 		p.expect(token.RBRACKET)
 		return xs
 	case token.LCURLY:
@@ -564,7 +561,7 @@ func (p *parser) operand() ast.Node {
 				break loop
 			default:
 				if p.ok {
-					p.err = verror.New(p.lexer.ModuleName, "expected identifier or assignment", verror.SyntaxErrType, p.current.Line)
+					p.err = verror.New(p.lexer.ScriptName, "expected identifier or assignment", verror.SyntaxErrType, p.current.Line)
 					p.ok = false
 				}
 				return &ast.Nil{}
@@ -576,7 +573,7 @@ func (p *parser) operand() ast.Node {
 		p.advance()
 		if p.current.Token == token.RPAREN {
 			if p.ok {
-				p.err = verror.New(p.lexer.ModuleName, "expected an expression after left parenthesis", verror.SyntaxErrType, p.current.Line)
+				p.err = verror.New(p.lexer.ScriptName, "expected an expression after left parenthesis", verror.SyntaxErrType, p.current.Line)
 				p.ok = false
 			}
 			return &ast.Nil{}
@@ -588,18 +585,22 @@ func (p *parser) operand() ast.Node {
 	case token.FUN:
 		f := &ast.Fun{}
 		p.advance()
-		for p.current.Token == token.IDENTIFIER {
+		if p.current.Token != token.ARROW && p.current.Token != token.LCURLY && p.current.Token != token.EOF {
+			p.expect(token.IDENTIFIER)
 			f.Args = append(f.Args, p.current.Lit)
 			p.advance()
+		}
+		for p.current.Token != token.ARROW && p.current.Token != token.LCURLY && p.current.Token != token.EOF {
 			if p.current.Token == token.ELLIPSIS {
 				f.IsVar = true
 				p.advance()
 				goto endParams
 			}
-			if p.current.Token == token.COMMA {
-				p.advance()
-				p.expect(token.IDENTIFIER)
-			}
+			p.expect(token.COMMA)
+			p.advance()
+			p.expect(token.IDENTIFIER)
+			f.Args = append(f.Args, p.current.Lit)
+			p.advance()
 		}
 	endParams:
 		if p.current.Token == token.ARROW {
@@ -654,7 +655,7 @@ func (p *parser) operand() ast.Node {
 					}
 				} else {
 					if p.ok {
-						p.err = verror.New(p.lexer.ModuleName, "integer literal could not be processed", verror.SyntaxErrType, p.current.Line)
+						p.err = verror.New(p.lexer.ScriptName, "integer literal could not be processed", verror.SyntaxErrType, p.current.Line)
 						p.ok = false
 					}
 					return &ast.Nil{}
@@ -667,7 +668,7 @@ func (p *parser) operand() ast.Node {
 					e.Init = int64(i)
 				} else {
 					if p.ok {
-						p.err = verror.New(p.lexer.ModuleName, "integer literal could not be processed", verror.SyntaxErrType, p.current.Line)
+						p.err = verror.New(p.lexer.ScriptName, "integer literal could not be processed", verror.SyntaxErrType, p.current.Line)
 						p.ok = false
 					}
 					return &ast.Nil{}
@@ -688,9 +689,9 @@ func (p *parser) operand() ast.Node {
 	default:
 		if p.ok {
 			if p.lexer.LexicalError.Message == "" {
-				p.err = verror.New(p.lexer.ModuleName, "expected a valid expression", verror.SyntaxErrType, p.current.Line)
+				p.err = verror.New(p.lexer.ScriptName, "expected a valid expression", verror.SyntaxErrType, p.current.Line)
 			} else {
-				p.err = verror.New(p.lexer.ModuleName, p.lexer.LexicalError.Error(), verror.SyntaxErrType, p.current.Line)
+				p.err = verror.New(p.lexer.ScriptName, p.lexer.LexicalError.Error(), verror.SyntaxErrType, p.current.Line)
 			}
 			p.ok = false
 		}
@@ -714,27 +715,21 @@ func (p *parser) export() ast.Node {
 
 func (p *parser) callExpr(e ast.Node) ast.Node {
 	line := p.current.Line
-	p.advance()
 	var args []ast.Node
 	var ellipsis int
-	if p.current.Token == token.ELLIPSIS {
-		p.advance()
-		ellipsis = ellipsisFirst
-		args = append(args, p.expression(token.LowestPrec))
-		p.advance()
-		goto afterParen
-	}
-	for p.current.Token != token.RPAREN && p.current.Token != token.EOF {
-		args = append(args, p.expression(token.LowestPrec))
-		p.advance()
+	p.advance()
+	if p.current.Token != token.RPAREN && p.current.Token != token.EOF {
 		if p.current.Token == token.ELLIPSIS {
 			p.advance()
-			ellipsis = ellipsisLast
+			ellipsis = ellipsisFirst
 			args = append(args, p.expression(token.LowestPrec))
 			p.advance()
 			goto afterParen
 		}
-		for p.current.Token == token.COMMA {
+		args = append(args, p.expression(token.LowestPrec))
+		p.advance()
+		for p.current.Token != token.RPAREN && p.current.Token != token.EOF {
+			p.expect(token.COMMA)
 			p.advance()
 			if p.current.Token == token.ELLIPSIS {
 				p.advance()
@@ -762,24 +757,18 @@ func (p *parser) methodCallExpr(e ast.Node) ast.Node {
 	p.advance()
 	p.expect(token.LPAREN)
 	p.advance()
-	if p.current.Token == token.ELLIPSIS {
-		p.advance()
-		ellipsis = ellipsisFirst
-		args = append(args, p.expression(token.LowestPrec))
-		p.advance()
-		goto afterParen
-	}
-	for p.current.Token != token.RPAREN && p.current.Token != token.EOF {
-		args = append(args, p.expression(token.LowestPrec))
-		p.advance()
+	if p.current.Token != token.RPAREN && p.current.Token != token.EOF {
 		if p.current.Token == token.ELLIPSIS {
 			p.advance()
-			ellipsis = ellipsisLast
+			ellipsis = ellipsisFirst
 			args = append(args, p.expression(token.LowestPrec))
 			p.advance()
 			goto afterParen
 		}
-		for p.current.Token == token.COMMA {
+		args = append(args, p.expression(token.LowestPrec))
+		p.advance()
+		for p.current.Token != token.RPAREN && p.current.Token != token.EOF {
+			p.expect(token.COMMA)
 			p.advance()
 			if p.current.Token == token.ELLIPSIS {
 				p.advance()
@@ -841,7 +830,7 @@ func (p *parser) expect(tok token.Token) {
 	if p.current.Token != tok && p.ok {
 		p.ok = false
 		message := fmt.Sprintf("expected token '%v', but got token '%v'", tok, p.current.Token)
-		p.err = verror.New(p.lexer.ModuleName, message, verror.SyntaxErrType, p.current.Line)
+		p.err = verror.New(p.lexer.ScriptName, message, verror.SyntaxErrType, p.current.Line)
 	}
 }
 

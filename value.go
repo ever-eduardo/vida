@@ -833,7 +833,7 @@ type CoreFunction struct {
 	Free       int
 	Arity      int
 	IsVar      bool
-	ModuleName string
+	ScriptName string
 }
 
 func (c *CoreFunction) Boolean() Bool {

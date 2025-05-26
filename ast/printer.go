@@ -28,7 +28,7 @@ func printAST(node Node, sb *strings.Builder, level int) {
 		}
 		sb.WriteRune(nl)
 		sb.WriteRune(nl)
-	case *Loc:
+	case *Var:
 		sb.WriteRune(nl)
 		buildIndent(sb, level+oneLevel)
 		sb.WriteString("Loc")

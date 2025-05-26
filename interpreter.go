@@ -15,18 +15,18 @@ type Interpreter struct {
 	vm       *vM
 }
 
-func NewInterpreter(modulePath string, stdlib map[string]func() Value) (*Interpreter, error) {
-	src, err := readModule(modulePath)
+func NewInterpreter(path string, stdlib map[string]func() Value) (*Interpreter, error) {
+	src, err := readScript(path)
 	if err != nil {
 		return nil, err
 	}
-	p := newParser(src, modulePath)
+	p := newParser(src, path)
 	rAst, err := p.parse()
 	if err != nil {
 		return nil, err
 	}
-	c := newMainCompiler(rAst, modulePath)
-	m, err := c.compileModule()
+	c := newMainCompiler(rAst, path)
+	m, err := c.compileScript()
 	if err != nil {
 		return nil, err
 	}
@@ -41,12 +41,12 @@ func NewInterpreter(modulePath string, stdlib map[string]func() Value) (*Interpr
 	}, nil
 }
 
-func NewDebugger(modulePath string, stdlib map[string]func() Value) (*Interpreter, error) {
-	src, err := readModule(modulePath)
+func NewDebugger(path string, stdlib map[string]func() Value) (*Interpreter, error) {
+	src, err := readScript(path)
 	if err != nil {
 		return nil, err
 	}
-	p := newParser(src, modulePath)
+	p := newParser(src, path)
 	rAst, err := p.parse()
 	if err != nil {
 		return nil, err
@@ -54,12 +54,12 @@ func NewDebugger(modulePath string, stdlib map[string]func() Value) (*Interprete
 	fmt.Println(ast.PrintAST(rAst))
 	fmt.Print("\n\nPress 'Enter' to continue => ")
 	fmt.Scanf(" ")
-	c := newMainCompiler(rAst, modulePath)
-	m, err := c.compileModule()
+	c := newMainCompiler(rAst, path)
+	m, err := c.compileScript()
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println(PrintBytecode(m, m.MainFunction.CoreFn.ModuleName))
+	fmt.Println(PrintBytecode(m, m.MainFunction.CoreFn.ScriptName))
 	fmt.Print("\n\nPress 'Enter' to continue => ")
 	fmt.Scanf(" ")
 	vm, err := newVM(m, stdlib, c.linesMap)
@@ -73,12 +73,12 @@ func NewDebugger(modulePath string, stdlib map[string]func() Value) (*Interprete
 	}, nil
 }
 
-func PrintAST(modulePath string) error {
-	src, err := readModule(modulePath)
+func PrintAST(path string) error {
+	src, err := readScript(path)
 	if err != nil {
 		return err
 	}
-	p := newParser(src, modulePath)
+	p := newParser(src, path)
 	rAst, err := p.parse()
 	if err != nil {
 		return err
@@ -87,12 +87,12 @@ func PrintAST(modulePath string) error {
 	return nil
 }
 
-func PrintTokens(modulePath string) error {
-	src, err := readModule(modulePath)
+func PrintTokens(path string) error {
+	src, err := readScript(path)
 	if err != nil {
 		return err
 	}
-	l := lexer.New(src, modulePath)
+	l := lexer.New(src, path)
 	hadError := false
 	fmt.Printf("%4v %-15v %-2v\n\n", "line", "token", "repr")
 	for {
@@ -113,22 +113,22 @@ func PrintTokens(modulePath string) error {
 	return nil
 }
 
-func PrintMachineCode(modulePath string) error {
-	src, err := readModule(modulePath)
+func PrintMachineCode(path string) error {
+	src, err := readScript(path)
 	if err != nil {
 		return err
 	}
-	p := newParser(src, modulePath)
+	p := newParser(src, path)
 	rAst, err := p.parse()
 	if err != nil {
 		return err
 	}
-	c := newMainCompiler(rAst, modulePath)
-	m, err := c.compileModule()
+	c := newMainCompiler(rAst, path)
+	m, err := c.compileScript()
 	if err != nil {
 		return err
 	}
-	fmt.Println(PrintBytecode(m, m.MainFunction.CoreFn.ModuleName))
+	fmt.Println(PrintBytecode(m, m.MainFunction.CoreFn.ScriptName))
 	return nil
 }
 

@@ -1,22 +1,22 @@
 
 let math = load("math")
 
-let module = {}
+let script = {}
 
-module.Pi = math.pi
+script.Pi = math.pi
 
-module.Tau = math.tau
+script.Tau = math.tau
 
 assert(
-    module.Pi == 3.141592653589793 or 
-    module.Pi <= 3.141592653589793 or
-    module.Pi >= 3.141592653589793
+    script.Pi == 3.141592653589793 or 
+    script.Pi <= 3.141592653589793 or
+    script.Pi >= 3.141592653589793
 )
 
 assert(
-    module.Tau == 6.283185307179586 or
-    module.Tau <= 6.283185307179586 or
-    module.Tau >= 6.283185307179586
+    script.Tau == 6.283185307179586 or
+    script.Tau <= 6.283185307179586 or
+    script.Tau >= 6.283185307179586
 )
 
-export module
+export script

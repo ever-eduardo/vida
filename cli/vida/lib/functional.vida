@@ -1,19 +1,19 @@
 
 //
-// Module functional
-// This module provides some high order functions for working with lists.
+// Script: functional
+// Provides some high order functions for lists.
 // Version 1.0.0
 //
 
 
 
-// Object to export
-var functional = {}
+// Library object
+var lib = {}
 
 
 
 // Map 
-functional.map = fun l f {
+lib.map = fun l, f {
     var xs = list(len(l))
     for i, v in l {
         xs[i] = f(v)
@@ -24,7 +24,7 @@ functional.map = fun l f {
 
 
 // Filter
-functional.filter = fun l pred {
+lib.filter = fun l, pred {
     var xs = []
     for _, v in l {
         if pred(v) {
@@ -37,7 +37,7 @@ functional.filter = fun l pred {
 
 
 // All
-functional.all = fun l pred {
+lib.all = fun l, pred {
     for _, v in l {
         if not pred(v) {
             ret false
@@ -49,7 +49,7 @@ functional.all = fun l pred {
 
 
 // Any
-functional.any = fun l pred {
+lib.any = fun l, pred {
     for _, v in l {
         if pred(v) {
             ret true
@@ -61,9 +61,9 @@ functional.any = fun l pred {
 
 
 // Reduce
-functional.reduce = fun l f init {
+lib.reduce = fun l, f, init {
     for _, v in l {
-        init = f(init v)
+        init = f(init, v)
     }
     ret init
 }
@@ -71,13 +71,13 @@ functional.reduce = fun l f init {
 
 
 // TakeWhile
-functional.takeWhile = fun l pred {
+lib.takeWhile = fun l, pred {
     var xs = []
     for _, v in l {
         if not pred(v) {
             ret xs
         }
-        append(xs v)
+        append(xs, v)
     }
     ret xs
 }
@@ -85,7 +85,7 @@ functional.takeWhile = fun l pred {
 
 
 // Zip
-functional.zip = fun l r {
+lib.zip = fun l, r {
     var length = nil
     var ll = len(l)
     var lr = len(r)
@@ -95,7 +95,7 @@ functional.zip = fun l r {
         length = lr
     }
     var xs = list(length)
-    for i = 0, length {
+    for i in 0, length {
         xs[i] = [l[i] r[i]]
     }
     ret xs
@@ -104,7 +104,7 @@ functional.zip = fun l r {
 
 
 // UnZip
-functional.unzip = fun l {
+lib.unzip = fun l {
     var ll = len(l)
     var a = list(ll)
     var b = list(ll)
@@ -115,4 +115,6 @@ functional.unzip = fun l {
     ret [a b]
 }
 
-export(functional)
+
+
+export lib

@@ -8,10 +8,10 @@ import (
 
 const vidaFileExtension = ".vida"
 
-func readModule(moduleName string) ([]byte, error) {
-	if data, err := os.ReadFile(moduleName); err == nil {
+func readScript(scriptName string) ([]byte, error) {
+	if data, err := os.ReadFile(scriptName); err == nil {
 		return data, nil
 	} else {
-		return nil, verror.New(moduleName, err.Error(), verror.FileErrType, 0)
+		return nil, verror.New(scriptName, err.Error(), verror.FileErrType, 0)
 	}
 }

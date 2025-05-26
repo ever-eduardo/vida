@@ -25,7 +25,7 @@ assert(text.split("", "Bernardo O'Higgins"))
 
 // Check equality
 var checkListEquality = fun l, r {
-    for i = 0, len(l) {
+    for i in 0, len(l) {
         assert(l[i] == r[i])
     }
 }

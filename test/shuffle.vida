@@ -10,7 +10,7 @@ var swap = fun xs, i, j {
 var shuffle = fun xs {
     var N = len(xs)
     var r = nil
-    for i = 0, N {
+    for i in 0, N {
         r = rand.nextI(i + 1)
         swap(xs, i, r)
     }
@@ -19,7 +19,7 @@ var shuffle = fun xs {
 
 var generateList = fun N {
     var xs = list(N)
-    for i = 0, N {
+    for i in 0, N {
         xs[i] = i
     }
     ret xs

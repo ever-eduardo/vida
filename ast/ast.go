@@ -10,7 +10,7 @@ type Ast struct {
 	Statement []Node
 }
 
-type Loc struct {
+type Var struct {
 	Identifier  string
 	Expr        Node
 	IsRecursive bool
@@ -234,7 +234,7 @@ type Enum struct {
 }
 
 func (ast *Ast) _node()           {}
-func (loc *Loc) _node()           {}
+func (loc *Var) _node()           {}
 func (mut *Mut) _node()           {}
 func (mut *Let) _node()           {}
 func (ref *Reference) _node()     {}
