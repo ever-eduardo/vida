@@ -209,6 +209,8 @@ func gfnLoadLib(args ...Value) (Value, error) {
 				switch v.Value[11:] {
 				case "text":
 					return loadFoundationText(), nil
+				case "math":
+					return loadFoundationMath(), nil
 				case "binary":
 					return loadFoundationBinary(), nil
 				case "time":

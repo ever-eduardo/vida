@@ -1,5 +1,5 @@
 
-var math = load("math")
+var math = load("foundation/math")
 var depA = import("dep-A")
 var depB = import("dep-B")
 
