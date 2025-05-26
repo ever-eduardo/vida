@@ -4,7 +4,7 @@ import (
 	"time"
 )
 
-func loadTimeLib() Value {
+func loadFoundationTime() Value {
 	m := &Object{Value: make(map[string]Value)}
 	m.Value["sleep"] = GFn(sleep)
 	m.Value["millisecond"] = Integer(time.Millisecond)

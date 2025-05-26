@@ -6,6 +6,7 @@ func loadObjectLib() Value {
 	m.Value["extract"] = GFn(extractProps)
 	m.Value["override"] = GFn(injectAndOverrideProps)
 	m.Value["check"] = GFn(checkProps)
+	m.Value["delProp"] = GFn(deleteProperty)
 	m.UpdateKeys()
 	return m
 }
@@ -84,6 +85,16 @@ func extractProps(args ...Value) (Value, error) {
 			}
 			o.UpdateKeys()
 			return o, nil
+		}
+	}
+	return NilValue, nil
+}
+
+func deleteProperty(args ...Value) (Value, error) {
+	if len(args) >= 2 {
+		if o, ok := args[0].(*Object); ok {
+			delete(o.Value, args[1].String())
+			o.UpdateKeys()
 		}
 	}
 	return NilValue, nil

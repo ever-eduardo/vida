@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 	"reflect"
-	"strconv"
+	"strings"
 
 	"github.com/alkemist-17/vida/verror"
 )
@@ -16,7 +16,7 @@ type LibsLoader map[string]func() Value
 
 var libsLoader LibsLoader
 
-const DefaultPrompt = "Input > "
+const DefaultInputPrompt = "Input > "
 
 var coreLibNames = []string{
 	"print",
@@ -29,21 +29,14 @@ var coreLibNames = []string{
 	"format",
 	"input",
 	"clone",
-	"del",
 	"error",
-	"exception",
 	"isError",
-	"str",
-	"int",
-	"float",
-	"bool",
 	"copy",
-	"bytes",
 	"object",
-	"deepEqual",
-	"time",
-	"__corelib",
+	"deepEq",
 }
+
+// From core to foundation = exception
 
 func loadCoreLib(store *[]Value) {
 	*store = append(*store,
@@ -57,20 +50,11 @@ func loadCoreLib(store *[]Value) {
 		GFn(gfnFormat),
 		GFn(gfnReadLine),
 		GFn(gfnClone),
-		GFn(gfnDel),
 		GFn(gfnError),
-		GFn(gfnExcept),
 		GFn(gfnIsError),
-		GFn(gfnToString),
-		GFn(gfnToInt),
-		GFn(gfnToFloat),
-		GFn(gfnToBool),
 		GFn(gfnCopy),
-		GFn(gfnBytes),
 		loadObjectLib(),
 		GFn(DeepEqual),
-		loadTimeLib(),
-		GFn(gfnCorelib),
 	)
 }
 
@@ -195,46 +179,11 @@ func gfnMakeList(args ...Value) (Value, error) {
 	return &List{}, nil
 }
 
-func gfnBytes(args ...Value) (Value, error) {
-	l := len(args)
-	if l > 0 {
-		switch v := args[0].(type) {
-		case Integer:
-			var init byte = 0
-			if l > 1 {
-				if val, ok := args[1].(Integer); ok {
-					init = byte(val)
-				}
-			}
-			if v > 0 && v < verror.MaxMemSize {
-				b := make([]byte, v)
-				for i := range v {
-					b[i] = init
-				}
-				return &Bytes{Value: b}, nil
-			}
-		case *String:
-			return &Bytes{Value: []byte(v.Value)}, nil
-		case *Bytes:
-			return v, nil
-		case *List:
-			var bts []byte
-			for _, val := range v.Value {
-				if i, ok := val.(Integer); ok {
-					bts = append(bts, byte(i))
-				}
-			}
-			return &Bytes{Value: bts}, nil
-		}
-	}
-	return &Bytes{}, nil
-}
-
 func gfnReadLine(args ...Value) (Value, error) {
 	if len(args) > 0 {
 		fmt.Print(args[0])
 	} else {
-		fmt.Print(DefaultPrompt)
+		fmt.Print(DefaultInputPrompt)
 	}
 	scanner := bufio.NewScanner(os.Stdin)
 	for scanner.Scan() {
@@ -253,34 +202,28 @@ func gfnClone(args ...Value) (Value, error) {
 	return NilValue, nil
 }
 
-func gfnDel(args ...Value) (Value, error) {
-	if len(args) >= 2 {
-		if o, ok := args[0].(*Object); ok {
-			delete(o.Value, args[1].String())
-			o.UpdateKeys()
-		}
-	}
-	return NilValue, nil
-}
-
 func gfnLoadLib(args ...Value) (Value, error) {
 	if len(args) > 0 {
 		if v, ok := args[0].(*String); ok {
-			if l, isPresent := libsLoader[v.Value]; isPresent {
+			if strings.HasPrefix(v.Value, "foundation/") {
+				switch v.Value[11:] {
+				case "binary":
+					return loadFoundationBinary(), nil
+				case "time":
+					return loadFoundationTime(), nil
+				case "cast":
+					return loadFoundationCasting(), nil
+				case "exception":
+					return loadFoundationException(), nil
+				case "corelib":
+					return loadFoundationCorelib(), nil
+				}
+			} else if l, isPresent := libsLoader[v.Value]; isPresent {
 				return l(), nil
 			}
 		}
 	}
 	return NilValue, nil
-}
-
-func gfnExcept(args ...Value) (Value, error) {
-	if len(args) > 0 {
-		err := fmt.Errorf("%s", fmt.Sprintf("\n\n  [%v]\n   Message : %v\n\n", verror.ExceptionErrType, args[0].String()))
-		return NilValue, err
-	}
-	err := fmt.Errorf("%s", fmt.Sprintf("\n\n  [%v]\n\n", verror.ExceptionErrType))
-	return NilValue, err
 }
 
 func gfnError(args ...Value) (Value, error) {
@@ -296,85 +239,6 @@ func gfnIsError(args ...Value) (Value, error) {
 		return Bool(ok), nil
 	}
 	return Bool(false), nil
-}
-
-func gfnToString(args ...Value) (Value, error) {
-	if len(args) > 0 {
-		return &String{Value: args[0].String()}, nil
-	}
-	return NilValue, nil
-}
-
-func gfnToInt(args ...Value) (Value, error) {
-	l := len(args)
-	if l == 1 {
-		switch v := args[0].(type) {
-		case *String:
-			i, e := strconv.ParseInt(v.Value, 0, 64)
-			if e == nil {
-				return Integer(i), nil
-			}
-		case Integer:
-			return v, nil
-		case Bool:
-			if v {
-				return Integer(1), nil
-			}
-			return Integer(0), nil
-		case Float:
-			return Integer(v), nil
-		case Nil:
-			return Integer(0), nil
-		}
-	} else if l == 2 {
-		if v, ok := args[0].(*String); ok {
-			if b, ok := args[1].(Integer); ok {
-				i, e := strconv.ParseInt(v.Value, int(b), 64)
-				if e == nil {
-					return Integer(i), nil
-				}
-			}
-		}
-	}
-	return NilValue, nil
-}
-
-func gfnToFloat(args ...Value) (Value, error) {
-	if len(args) > 0 {
-		switch v := args[0].(type) {
-		case *String:
-			r, e := strconv.ParseFloat(v.Value, 64)
-			if e == nil {
-				return Float(r), nil
-			}
-		case Integer:
-			return Float(v), nil
-		case Float:
-			return v, nil
-		case Nil:
-			return Float(0), nil
-		case Bool:
-			if v {
-				return Float(1), nil
-			}
-			return Float(0), nil
-		}
-	}
-	return NilValue, nil
-}
-
-func gfnToBool(args ...Value) (Value, error) {
-	if len(args) > 0 {
-		if v, ok := args[0].(*String); ok {
-			if v.Value == "true" {
-				return Bool(true), nil
-			}
-			if v.Value == "false" {
-				return Bool(false), nil
-			}
-		}
-	}
-	return NilValue, nil
 }
 
 func gfnCopy(args ...Value) (Value, error) {
@@ -445,7 +309,7 @@ func DeepEqual(args ...Value) (Value, error) {
 	return NilValue, nil
 }
 
-func gfnCorelib(args ...Value) (Value, error) {
+func loadFoundationCorelib(args ...Value) Value {
 	m := &Object{Value: make(map[string]Value)}
 	m.Value[coreLibNames[0]] = GFn(gfnPrint)
 	m.Value[coreLibNames[1]] = GFn(gfnLen)
@@ -457,22 +321,13 @@ func gfnCorelib(args ...Value) (Value, error) {
 	m.Value[coreLibNames[7]] = GFn(gfnFormat)
 	m.Value[coreLibNames[8]] = GFn(gfnReadLine)
 	m.Value[coreLibNames[9]] = GFn(gfnClone)
-	m.Value[coreLibNames[10]] = GFn(gfnDel)
-	m.Value[coreLibNames[11]] = GFn(gfnError)
-	m.Value[coreLibNames[12]] = GFn(gfnExcept)
-	m.Value[coreLibNames[13]] = GFn(gfnIsError)
-	m.Value[coreLibNames[14]] = GFn(gfnToString)
-	m.Value[coreLibNames[15]] = GFn(gfnToInt)
-	m.Value[coreLibNames[16]] = GFn(gfnToFloat)
-	m.Value[coreLibNames[17]] = GFn(gfnToBool)
-	m.Value[coreLibNames[18]] = GFn(gfnCopy)
-	m.Value[coreLibNames[19]] = GFn(gfnBytes)
-	m.Value[coreLibNames[20]] = loadObjectLib()
-	m.Value[coreLibNames[21]] = GFn(DeepEqual)
-	m.Value[coreLibNames[22]] = loadTimeLib()
-	m.Value[coreLibNames[23]] = GFn(gfnCorelib)
+	m.Value[coreLibNames[10]] = GFn(gfnError)
+	m.Value[coreLibNames[11]] = GFn(gfnIsError)
+	m.Value[coreLibNames[12]] = GFn(gfnCopy)
+	m.Value[coreLibNames[13]] = loadObjectLib()
+	m.Value[coreLibNames[14]] = GFn(DeepEqual)
 	m.UpdateKeys()
-	return m, nil
+	return m
 }
 
 func StringLength(input *String) Integer {
@@ -600,11 +455,6 @@ var coreLibDescription = []string{
 	Example: clone(someValue)
 	`,
 	`
-	Delete a key from an object.
-	Example: let xs be an objet containing a key val, then
-	del(xs, "val") deletes the key val.
-	`,
-	`
 	Create an error value. An error value may be used to signal
 	some behavior considered an error. The boolean value of an
 	error value is always false. When an argument is given, it will
@@ -617,45 +467,13 @@ var coreLibDescription = []string{
 		if result {handle the returned value}
 	`,
 	`
-	Create an exception to signal some exceptional or unexpected
-	behavior. It will always generate a runtime error. 
-	When an argument is given, it is shown in the error message.
-	Example: exception(message)
-	`,
-	`
 	Help to explicitly check for an error value.
 	Example: if isError(value) {handle the error here}
-	`,
-	`
-	Return a string representation of any value.
-	`,
-	`
-	Attempt a type convertion from string to integer. 
-	The second optional argument
-	is an integer representing a base from 2 to 36.
-	Return nil when fail.
-	`,
-	`
-	Attempt a type convertion from string to float.
-	Return nil when fail.
-	`,
-	`
-	Attemp a type convertion from string to boolean.
-	Return nil when fails.
 	`,
 	`
 	Copy a source value into a dest value,
 	Those values may be of type list, bytes or string.
 	It always does a shallow copy.
-	`,
-	`
-	Create a list of bytes from a string value.
-	It can create a list of bytes by passing its size,
-	as first argument, and an optional integer 
-	as their initial value as second argument.
-	If a list is passed as argument, then it will
-	iterate over the list and convert every integer to
-	a byte value truncating it to its uint8 bits value.
 	`,
 	`
 	It is the built-in object library with some functionality
@@ -664,17 +482,6 @@ var coreLibDescription = []string{
 	`
 	Use Go's deepEqual function for value equality.
 	Beware of its inconsistencies.
-	`,
-	`
-	Date and time functionalities.
-	`,
-	`
-	It is a function to create a copy of the Core library.
-	The core library is the default library of Vida. 
-	It is useful when you have
-	overwriten some of its initial values.
-	Example:
-		let corelib = __corelib()
 	`,
 }
 

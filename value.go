@@ -1013,7 +1013,7 @@ func (gfn GFn) Iterator() Value {
 }
 
 func (gfn GFn) String() string {
-	return "GFunction"
+	return "GFn"
 }
 
 func (gFn GFn) Clone() Value {
@@ -1021,7 +1021,7 @@ func (gFn GFn) Clone() Value {
 }
 
 func (gfn GFn) Type() string {
-	return "function"
+	return "gfn"
 }
 
 type Error struct {
