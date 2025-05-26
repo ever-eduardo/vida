@@ -1,5 +1,5 @@
 
-let rand = load("rand")
+let rand = load("foundation/random")
 
 let alpha = "abcdefghijklmnopqrstuvwxyz"
 

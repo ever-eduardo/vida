@@ -14,7 +14,7 @@ var NilValue = Nil{}
 
 type LibsLoader map[string]func() Value
 
-var libsLoader LibsLoader
+var extensionlibsLoader LibsLoader
 
 const DefaultInputPrompt = "Input > "
 
@@ -217,6 +217,10 @@ func gfnLoadLib(args ...Value) (Value, error) {
 					return loadFoundationTime(), nil
 				case "cast":
 					return loadFoundationCasting(), nil
+				case "random":
+					return loadFoundationRandom(), nil
+				case "io":
+					return loadFoundationIO(), nil
 				case "os":
 					return loadFoundationOS(), nil
 				case "exception":
@@ -224,7 +228,7 @@ func gfnLoadLib(args ...Value) (Value, error) {
 				case "corelib":
 					return loadFoundationCorelib(), nil
 				}
-			} else if l, isPresent := libsLoader[v.Value]; isPresent {
+			} else if l, isPresent := extensionlibsLoader[v.Value]; isPresent {
 				return l(), nil
 			}
 		}
@@ -315,7 +319,7 @@ func DeepEqual(args ...Value) (Value, error) {
 	return NilValue, nil
 }
 
-func loadFoundationCorelib(args ...Value) Value {
+func loadFoundationCorelib() Value {
 	m := &Object{Value: make(map[string]Value)}
 	m.Value[coreLibNames[0]] = GFn(gfnPrint)
 	m.Value[coreLibNames[1]] = GFn(gfnLen)

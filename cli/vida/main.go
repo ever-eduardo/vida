@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/alkemist-17/vida"
-	"github.com/alkemist-17/vida/lib"
+	"github.com/alkemist-17/vida/extension"
 )
 
 const (
@@ -64,10 +64,10 @@ func main() {
 
 func debug(args []string) {
 	clear()
-	libs := lib.Loadlibs()
+	extensions := extension.LoadExtensions()
 	if len(args) > 2 {
 		printVersion()
-		i, err := vida.NewDebugger(args[2], libs)
+		i, err := vida.NewDebugger(args[2], extensions)
 		handleError(err)
 		r, err := i.Debug()
 		handleError(err)
@@ -79,9 +79,9 @@ func debug(args []string) {
 }
 
 func run(args []string) {
-	libs := lib.Loadlibs()
+	extensions := extension.LoadExtensions()
 	if len(args) > 2 {
-		i, err := vida.NewInterpreter(args[2], libs)
+		i, err := vida.NewInterpreter(args[2], extensions)
 		handleError(err)
 		_, err = i.Run()
 		if err != nil {
@@ -97,9 +97,9 @@ func run(args []string) {
 func time(args []string) {
 	clear()
 	printVersion()
-	libs := lib.Loadlibs()
+	extensions := extension.LoadExtensions()
 	if len(args) > 2 {
-		i, err := vida.NewInterpreter(args[2], libs)
+		i, err := vida.NewInterpreter(args[2], extensions)
 		handleError(err)
 		r, err := i.MeasureRunTime()
 		if err != nil {

@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/alkemist-17/vida"
-	"github.com/alkemist-17/vida/lib"
+	"github.com/alkemist-17/vida/extension"
 )
 
 func main() {
@@ -27,7 +27,7 @@ func main() {
 }
 
 func executeScript(path string) {
-	i, err := vida.NewInterpreter(path, lib.Loadlibs())
+	i, err := vida.NewInterpreter(path, extension.LoadExtensions())
 	handleError(err, path)
 	r, err := i.MeasureRunTime()
 	handleError(err, path)

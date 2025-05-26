@@ -32,8 +32,8 @@ type vM struct {
 	fp      int
 }
 
-func newVM(m *Script, loader LibsLoader, errInfo map[string]map[int]uint) (*vM, error) {
-	libsLoader = loader
+func newVM(m *Script, extensionlibsloader LibsLoader, errInfo map[string]map[int]uint) (*vM, error) {
+	extensionlibsLoader = extensionlibsloader
 	return &vM{Script: m, ErrInfo: errInfo}, checkISACompatibility(m)
 }
 

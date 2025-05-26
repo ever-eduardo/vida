@@ -1,4 +1,4 @@
-var rand = load("rand")
+var rand = load("foundation/random")
 var N = 1_000_000
 
 var randRange = fun a, b {

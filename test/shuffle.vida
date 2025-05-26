@@ -1,5 +1,5 @@
 
-var rand = load("rand")
+var rand = load("foundation/random")
 
 var swap = fun xs, i, j {
     var aux = xs[i]

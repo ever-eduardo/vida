@@ -22,9 +22,9 @@ func loadFoundationOS() Value {
 	m.Value["name"] = GFn(osName())
 	m.Value["arch"] = GFn(osArch())
 	m.Value["run"] = GFn(runCMD())
-	// m.Value["stdin"] = &FileHandler{Handler: os.Stdin}
-	// m.Value["stdout"] = &FileHandler{Handler: os.Stdout}
-	// m.Value["stderr"] = &FileHandler{Handler: os.Stderr}
+	m.Value["stdin"] = &FileHandler{Handler: os.Stdin}
+	m.Value["stdout"] = &FileHandler{Handler: os.Stdout}
+	m.Value["stderr"] = &FileHandler{Handler: os.Stderr}
 	m.UpdateKeys()
 	return m
 }

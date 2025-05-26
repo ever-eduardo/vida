@@ -15,7 +15,7 @@ type Interpreter struct {
 	vm       *vM
 }
 
-func NewInterpreter(path string, stdlib map[string]func() Value) (*Interpreter, error) {
+func NewInterpreter(path string, extensionlibloader map[string]func() Value) (*Interpreter, error) {
 	src, err := readScript(path)
 	if err != nil {
 		return nil, err
@@ -30,7 +30,7 @@ func NewInterpreter(path string, stdlib map[string]func() Value) (*Interpreter, 
 	if err != nil {
 		return nil, err
 	}
-	vm, err := newVM(m, stdlib, c.linesMap)
+	vm, err := newVM(m, extensionlibloader, c.linesMap)
 	if err != nil {
 		return nil, err
 	}
@@ -41,7 +41,7 @@ func NewInterpreter(path string, stdlib map[string]func() Value) (*Interpreter, 
 	}, nil
 }
 
-func NewDebugger(path string, stdlib map[string]func() Value) (*Interpreter, error) {
+func NewDebugger(path string, extensionlibloader map[string]func() Value) (*Interpreter, error) {
 	src, err := readScript(path)
 	if err != nil {
 		return nil, err
@@ -62,7 +62,7 @@ func NewDebugger(path string, stdlib map[string]func() Value) (*Interpreter, err
 	fmt.Println(PrintBytecode(m, m.MainFunction.CoreFn.ScriptName))
 	fmt.Print("\n\nPress 'Enter' to continue => ")
 	fmt.Scanf(" ")
-	vm, err := newVM(m, stdlib, c.linesMap)
+	vm, err := newVM(m, extensionlibloader, c.linesMap)
 	if err != nil {
 		return nil, err
 	}
