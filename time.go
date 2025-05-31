@@ -80,13 +80,16 @@ func (t Time) Clone() Value {
 
 func loadFoundationTime() Value {
 	m := &Object{Value: make(map[string]Value)}
+	// Unix Time
 	m.Value["unixNano"] = GFn(timestampNano)
 	m.Value["unixMilli"] = GFn(timestampMilli)
 	m.Value["unixMicro"] = GFn(timestampMicro)
 	m.Value["unixSec"] = GFn(timestamp)
+	// Time
 	m.Value["now"] = GFn(timeNow)
 	m.Value["date"] = GFn(timeDate)
 	m.Value["format"] = GFn(timeFormat)
+	// Extract info from Time
 	m.Value["getYear"] = GFn(timeGetYear)
 	m.Value["getMonth"] = GFn(timeGetMonth)
 	m.Value["getDay"] = GFn(timeGetDay)
@@ -95,13 +98,17 @@ func loadFoundationTime() Value {
 	m.Value["getSeconds"] = GFn(timeGetSeconds)
 	m.Value["getNanoseconds"] = GFn(timeGetNanoseconds)
 	m.Value["getLocation"] = GFn(timeGetLocation)
+	m.Value["toUnixNano"] = GFn(timeToUnixNano)
+	// Time Sleep
 	m.Value["sleep"] = GFn(sleep)
+	// Time Units
 	m.Value["millisecond"] = Integer(time.Millisecond)
 	m.Value["nanosecond"] = Integer(time.Nanosecond)
 	m.Value["microsecond"] = Integer(time.Microsecond)
 	m.Value["hour"] = Integer(time.Hour)
 	m.Value["minute"] = Integer(time.Minute)
 	m.Value["second"] = Integer(time.Second)
+	// Time Formats
 	m.Value["RFC3339"] = &String{Value: time.RFC3339}
 	m.Value["RFC3339Nano"] = &String{Value: time.RFC3339Nano}
 	m.Value["RFC1123"] = &String{Value: time.RFC1123}
@@ -111,21 +118,24 @@ func loadFoundationTime() Value {
 	m.Value["RFC850"] = &String{Value: time.RFC850}
 	m.Value["Unix"] = &String{Value: time.UnixDate}
 	m.Value["ANSIC"] = &String{Value: time.ANSIC}
-	m.Value["DateTime"] = &String{Value: time.DateTime}
-	m.Value["DateOnly"] = &String{Value: time.DateOnly}
-	m.Value["TimeOnly"] = &String{Value: time.TimeOnly}
+	m.Value["RubyDate"] = &String{Value: time.RubyDate}
 	m.Value["Kitchen"] = &String{Value: time.Kitchen}
-	m.Value["Layout"] = &String{Value: time.Layout}
+	// Time Stamps
 	m.Value["Stamp"] = &String{Value: time.Stamp}
 	m.Value["StampMicro"] = &String{Value: time.StampMicro}
 	m.Value["StampMilli"] = &String{Value: time.StampMilli}
 	m.Value["StampNano"] = &String{Value: time.StampNano}
-	m.Value["RubyDate"] = &String{Value: time.RubyDate}
+	m.Value["DateTime"] = &String{Value: time.DateTime}
+	m.Value["DateOnly"] = &String{Value: time.DateOnly}
+	m.Value["TimeOnly"] = &String{Value: time.TimeOnly}
+	// Time ops with TimeZones
 	m.Value["nowIn"] = GFn(timeIn)
 	m.Value["dateIn"] = GFn(dateIn)
-	m.Value["toUnixNano"] = GFn(timeToUnixNano)
+	// Basic TimeZones
 	m.Value["Local"] = &String{Value: time.Local.String()}
 	m.Value["UTC"] = &String{Value: time.UTC.String()}
+	// Parse Time
+	m.Value["parse"] = GFn(timeParse)
 	m.UpdateKeys()
 	return m
 }
@@ -332,6 +342,21 @@ func timeToUnixNano(args ...Value) (Value, error) {
 	if len(args) > 0 {
 		if t, ok := args[0].(Time); ok {
 			return Integer(time.Time(t).UnixNano()), nil
+		}
+	}
+	return NilValue, nil
+}
+
+func timeParse(args ...Value) (Value, error) {
+	if len(args) > 1 {
+		if f, ok := args[0].(*String); ok {
+			if dt, ok := args[1].(*String); ok {
+				t, err := time.Parse(f.Value, dt.Value)
+				if err != nil {
+					return Error{Message: &String{Value: err.Error()}}, nil
+				}
+				return Time(t), nil
+			}
 		}
 	}
 	return NilValue, nil
