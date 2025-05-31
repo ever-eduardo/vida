@@ -121,6 +121,9 @@ func loadFoundationTime() Value {
 	m.Value["StampMilli"] = &String{Value: time.StampMilli}
 	m.Value["StampNano"] = &String{Value: time.StampNano}
 	m.Value["RubyDate"] = &String{Value: time.RubyDate}
+	m.Value["nowIn"] = GFn(timeIn)
+	m.Value["dateIn"] = GFn(dateIn)
+	m.Value["toUnixNano"] = GFn(timeToUnixNano)
 	m.Value["Local"] = &String{Value: time.Local.String()}
 	m.Value["UTC"] = &String{Value: time.UTC.String()}
 	m.UpdateKeys()
@@ -227,6 +230,7 @@ func timeGetYear(args ...Value) (Value, error) {
 	return NilValue, nil
 
 }
+
 func timeGetMonth(args ...Value) (Value, error) {
 	if len(args) > 0 {
 		if t, ok := args[0].(Time); ok {
@@ -236,6 +240,7 @@ func timeGetMonth(args ...Value) (Value, error) {
 	return NilValue, nil
 
 }
+
 func timeGetDay(args ...Value) (Value, error) {
 	if len(args) > 0 {
 		if t, ok := args[0].(Time); ok {
@@ -245,6 +250,7 @@ func timeGetDay(args ...Value) (Value, error) {
 	return NilValue, nil
 
 }
+
 func timeGetHours(args ...Value) (Value, error) {
 	if len(args) > 0 {
 		if t, ok := args[0].(Time); ok {
@@ -254,6 +260,7 @@ func timeGetHours(args ...Value) (Value, error) {
 	return NilValue, nil
 
 }
+
 func timeGetMinutes(args ...Value) (Value, error) {
 	if len(args) > 0 {
 		if t, ok := args[0].(Time); ok {
@@ -263,6 +270,7 @@ func timeGetMinutes(args ...Value) (Value, error) {
 	return NilValue, nil
 
 }
+
 func timeGetSeconds(args ...Value) (Value, error) {
 	if len(args) > 0 {
 		if t, ok := args[0].(Time); ok {
@@ -272,6 +280,7 @@ func timeGetSeconds(args ...Value) (Value, error) {
 	return NilValue, nil
 
 }
+
 func timeGetNanoseconds(args ...Value) (Value, error) {
 	if len(args) > 0 {
 		if t, ok := args[0].(Time); ok {
@@ -281,10 +290,48 @@ func timeGetNanoseconds(args ...Value) (Value, error) {
 	return NilValue, nil
 
 }
+
 func timeGetLocation(args ...Value) (Value, error) {
 	if len(args) > 0 {
 		if t, ok := args[0].(Time); ok {
 			return &String{Value: time.Time(t).Location().String()}, nil
+		}
+	}
+	return NilValue, nil
+}
+
+func timeIn(args ...Value) (Value, error) {
+	if len(args) > 0 {
+		if zone, ok := args[0].(*String); ok {
+			location, e := time.LoadLocation(zone.Value)
+			if e != nil {
+				return NilValue, nil
+			}
+			return Time(time.Now().In(location)), nil
+		}
+	}
+	return Time(time.Now().UTC()), nil
+}
+
+func dateIn(args ...Value) (Value, error) {
+	if len(args) > 1 {
+		if t, ok := args[0].(Time); ok {
+			if zone, ok := args[1].(*String); ok {
+				location, e := time.LoadLocation(zone.Value)
+				if e != nil {
+					return NilValue, nil
+				}
+				return Time(time.Time(t).In(location)), nil
+			}
+		}
+	}
+	return NilValue, nil
+}
+
+func timeToUnixNano(args ...Value) (Value, error) {
+	if len(args) > 0 {
+		if t, ok := args[0].(Time); ok {
+			return Integer(time.Time(t).UnixNano()), nil
 		}
 	}
 	return NilValue, nil
