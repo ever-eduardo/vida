@@ -136,6 +136,12 @@ func loadFoundationTime() Value {
 	m.Value["UTC"] = &String{Value: time.UTC.String()}
 	// Parse Time
 	m.Value["parse"] = GFn(timeParse)
+	// Time operations
+	m.Value["since"] = GFn(timeSince)
+	m.Value["add"] = GFn(timeAddDuration)
+	m.Value["sub"] = GFn(timeSub)
+	m.Value["after"] = GFn(timeAfter)
+	m.Value["before"] = GFn(timeBefore)
 	m.UpdateKeys()
 	return m
 }
@@ -360,4 +366,70 @@ func timeParse(args ...Value) (Value, error) {
 		}
 	}
 	return NilValue, nil
+}
+
+func timeSince(args ...Value) (Value, error) {
+	if len(args) > 0 {
+		if t, ok := args[0].(Time); ok {
+			return createDuration(time.Since(time.Time(t))), nil
+		}
+	}
+	return NilValue, nil
+
+}
+
+func timeAddDuration(args ...Value) (Value, error) {
+	if len(args) > 1 {
+		if t, ok := args[0].(Time); ok {
+			if duration, ok := args[1].(Integer); ok {
+				return Time(time.Time(t).Add(time.Duration(duration))), nil
+			}
+		}
+	}
+	return NilValue, nil
+}
+
+func timeSub(args ...Value) (Value, error) {
+	if len(args) > 1 {
+		if t, ok := args[0].(Time); ok {
+			if u, ok := args[1].(Time); ok {
+				return createDuration(time.Time(t).Sub(time.Time(u))), nil
+			}
+		}
+	}
+	return NilValue, nil
+}
+
+func timeAfter(args ...Value) (Value, error) {
+	if len(args) > 1 {
+		if t, ok := args[0].(Time); ok {
+			if u, ok := args[1].(Time); ok {
+				return Bool(time.Time(t).After(time.Time(u))), nil
+			}
+		}
+	}
+	return NilValue, nil
+}
+
+func timeBefore(args ...Value) (Value, error) {
+	if len(args) > 1 {
+		if t, ok := args[0].(Time); ok {
+			if u, ok := args[1].(Time); ok {
+				return Bool(time.Time(t).Before(time.Time(u))), nil
+			}
+		}
+	}
+	return NilValue, nil
+}
+
+func createDuration(v time.Duration) *Object {
+	o := &Object{Value: make(map[string]Value)}
+	o.Value["hours"] = Float(v.Hours())
+	o.Value["minutes"] = Float(v.Minutes())
+	o.Value["seconds"] = Float(v.Seconds())
+	o.Value["microseconds"] = Integer(v.Microseconds())
+	o.Value["milliseconds"] = Integer(v.Milliseconds())
+	o.Value["nanoseconds"] = Integer(v.Nanoseconds())
+	o.Value["description"] = &String{Value: v.String()}
+	return o
 }
