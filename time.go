@@ -431,5 +431,6 @@ func createDuration(v time.Duration) *Object {
 	o.Value["milliseconds"] = Integer(v.Milliseconds())
 	o.Value["nanoseconds"] = Integer(v.Nanoseconds())
 	o.Value["description"] = &String{Value: v.String()}
+	o.UpdateKeys()
 	return o
 }
