@@ -213,13 +213,13 @@ func gfnLoadLib(args ...Value) (Value, error) {
 					return loadFoundationText(), nil
 				case "math":
 					return loadFoundationMath(), nil
-				case "binary":
+				case "bin":
 					return loadFoundationBinary(), nil
 				case "time":
 					return loadFoundationTime(), nil
 				case "cast":
 					return loadFoundationCasting(), nil
-				case "random":
+				case "rand":
 					return loadFoundationRandom(), nil
 				case "io":
 					return loadFoundationIO(), nil
@@ -227,6 +227,8 @@ func gfnLoadLib(args ...Value) (Value, error) {
 					return loadFoundationOS(), nil
 				case "exception":
 					return loadFoundationException(), nil
+				case "net":
+					return loadFoundationNetworkIO(), nil
 				case "corelib":
 					return loadFoundationCorelib(), nil
 				}

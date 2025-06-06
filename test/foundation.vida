@@ -1,5 +1,5 @@
 
-var bin = load("std/binary")
+var bin = load("std/bin")
 assert(bin)
 
 var time = load("std/time")

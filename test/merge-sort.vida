@@ -6,7 +6,7 @@
 var p = print
 
 
-var rand = load("std/random")
+var rand = load("std/rand")
 
 
 var iComparable = {
