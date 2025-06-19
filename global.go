@@ -14,9 +14,9 @@ var NilValue = Nil{}
 
 type LibsLoader map[string]func() Value
 
-var extensionlibsLoader LibsLoader
+type ErrorInfo map[string]map[int]uint
 
-var scriptErrorInfo map[string]map[int]uint
+var extensionlibsLoader LibsLoader
 
 const DefaultInputPrompt = "Input > "
 
@@ -42,7 +42,7 @@ var coreLibNames = []string{
 
 // From core to foundation = exception
 
-func loadCoreLib(store *[]Value) {
+func loadCoreLib(store *[]Value) *[]Value {
 	*store = append(*store,
 		GFn(gfnPrint),
 		GFn(gfnLen),
@@ -60,6 +60,7 @@ func loadCoreLib(store *[]Value) {
 		loadObjectLib(),
 		GFn(DeepEqual),
 	)
+	return store
 }
 
 func gfnPrint(args ...Value) (Value, error) {

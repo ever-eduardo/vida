@@ -6,7 +6,7 @@ import (
 	"github.com/alkemist-17/vida/verror"
 )
 
-func (vm *vM) Inspect(ip int) {
+func (vm *VM) Inspect(ip int) {
 	clear()
 	fmt.Println("Running", vm.Frame.lambda.CoreFn.ScriptName)
 	fmt.Printf("Store => ")
@@ -37,7 +37,7 @@ func (vm *vM) Inspect(ip int) {
 	fmt.Scanf(" ")
 }
 
-func (vm *vM) debug() (Result, error) {
+func (vm *VM) debug() (Result, error) {
 	vm.Frame = &vm.Frames[vm.fp]
 	vm.Frame.code = vm.Script.MainFunction.CoreFn.Code
 	vm.Frame.lambda = vm.Script.MainFunction

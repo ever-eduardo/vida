@@ -10,7 +10,7 @@ import (
 type ThreadState int
 
 const (
-	Created ThreadState = iota
+	Ready ThreadState = iota
 	Running
 	Suspended
 	Closed
@@ -18,8 +18,8 @@ const (
 
 func (state ThreadState) String() string {
 	switch state {
-	case Created:
-		return "created"
+	case Ready:
+		return "ready"
 	case Running:
 		return "running"
 	case Suspended:
@@ -31,37 +31,36 @@ func (state ThreadState) String() string {
 	}
 }
 
-type Suspendable interface {
-	Resume(args ...Value) Value
-	State() ThreadState
-	IsAlive() bool
-	Suspend(args ...Value) Value
-}
-
 type Thread struct {
 	ReferenceSemanticsImpl
-	Frames  []frame
-	Stack   []Value
-	Script  *Script
-	Frame   *frame
-	ErrInfo map[string]map[int]uint
-	State   ThreadState
-	fp      int
+	Frames []frame
+	Stack  []Value
+	Script *Script
+	Frame  *frame
+	State  ThreadState
+	fp     int
 }
 
-func createThread(fn *Function, store *[]Value, konstants *[]Value, size int) *Thread {
-	script := &Script{
-		Konstants:    konstants,
-		Store:        store,
-		MainFunction: fn,
+func newMainThread(script *Script, extensionlibsloader LibsLoader) (*Thread, error) {
+	extensionlibsLoader = extensionlibsloader
+	return &Thread{
+		Frames: make([]frame, frameSize),
+		Stack:  make([]Value, fullStack),
+		Script: script,
+	}, nil
+}
+
+func newThread(fn *Function, script *Script, size int) *Thread {
+	return &Thread{
+		Script: &Script{
+			Konstants:    script.Konstants,
+			Store:        script.Store,
+			ErrorInfo:    script.ErrorInfo,
+			MainFunction: fn,
+		},
+		Frames: make([]frame, size),
+		Stack:  make([]Value, size),
 	}
-	th := &Thread{
-		Script:  script,
-		ErrInfo: scriptErrorInfo,
-		Frames:  make([]frame, size),
-		Stack:   make([]Value, size),
-	}
-	return th
 }
 
 func (th *Thread) Boolean() Bool {

@@ -12,7 +12,7 @@ import (
 type Interpreter struct {
 	parser   *parser
 	compiler *compiler
-	vm       *vM
+	vm       *VM
 }
 
 func NewInterpreter(path string, extensionlibloader map[string]func() Value) (*Interpreter, error) {
@@ -30,14 +30,14 @@ func NewInterpreter(path string, extensionlibloader map[string]func() Value) (*I
 	if err != nil {
 		return nil, err
 	}
-	vm, err := newVM(script, extensionlibloader, c.linesMap)
+	mainThread, err := newMainThread(script, extensionlibloader)
 	if err != nil {
 		return nil, err
 	}
 	return &Interpreter{
 		parser:   p,
 		compiler: c,
-		vm:       vm,
+		vm:       &VM{mainThread},
 	}, nil
 }
 
@@ -62,14 +62,14 @@ func NewDebugger(path string, extensionlibloader map[string]func() Value) (*Inte
 	fmt.Println(PrintBytecode(script, script.MainFunction.CoreFn.ScriptName))
 	fmt.Print("\n\nPress 'Enter' to continue => ")
 	fmt.Scanf(" ")
-	vm, err := newVM(script, extensionlibloader, c.linesMap)
+	mainThread, err := newMainThread(script, extensionlibloader)
 	if err != nil {
 		return nil, err
 	}
 	return &Interpreter{
 		parser:   p,
 		compiler: c,
-		vm:       vm,
+		vm:       &VM{mainThread},
 	}, nil
 }
 

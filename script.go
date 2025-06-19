@@ -13,24 +13,22 @@ type Script struct {
 	Store        *[]Value
 	Konstants    *[]Value
 	MainFunction *Function
+	ErrorInfo
 }
 
 func newMainScript(name string) *Script {
-	store := new([]Value)
-	loadCoreLib(store)
 	s := Script{
 		Konstants:    nil,
-		Store:        store,
+		Store:        loadCoreLib(new([]Value)),
 		MainFunction: &Function{CoreFn: &CoreFunction{ScriptName: name}},
 	}
 	return &s
 }
 
 func newScript(name string, store *[]Value) *Script {
-	loadCoreLib(store)
 	s := Script{
 		Konstants:    nil,
-		Store:        store,
+		Store:        loadCoreLib(store),
 		MainFunction: &Function{CoreFn: &CoreFunction{ScriptName: name}},
 	}
 	return &s

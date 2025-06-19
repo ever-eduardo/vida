@@ -12,7 +12,14 @@ const Success Result = "Success"
 const Failure Result = "Failure"
 
 const frameSize = 1024
-const stackSize = 1024
+const fullStack = 1024
+const halfStack = 512
+const quarterStack = 256
+const microStack = 128
+const milliStack = 64
+const nanoStack = 32
+const picoStack = 16
+const femtoStack = 8
 
 type frame struct {
 	code   []uint64
@@ -23,21 +30,11 @@ type frame struct {
 	ret    int
 }
 
-type vM struct {
-	Frames  [frameSize]frame
-	Stack   [stackSize]Value
-	Script  *Script
-	Frame   *frame
-	ErrInfo map[string]map[int]uint
-	fp      int
+type VM struct {
+	*Thread
 }
 
-func newVM(m *Script, extensionlibsloader LibsLoader, errInfo map[string]map[int]uint) (*vM, error) {
-	extensionlibsLoader, scriptErrorInfo = extensionlibsloader, errInfo
-	return &vM{Script: m, ErrInfo: errInfo}, checkISACompatibility(m)
-}
-
-func (vm *vM) run() (Result, error) {
+func (vm *VM) run() (Result, error) {
 	vm.Frame = &vm.Frames[vm.fp]
 	vm.Frame.code = vm.Script.MainFunction.CoreFn.Code
 	vm.Frame.lambda = vm.Script.MainFunction
@@ -368,7 +365,8 @@ func (vm *vM) run() (Result, error) {
 					return vm.createError(ip, verror.ErrStackOverflow)
 				}
 				if P != 0 {
-					if P == ellipsisFirst {
+					switch P {
+					case ellipsisFirst:
 						if xs, ok := vm.Frame.stack[B+F].(*List); ok {
 							nargs = len(xs.Value) + int(F) - 1
 							for i, v := range xs.Value {
@@ -377,7 +375,7 @@ func (vm *vM) run() (Result, error) {
 						} else {
 							return vm.createError(ip, verror.ErrVariadicArgs)
 						}
-					} else if P == ellipsisLast {
+					case ellipsisLast:
 						if xs, ok := vm.Frame.stack[int(B)+nargs].(*List); ok {
 							nargs += len(xs.Value) - 1
 							for i, v := range xs.Value {
@@ -452,7 +450,7 @@ func (vm *vM) run() (Result, error) {
 	}
 }
 
-func (vm *vM) processSlice(mode, sliceable uint64) (Value, error) {
+func (vm *VM) processSlice(mode, sliceable uint64) (Value, error) {
 	val := vm.Frame.stack[sliceable]
 	switch v := val.(type) {
 	case *List:
@@ -669,26 +667,26 @@ func (vm *vM) processSlice(mode, sliceable uint64) (Value, error) {
 	return NilValue, verror.ErrSlice
 }
 
-func (vm *vM) printCallStack() {
+func (vm *VM) printCallStack() {
 	fmt.Printf("  [Call Stack]\n\n")
 	for i := vm.fp; i >= 0; i-- {
 		modName := vm.Frames[i].lambda.CoreFn.ScriptName
 		ip := vm.Frames[i].ip
-		err := verror.NewStackFrameInfo(modName, vm.ErrInfo[modName][ip])
+		err := verror.NewStackFrameInfo(modName, vm.Script.ErrorInfo[modName][ip])
 		fmt.Printf("%v\n", err)
 	}
 }
 
-func (vm *vM) createError(ip int, err error) (Result, error) {
+func (vm *VM) createError(ip int, err error) (Result, error) {
 	modName := vm.Frame.lambda.CoreFn.ScriptName
 	vm.Frame.ip = ip
-	return Failure, verror.New(modName, err.Error(), verror.RunTimeErrType, vm.ErrInfo[modName][ip])
+	return Failure, verror.New(modName, err.Error(), verror.RunTimeErrType, vm.Script.ErrorInfo[modName][ip])
 }
 
-func checkISACompatibility(m *Script) error {
-	majorFromCode := (m.MainFunction.CoreFn.Code[0] >> 24) & 255
+func checkISACompatibility(script *Script) error {
+	majorFromCode := (script.MainFunction.CoreFn.Code[0] >> 24) & 255
 	if majorFromCode == major {
 		return nil
 	}
-	return verror.New(m.MainFunction.CoreFn.ScriptName, "script compiled with an uncompatible interpreter version", verror.FileErrType, 0)
+	return verror.New(script.MainFunction.CoreFn.ScriptName, "script compiled with an uncompatible interpreter version", verror.FileErrType, 0)
 }
