@@ -33,7 +33,7 @@ type vM struct {
 }
 
 func newVM(m *Script, extensionlibsloader LibsLoader, errInfo map[string]map[int]uint) (*vM, error) {
-	extensionlibsLoader = extensionlibsloader
+	extensionlibsLoader, scriptErrorInfo = extensionlibsloader, errInfo
 	return &vM{Script: m, ErrInfo: errInfo}, checkISACompatibility(m)
 }
 

@@ -26,11 +26,11 @@ func NewInterpreter(path string, extensionlibloader map[string]func() Value) (*I
 		return nil, err
 	}
 	c := newMainCompiler(rAst, path)
-	m, err := c.compileScript()
+	script, err := c.compileScript()
 	if err != nil {
 		return nil, err
 	}
-	vm, err := newVM(m, extensionlibloader, c.linesMap)
+	vm, err := newVM(script, extensionlibloader, c.linesMap)
 	if err != nil {
 		return nil, err
 	}
@@ -55,14 +55,14 @@ func NewDebugger(path string, extensionlibloader map[string]func() Value) (*Inte
 	fmt.Print("\n\nPress 'Enter' to continue => ")
 	fmt.Scanf(" ")
 	c := newMainCompiler(rAst, path)
-	m, err := c.compileScript()
+	script, err := c.compileScript()
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println(PrintBytecode(m, m.MainFunction.CoreFn.ScriptName))
+	fmt.Println(PrintBytecode(script, script.MainFunction.CoreFn.ScriptName))
 	fmt.Print("\n\nPress 'Enter' to continue => ")
 	fmt.Scanf(" ")
-	vm, err := newVM(m, extensionlibloader, c.linesMap)
+	vm, err := newVM(script, extensionlibloader, c.linesMap)
 	if err != nil {
 		return nil, err
 	}
@@ -124,11 +124,11 @@ func PrintMachineCode(path string) error {
 		return err
 	}
 	c := newMainCompiler(rAst, path)
-	m, err := c.compileScript()
+	script, err := c.compileScript()
 	if err != nil {
 		return err
 	}
-	fmt.Println(PrintBytecode(m, m.MainFunction.CoreFn.ScriptName))
+	fmt.Println(PrintBytecode(script, script.MainFunction.CoreFn.ScriptName))
 	return nil
 }
 

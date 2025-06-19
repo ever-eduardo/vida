@@ -45,13 +45,13 @@ var makeData = fun N, rnd, upperLimit {
 
 var printData = fun xs {
     for _, v in xs {
-        v->print()
+        v--print()
     }
 }
 
 
 var less = fun v, w {
-    if v->comparedTo(w) < 0 {
+    if v--comparedTo(w) < 0 {
         ret true
     }
     ret false

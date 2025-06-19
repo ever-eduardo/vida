@@ -17,7 +17,7 @@ let iComparable = {
 }
 
 let less = fun v, w {
-    if v->comparedTo(w) < 0 {
+    if v--comparedTo(w) < 0 {
         ret true
     }
     ret false

@@ -16,6 +16,8 @@ type LibsLoader map[string]func() Value
 
 var extensionlibsLoader LibsLoader
 
+var scriptErrorInfo map[string]map[int]uint
+
 const DefaultInputPrompt = "Input > "
 
 const foundationInterfaceName = "std/"
@@ -229,6 +231,8 @@ func gfnLoadLib(args ...Value) (Value, error) {
 					return loadFoundationException(), nil
 				case "net":
 					return loadFoundationNetworkIO(), nil
+				case "co":
+					return loadFoundationCoroutine(), nil
 				case "corelib":
 					return loadFoundationCorelib(), nil
 				}
