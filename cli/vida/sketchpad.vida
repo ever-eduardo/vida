@@ -2,14 +2,17 @@
 
 var co = load("std/co")
 
-var hey = fun x {
+var echo  = fun x {
   print(x)
   x = co.suspend(x)
   print(x)
 }
 
-var th1 = co.new(hey)
+var th1 = co.new(echo)
 
 print(type(th1))
 print(th1)
+print(co.state(th1))
+print(co.ready, co.running, co.suspended, co.closed)
+
 

@@ -13,6 +13,7 @@ const (
 	Ready ThreadState = iota
 	Running
 	Suspended
+	Waiting
 	Closed
 )
 
@@ -24,6 +25,8 @@ func (state ThreadState) String() string {
 		return "running"
 	case Suspended:
 		return "suspended"
+	case Waiting:
+		return "waiting"
 	case Closed:
 		return "closed"
 	default:

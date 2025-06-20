@@ -18,6 +18,7 @@ const quarterStack = 256
 const microStack = 128
 const milliStack = 64
 const nanoStack = 32
+const primeStack = 23
 const picoStack = 16
 const femtoStack = 8
 
