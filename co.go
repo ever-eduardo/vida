@@ -22,5 +22,6 @@ func getStackSizes() *Object {
 	m.Value["of32"] = Integer(nanoStack)
 	m.Value["of16"] = Integer(picoStack)
 	m.Value["of8"] = Integer(femtoStack)
+	m.UpdateKeys()
 	return m
 }

@@ -8,6 +8,9 @@ var hey = fun x {
   print(x)
 }
 
-var th1 = co.new(hey)
+for k, v in co {
+  print(k, v)
+}
 
-print(th1)
+print(co.stack)
+
