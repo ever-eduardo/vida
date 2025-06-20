@@ -42,12 +42,14 @@ type Thread struct {
 }
 
 func newMainThread(script *Script, extensionlibsloader LibsLoader) (*Thread, error) {
-	extensionlibsLoader = extensionlibsloader
-	return &Thread{
+	extensionlibsLoader, clbu = extensionlibsloader, script.Store
+	th := &Thread{
 		Frames: make([]frame, frameSize),
 		Stack:  make([]Value, fullStack),
 		Script: script,
-	}, nil
+	}
+	(*(script.Store))[mainThIndex] = th
+	return th, nil
 }
 
 func newThread(fn *Function, script *Script, size int) *Thread {

@@ -1,0 +1,13 @@
+
+
+var co = load("std/co")
+
+var hey = fun x {
+  print(x)
+  x = co.suspend(x)
+  print(x)
+}
+
+var th1 = co.new(hey)
+
+print(th1)

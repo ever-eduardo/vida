@@ -18,11 +18,16 @@ type ErrorInfo map[string]map[int]uint
 
 var extensionlibsLoader LibsLoader
 
+const mainThIndex = 0
+
 const DefaultInputPrompt = "Input > "
 
 const foundationInterfaceName = "std/"
 
+var clbu *[]Value
+
 var coreLibNames = []string{
+	"--mt--",
 	"print",
 	"len",
 	"append",
@@ -35,15 +40,12 @@ var coreLibNames = []string{
 	"clone",
 	"error",
 	"isError",
-	"copy",
 	"object",
-	"deepEq",
 }
-
-// From core to foundation = exception
 
 func loadCoreLib(store *[]Value) *[]Value {
 	*store = append(*store,
+		NilValue,
 		GFn(gfnPrint),
 		GFn(gfnLen),
 		GFn(gfnAppend),
@@ -56,9 +58,7 @@ func loadCoreLib(store *[]Value) *[]Value {
 		GFn(gfnClone),
 		GFn(gfnError),
 		GFn(gfnIsError),
-		GFn(gfnCopy),
 		loadObjectLib(),
-		GFn(DeepEqual),
 	)
 	return store
 }
@@ -234,7 +234,7 @@ func gfnLoadLib(args ...Value) (Value, error) {
 					return loadFoundationNetworkIO(), nil
 				case "co":
 					return loadFoundationCoroutine(), nil
-				case "corelib":
+				case "core":
 					return loadFoundationCorelib(), nil
 				}
 			} else if l, isPresent := extensionlibsLoader[v.Value]; isPresent {
@@ -330,21 +330,9 @@ func DeepEqual(args ...Value) (Value, error) {
 
 func loadFoundationCorelib() Value {
 	m := &Object{Value: make(map[string]Value)}
-	m.Value[coreLibNames[0]] = GFn(gfnPrint)
-	m.Value[coreLibNames[1]] = GFn(gfnLen)
-	m.Value[coreLibNames[2]] = GFn(gfnAppend)
-	m.Value[coreLibNames[3]] = GFn(gfnMakeList)
-	m.Value[coreLibNames[4]] = GFn(gfnLoadLib)
-	m.Value[coreLibNames[5]] = GFn(gfnType)
-	m.Value[coreLibNames[6]] = GFn(gfnAssert)
-	m.Value[coreLibNames[7]] = GFn(gfnFormat)
-	m.Value[coreLibNames[8]] = GFn(gfnReadLine)
-	m.Value[coreLibNames[9]] = GFn(gfnClone)
-	m.Value[coreLibNames[10]] = GFn(gfnError)
-	m.Value[coreLibNames[11]] = GFn(gfnIsError)
-	m.Value[coreLibNames[12]] = GFn(gfnCopy)
-	m.Value[coreLibNames[13]] = loadObjectLib()
-	m.Value[coreLibNames[14]] = GFn(DeepEqual)
+	for i := 0; i < len((*clbu)); i++ {
+		m.Value[coreLibNames[i]] = (*clbu)[i]
+	}
 	m.UpdateKeys()
 	return m
 }
@@ -397,6 +385,7 @@ func IsMemberOf(args ...Value) (Value, error) {
 }
 
 var coreLibDescription = []string{
+	``,
 	`
 	Print one or more values.
 	Commas between values are optional.
@@ -490,23 +479,14 @@ var coreLibDescription = []string{
 	Example: if isError(value) {handle the error here}
 	`,
 	`
-	Copy a source value into a dest value,
-	Those values may be of type list, bytes or string.
-	It always does a shallow copy.
-	`,
-	`
 	It is the built-in object library with some functionality
 	for working with objects.
-	`,
-	`
-	Use Go's deepEqual function for value equality.
-	Beware of its inconsistencies.
 	`,
 }
 
 func PrintCoreLibInformation() {
 	fmt.Printf("Core:\n\n")
-	for i := 0; i < len(coreLibNames); i++ {
+	for i := 1; i < len(coreLibNames); i++ {
 		fmt.Printf("  %v %v\n\n", coreLibNames[i], coreLibDescription[i])
 	}
 }

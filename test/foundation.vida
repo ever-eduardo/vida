@@ -11,5 +11,5 @@ assert(cast)
 var exception = load("std/exception")
 assert(exception)
 
-var corelib = load("std/corelib")
-assert(corelib)
+var core = load("std/core")
+assert(core)
