@@ -9,6 +9,18 @@ func loadFoundationCoroutine() Value {
 }
 
 func gfnNewThread(args ...Value) (Value, error) {
+	l := len(args)
+	if l == 1 {
+		if fn, ok := args[0].(*Function); ok {
+			return newThread(fn, ((*clbu)[mainThIndex].(*Thread)).Script, femtoStack), nil
+		}
+	} else if l > 1 {
+		if fn, ok := args[0].(*Function); ok {
+			if s, ok := args[1].(Integer); ok && femtoStack <= s && s <= fullStack {
+				return newThread(fn, ((*clbu)[mainThIndex].(*Thread)).Script, int(s)), nil
+			}
+		}
+	}
 	return NilValue, nil
 }
 

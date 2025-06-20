@@ -8,9 +8,8 @@ var hey = fun x {
   print(x)
 }
 
-for k, v in co {
-  print(k, v)
-}
+var th1 = co.new(hey)
 
-print(co.stack)
+print(type(th1))
+print(th1)
 
