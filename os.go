@@ -1,6 +1,7 @@
 package vida
 
 import (
+	"fmt"
 	"os"
 	"os/exec"
 	"runtime"
@@ -23,9 +24,9 @@ func loadFoundationOS() Value {
 	m.Value["run"] = NativeFunction(osRunCMD)
 	m.Value["cwd"] = NativeFunction(osCwd)
 	m.Value["chdir"] = NativeFunction(osChdir)
-	m.Value["stdin"] = newVidaFile(os.Stdin, "<stdin>", os.O_RDONLY)
-	m.Value["stdout"] = newVidaFile(os.Stdout, "<stdout>", os.O_WRONLY)
-	m.Value["stderr"] = newVidaFile(os.Stderr, "<stderr>", os.O_WRONLY)
+	m.Value["stdin"] = newVidaFile(os.Stdin, "[stdin]", os.O_RDONLY)
+	m.Value["stdout"] = newVidaFile(os.Stdout, "[stdout]", os.O_WRONLY)
+	m.Value["stderr"] = newVidaFile(os.Stderr, "[stderr]", os.O_WRONLY)
 	return m
 }
 
@@ -47,25 +48,35 @@ func osEnviron(ctx *Context, args ...Value) (Value, error) {
 }
 
 func osExit(ctx *Context, args ...Value) (Value, error) {
-	os.Exit(0)
+	code := 0
+	if len(args) > 0 {
+		c, ok := args[0].(Integer)
+		if !ok {
+			return argError("os.exit", fmt.Sprintf("expected an integer exit code argument, got %s", args[0].Type()))
+		}
+		code = int(c)
+	}
+	os.Exit(code)
 	return Nil, nil
 }
 
 func osGetEnv(ctx *Context, args ...Value) (Value, error) {
-	if len(args) > 0 {
-		if val, ok := args[0].(*String); ok {
-			xs := make([]Value, 0, 2)
-			if r, ok := os.LookupEnv(val.Value); ok {
-				xs = append(xs, &String{Value: r})
-				xs = append(xs, Bool(ok))
-			} else {
-				xs = append(xs, &String{Value: EmptyString})
-				xs = append(xs, Bool(ok))
-			}
-			return &Array{Value: xs}, nil
-		}
+	if len(args) == 0 {
+		return argError("os.getFromEnv", "expected a string argument (environment variable name)")
 	}
-	return Nil, nil
+	val, ok := args[0].(*String)
+	if !ok {
+		return argError("os.getFromEnv", fmt.Sprintf("expected a string argument, got %s", args[0].Type()))
+	}
+	xs := make([]Value, 0, 2)
+	if r, ok := os.LookupEnv(val.Value); ok {
+		xs = append(xs, &String{Value: r})
+		xs = append(xs, Bool(ok))
+	} else {
+		xs = append(xs, &String{Value: EmptyString})
+		xs = append(xs, Bool(ok))
+	}
+	return &Array{Value: xs}, nil
 }
 
 func osHostname(ctx *Context, args ...Value) (Value, error) {
@@ -81,55 +92,63 @@ func osGetPathSeparator(ctx *Context, args ...Value) (Value, error) {
 }
 
 func osMkdir(ctx *Context, args ...Value) (Value, error) {
-	if len(args) > 0 {
-		if d, ok := args[0].(*String); ok {
-			err := os.Mkdir(d.Value, 0660)
-			if err != nil && !os.IsExist(err) {
-				return &VidaError{Message: &String{Value: err.Error()}}, nil
-			}
-			return True, nil
-		}
+	if len(args) == 0 {
+		return argError("os.mkdir", "expected a path string argument")
 	}
-	return Nil, nil
+	d, ok := args[0].(*String)
+	if !ok {
+		return argError("os.mkdir", fmt.Sprintf("expected a path string argument, got %s", args[0].Type()))
+	}
+	err := os.Mkdir(d.Value, 0660)
+	if err != nil && !os.IsExist(err) {
+		return &VidaError{Message: &String{Value: err.Error()}}, nil
+	}
+	return True, nil
 }
 
 func osMkdirAll(ctx *Context, args ...Value) (Value, error) {
-	if len(args) > 0 {
-		if d, ok := args[0].(*String); ok {
-			err := os.MkdirAll(d.Value, 0660)
-			if err != nil {
-				return &VidaError{Message: &String{Value: err.Error()}}, nil
-			}
-			return True, nil
-		}
+	if len(args) == 0 {
+		return argError("os.mkdirAll", "expected a path string argument")
 	}
-	return Nil, nil
+	d, ok := args[0].(*String)
+	if !ok {
+		return argError("os.mkdirAll", fmt.Sprintf("expected a path string argument, got %s", args[0].Type()))
+	}
+	err := os.MkdirAll(d.Value, 0660)
+	if err != nil {
+		return &VidaError{Message: &String{Value: err.Error()}}, nil
+	}
+	return True, nil
 }
 
 func osRemove(ctx *Context, args ...Value) (Value, error) {
-	if len(args) > 0 {
-		if d, ok := args[0].(*String); ok {
-			err := os.Remove(d.Value)
-			if err != nil {
-				return &VidaError{Message: &String{Value: err.Error()}}, nil
-			}
-			return True, nil
-		}
+	if len(args) == 0 {
+		return argError("os.rm", "expected a path string argument")
 	}
-	return Nil, nil
+	d, ok := args[0].(*String)
+	if !ok {
+		return argError("os.rm", fmt.Sprintf("expected a path string argument, got %s", args[0].Type()))
+	}
+	err := os.Remove(d.Value)
+	if err != nil {
+		return &VidaError{Message: &String{Value: err.Error()}}, nil
+	}
+	return True, nil
 }
 
 func osRemoveAll(ctx *Context, args ...Value) (Value, error) {
-	if len(args) > 0 {
-		if d, ok := args[0].(*String); ok {
-			err := os.RemoveAll(d.Value)
-			if err != nil {
-				return &VidaError{Message: &String{Value: err.Error()}}, nil
-			}
-			return True, nil
-		}
+	if len(args) == 0 {
+		return argError("os.rmAll", "expected a path string argument")
 	}
-	return Nil, nil
+	d, ok := args[0].(*String)
+	if !ok {
+		return argError("os.rmAll", fmt.Sprintf("expected a path string argument, got %s", args[0].Type()))
+	}
+	err := os.RemoveAll(d.Value)
+	if err != nil {
+		return &VidaError{Message: &String{Value: err.Error()}}, nil
+	}
+	return True, nil
 }
 
 func osName(ctx *Context, args ...Value) (Value, error) {
@@ -142,24 +161,28 @@ func osArch(ctx *Context, args ...Value) (Value, error) {
 
 func osRunCMD(ctx *Context, args ...Value) (Value, error) {
 	l := len(args)
-	if l > 0 {
-		if val, ok := args[0].(*String); ok {
-			var arr []string
-			for i := 1; i < l; i++ {
-				if v, ok := args[i].(*String); ok {
-					arr = append(arr, v.Value)
-				}
-			}
-			cmd := exec.Command(val.Value, arr...)
-			cmd.Stdout = os.Stdout
-			cmd.Stdin = os.Stdin
-			cmd.Stderr = os.Stderr
-			err := cmd.Run()
-			if err != nil {
-				return &VidaError{Message: &String{Value: err.Error()}}, nil
-			}
-			return True, nil
-		}
+	if l == 0 {
+		return argError("os.run", "expected a command string argument")
 	}
-	return Nil, nil
+	val, ok := args[0].(*String)
+	if !ok {
+		return argError("os.run", fmt.Sprintf("argument 1 (command) must be a string, got %s", args[0].Type()))
+	}
+	arr := make([]string, 0, l-1)
+	for i := 1; i < l; i++ {
+		v, ok := args[i].(*String)
+		if !ok {
+			return argError("os.run", fmt.Sprintf("argument %d must be a string, got %s", i+1, args[i].Type()))
+		}
+		arr = append(arr, v.Value)
+	}
+	cmd := exec.Command(val.Value, arr...)
+	cmd.Stdout = os.Stdout
+	cmd.Stdin = os.Stdin
+	cmd.Stderr = os.Stderr
+	err := cmd.Run()
+	if err != nil {
+		return &VidaError{Message: &String{Value: err.Error()}}, nil
+	}
+	return True, nil
 }

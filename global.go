@@ -129,44 +129,65 @@ func corePrint(ctx *Context, args ...Value) (Value, error) {
 }
 
 func coreLen(ctx *Context, args ...Value) (Value, error) {
-	if len(args) > 0 {
-		switch v := args[0].(type) {
-		case *Array:
-			return Integer(len(v.Value)), nil
-		case *Object:
-			lobj := len(v.Value)
-			if lobj == 0 {
-				return Integer(lobj), nil
-			}
-			return Integer(lobj), nil
-		case *String:
-			if v.Runes == nil {
-				v.Runes = []rune(v.Value)
-			}
-			return Integer(len(v.Runes)), nil
-		case *Bytes:
-			return Integer(len(v.Value)), nil
-		}
+	if len(args) == 0 {
+		return argError("len", "expected an argument (array, object, string, or bytes)")
 	}
-	return Nil, nil
+	switch v := args[0].(type) {
+	case *Array:
+		return Integer(len(v.Value)), nil
+	case *Object:
+		return Integer(len(v.Value)), nil
+	case *String:
+		if v.Runes == nil {
+			v.Runes = []rune(v.Value)
+		}
+		return Integer(len(v.Runes)), nil
+	case *Bytes:
+		return Integer(len(v.Value)), nil
+	default:
+		return argError("len", fmt.Sprintf("value of type %s has no length", v.Type()))
+	}
 }
 
 func coreType(ctx *Context, args ...Value) (Value, error) {
-	if len(args) > 0 {
-		return &String{Value: args[0].Type()}, nil
+	if len(args) == 0 {
+		return argError("type", "expected an argument")
 	}
-	return Nil, nil
+	return &String{Value: args[0].Type()}, nil
 }
 
 func coreFormat(ctx *Context, args ...Value) (Value, error) {
-	if len(args) > 1 {
-		switch v := args[0].(type) {
-		case *String:
-			s, e := VSprintf(v.Value, args[1:]...)
-			return &String{Value: s}, e
-		}
+	if len(args) < 2 {
+		return argError("format", fmt.Sprintf("expected at least 2 arguments (format string, args...), got %d", len(args)))
 	}
-	return Nil, nil
+	v, ok := args[0].(*String)
+	if !ok {
+		return argError("format", fmt.Sprintf("argument 1 must be a string, got %s", args[0].Type()))
+	}
+	s, e := VSprintf(v.Value, args[1:]...)
+	return &String{Value: s}, e
+}
+
+func coreAppend(ctx *Context, args ...Value) (Value, error) {
+	if len(args) < 2 {
+		return argError("append", fmt.Sprintf("expected at least 2 arguments (array or bytes, values...), got %d", len(args)))
+	}
+	switch v := args[0].(type) {
+	case *Array:
+		v.Value = append(v.Value, args[1:]...)
+		return v, nil
+	case *Bytes:
+		for i, val := range args[1:] {
+			iv, ok := val.(Integer)
+			if !ok {
+				return argError("append", fmt.Sprintf("argument %d must be an integer, got %s", i+2, val.Type()))
+			}
+			v.Value = append(v.Value, byte(iv))
+		}
+		return v, nil
+	default:
+		return argError("append", fmt.Sprintf("argument 1 must be an array or bytes, got %s", v.Type()))
+	}
 }
 
 // coreAssert checks an assumption that must be true.
@@ -270,24 +291,6 @@ func callAssertHandler(ctx *Context, handler Value, info *Object) (Value, error)
 	default:
 		return handler.Call(ctx, info)
 	}
-}
-
-func coreAppend(ctx *Context, args ...Value) (Value, error) {
-	if len(args) >= 2 {
-		switch v := args[0].(type) {
-		case *Array:
-			v.Value = append(v.Value, args[1:]...)
-			return v, nil
-		case *Bytes:
-			for _, val := range args[1:] {
-				if i, ok := val.(Integer); ok {
-					v.Value = append(v.Value, byte(i))
-				}
-			}
-			return v, nil
-		}
-	}
-	return Nil, nil
 }
 
 func coreNewArray(ctx *Context, args ...Value) (Value, error) {
@@ -729,14 +732,14 @@ func coreReadLine(ctx *Context, args ...Value) (Value, error) {
 	if err := scanner.Err(); err != nil {
 		return Nil, err
 	}
-	return Nil, nil
+	return Nil, nil // end of input (EOF) reached with no error: a legitimate result
 }
 
 func coreClone(ctx *Context, args ...Value) (Value, error) {
-	if len(args) > 0 {
-		return args[0].Clone(), nil
+	if len(args) == 0 {
+		return argError("clone", "expected an argument")
 	}
-	return Nil, nil
+	return args[0].Clone(), nil
 }
 
 func generateLoadFunction(extensionsLoader ExtensionsLoader) NativeFunction {
@@ -844,10 +847,10 @@ func coreIsNil(ctx *Context, args ...Value) (Value, error) {
 }
 
 func coreGetVTable(ctx *Context, args ...Value) (Value, error) {
-	if len(args) > 0 {
-		return args[0].GetVTable(ctx), nil
+	if len(args) == 0 {
+		return argError("getVTable", "expected an argument")
 	}
-	return Nil, nil
+	return args[0].GetVTable(ctx), nil
 }
 
 func coreExtendVTable(ctx *Context, args ...Value) (Value, error) {

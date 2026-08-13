@@ -427,34 +427,40 @@ func parseRetryAfter(res *http.Response) time.Duration {
 }
 
 func httpStatusCodeText(ctx *Context, args ...Value) (Value, error) {
-	if len(args) > 0 {
-		if code, ok := args[0].(Integer); ok {
-			return &String{Value: http.StatusText(int(code))}, nil
-		}
+	if len(args) == 0 {
+		return argError("http.statusText", "expected an integer status code argument")
 	}
-	return Nil, nil
+	code, ok := args[0].(Integer)
+	if !ok {
+		return argError("http.statusText", fmt.Sprintf("expected an integer status code argument, got %s", args[0].Type()))
+	}
+	return &String{Value: http.StatusText(int(code))}, nil
 }
 
 func httpURLEncode(ctx *Context, args ...Value) (Value, error) {
-	if len(args) > 0 {
-		if data, ok := args[0].(*Object); ok && len(data.Value) > 0 {
-			values := url.Values{}
-			for k, v := range data.Value {
-				values.Add(k, v.ObjectKey())
-			}
-			return &String{Value: values.Encode()}, nil
-		}
+	if len(args) == 0 {
+		return argError("http.urlEncode", "expected an object argument")
 	}
-	return Nil, nil
+	data, ok := args[0].(*Object)
+	if !ok {
+		return argError("http.urlEncode", fmt.Sprintf("expected an object argument, got %s", args[0].Type()))
+	}
+	values := url.Values{}
+	for k, v := range data.Value {
+		values.Add(k, v.ObjectKey())
+	}
+	return &String{Value: values.Encode()}, nil
 }
 
 func httpDetectContentType(ctx *Context, args ...Value) (Value, error) {
-	if len(args) > 0 {
-		if data, ok := args[0].(*Bytes); ok && len(data.Value) > 0 {
-			return &String{Value: http.DetectContentType(data.Value)}, nil
-		}
+	if len(args) == 0 {
+		return argError("http.detectContentType", "expected a bytes argument")
 	}
-	return Nil, nil
+	data, ok := args[0].(*Bytes)
+	if !ok {
+		return argError("http.detectContentType", fmt.Sprintf("expected a bytes argument, got %s", args[0].Type()))
+	}
+	return &String{Value: http.DetectContentType(data.Value)}, nil
 }
 
 type vidaHttpClient struct {

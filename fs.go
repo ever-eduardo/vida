@@ -1,7 +1,9 @@
 package vida
 
 import (
+	"fmt"
 	"io"
+	"io/fs"
 	"os"
 	"path/filepath"
 )
@@ -112,9 +114,11 @@ func fsMkdir(_ *Context, args ...Value) (Value, error) {
 	}
 	perm := os.FileMode(0o755)
 	if len(args) > 1 {
-		if p, ok := args[1].(Integer); ok {
-			perm = os.FileMode(p)
+		p, ok := args[1].(Integer)
+		if !ok {
+			return argError("mkdir", fmt.Sprintf("argument 2 (mode) must be an integer, got %s", args[1].Type()))
 		}
+		perm = os.FileMode(p)
 	}
 	if err := os.Mkdir(path, perm); err != nil {
 		return &VidaError{Message: &String{Value: err.Error()}}, nil
@@ -129,9 +133,11 @@ func fsMkdirAll(_ *Context, args ...Value) (Value, error) {
 	}
 	perm := os.FileMode(0o755)
 	if len(args) > 1 {
-		if p, ok := args[1].(Integer); ok {
-			perm = os.FileMode(p)
+		p, ok := args[1].(Integer)
+		if !ok {
+			return argError("mkdirAll", fmt.Sprintf("argument 2 (mode) must be an integer, got %s", args[1].Type()))
 		}
+		perm = os.FileMode(p)
 	}
 	if err := os.MkdirAll(path, perm); err != nil {
 		return &VidaError{Message: &String{Value: err.Error()}}, nil
@@ -229,39 +235,39 @@ func fsReadLink(_ *Context, args ...Value) (Value, error) {
 	return &String{Value: target}, nil
 }
 
-func fsWalk(_ *Context, args ...Value) (Value, error) {
-	// path, err := requireStringArg(args, 0, "walk")
-	// if err != nil {
-	// 	return err, nil
-	// }
-	// if len(args) < 2 {
-	// 	return argError("walk", "path (string) and callback (function)")
-	// }
-	// cb, ok := args[1].(*Function)
-	// if !ok {
-	// 	return argError("walk", "second argument must be a function(path, info)")
-	// }
+func fsWalk(ctx *Context, args ...Value) (Value, error) {
+	path, err := requireStringArg(args, 0, "walk")
+	if err != nil {
+		return err, nil
+	}
+	if len(args) < 2 {
+		return argError("walk", "path (string) and callback (function)")
+	}
+	cb, ok := args[1].(*Function)
+	if !ok {
+		return argError("walk", "second argument must be a function(path, info)")
+	}
 
-	// var walkErr error
-	// filepath.WalkDir(path, func(p string, d fs.DirEntry, err error) error {
-	// 	if err != nil {
-	// 		return err
-	// 	}
-	// 	info := &Object{Value: map[string]Value{
-	// 		"path":  &String{Value: p},
-	// 		"name":  &String{Value: d.Name()},
-	// 		"isDir": boolToValue(d.IsDir()),
-	// 	}}
-	// 	_, callErr := args[0].(*Context).Call(cb, &String{Value: p}, info)
-	// 	if callErr != nil {
-	// 		walkErr = callErr
-	// 		return callErr
-	// 	}
-	// 	return nil
-	// })
-	// if walkErr != nil {
-	// 	return &VidaError{Message: &String{Value: walkErr.Error()}}, nil
-	// }
+	var walkErr error
+	filepath.WalkDir(path, func(p string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		info := &Object{Value: map[string]Value{
+			"path":  &String{Value: p},
+			"name":  &String{Value: d.Name()},
+			"isDir": boolToValue(d.IsDir()),
+		}}
+		_, callErr := ctx.runFunctionInNewThread(cb, &String{Value: p}, info)
+		if callErr != nil {
+			walkErr = callErr
+			return callErr
+		}
+		return nil
+	})
+	if walkErr != nil {
+		return &VidaError{Message: &String{Value: walkErr.Error()}}, nil
+	}
 	return Nil, nil
 }
 
@@ -285,14 +291,18 @@ func fsTempFile(_ *Context, args ...Value) (Value, error) {
 	dir := ""
 	pattern := "vida-*"
 	if len(args) > 0 {
-		if s, ok := args[0].(*String); ok {
-			dir = s.Value
+		s, ok := args[0].(*String)
+		if !ok {
+			return argError("tempFile", fmt.Sprintf("argument 1 (dir) must be a string, got %s", args[0].Type()))
 		}
+		dir = s.Value
 	}
 	if len(args) > 1 {
-		if s, ok := args[1].(*String); ok {
-			pattern = s.Value
+		s, ok := args[1].(*String)
+		if !ok {
+			return argError("tempFile", fmt.Sprintf("argument 2 (pattern) must be a string, got %s", args[1].Type()))
 		}
+		pattern = s.Value
 	}
 	f, err := os.CreateTemp(dir, pattern)
 	if err != nil {
@@ -305,14 +315,18 @@ func fsTempDir(_ *Context, args ...Value) (Value, error) {
 	dir := ""
 	pattern := "vida-*"
 	if len(args) > 0 {
-		if s, ok := args[0].(*String); ok {
-			dir = s.Value
+		s, ok := args[0].(*String)
+		if !ok {
+			return argError("tempDir", fmt.Sprintf("argument 1 (dir) must be a string, got %s", args[0].Type()))
 		}
+		dir = s.Value
 	}
 	if len(args) > 1 {
-		if s, ok := args[1].(*String); ok {
-			pattern = s.Value
+		s, ok := args[1].(*String)
+		if !ok {
+			return argError("tempDir", fmt.Sprintf("argument 2 (pattern) must be a string, got %s", args[1].Type()))
 		}
+		pattern = s.Value
 	}
 	name, err := os.MkdirTemp(dir, pattern)
 	if err != nil {
