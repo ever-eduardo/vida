@@ -1,0 +1,1608 @@
+//
+// llms.vida
+// This is a Vida source code commented for LLMs so they can get the correct language patterns of Vida
+// That way they can generate accurate Vida source code.
+// Take into account that this is a valid Vida source code as well.
+// Vida version 0.5.11
+//
+
+//
+// NOTE
+// This document covers Vida's CORE LANGUAGE: syntax, semantics,
+// control flow, functions, the object/vtable model and modules.
+// It deliberately does NOT document the standard library's individual
+// `std.*` modules (std.text, std.math, std.json, std.http, std.re,
+// std.os, std.file/fs, std.task/co, std.bytes, etc.) -- those are
+// out of scope here and are best learned from the project's `test/`
+// suite and Go source files.
+// For the authoritative, complete grammar, see `grammar.txt` at the
+// root path of Vida's project source code.
+//
+
+
+
+// ───────────────────────────────────────────────────────────────
+// SECTION 0: Vida's General Description
+// ───────────────────────────────────────────────────────────────
+//
+// Vida is a simple, general-purpose and extensible scripting language.
+//
+
+
+
+
+
+// ───────────────────────────────────────────────────────────────
+// SECTION 1: Comments
+// ───────────────────────────────────────────────────────────────
+// 
+// Vida has two types of comments
+// One line comments like this one,
+/*  And 
+    multi 
+    line 
+    comments 
+    like 
+    this other one.
+
+    Important:
+    Multi line comments do not nest. 
+*/
+
+
+
+
+
+// ───────────────────────────────────────────────────────────────
+// SECTION 2: Vida constructs
+// ───────────────────────────────────────────────────────────────
+//
+// Vida has two types of constructs:
+// Statements and Expressions
+// Expressions have two semantics:
+// Value semantics for basic types like booleans, integers, etc
+// Reference semantics for Arrays and Objects.
+// This is meaningful especially in the context of free variables in closures.
+// Value semantics produces a copy of the value while reference semantics
+// gets a reference to the value itself.
+//
+
+
+
+
+
+// ───────────────────────────────────────────────────────────────
+// SECTION 3: Vida Variable Declarations
+// ───────────────────────────────────────────────────────────────
+//
+// Vida has to types of scope for variable declaration:
+// Module scope declarations are visible anywhere in the module once declared (a.k.a Globals per module) 
+// and Local scope declarations are visible in the same scope and in inner scopes (a.k.a Locals)
+// 
+// Module or Global level scope variables are declared using this syntax:
+// let <name_list> = <expr_list>
+// For example:
+
+
+// This is a single module variable declaration
+let A = 100
+
+
+// This is a multiple module declarations
+// The names and the expressions must match in number
+// otherwise you have a syntax error
+let B, C, D = 1, 2, 3
+
+
+// This is a local variable declaration
+var a = 100
+
+
+// This is a multiple local level declarations
+var b, c, d = 10, 20, 30
+
+
+// Once declared a global or local variable its value can be changed
+// This change one variable per line either local or global
+A = 1200
+a = A
+
+
+// This changes many variable values at once per line either global or local
+// The names and the expressions must match in number
+// otherwise you have a syntax error
+// All the RHS expressions are evaluated first,
+// Then the assignment is made. So `a, b = b, a` will swap the values of a and b
+a, b = b, a
+c, b, a = B + 1, C + b, b + a
+A, b, C = 50, 51, 52
+
+
+// Repeated assignments will not compile:
+// For example the next line is commented because is not valid:
+// x, x = 10, 20
+
+
+// Once declared a global variable it cannot be redeclared
+// For example the next line will be a build error if uncommented:
+// let A = <expr>
+// For locals you can declare locals with the same name, but in different scopes.
+// If a local is declared in the same scope with the same name a build error will happen.
+// For example:
+// var a = 100 this line will fail if uncommented because `a` is already defined in the same scope
+// However this will not, because `a` is declareed inside a new block which is a new scope:
+{
+    var a = 9000
+}
+
+
+// If a local variable has the same name of a previously defined Global
+// The new local name will take precedence in the symbol table of the compiler,
+// So the new name will always shadow the global, and the global will be unreachable.
+// For example:
+// var A = 10000 will shadow the already declared global A if uncommented
+// If a global variable is declared with the same name as a previously declared local
+// The local will take precedence. So, for example: 
+// let a = 100 and then referencing a after, it will deliver the local value associated with `a`, and not 100
+
+
+// A global variable can have self-reference
+// For example:
+let factorial = fun n {
+    if n <= 0 {
+        ret 1
+    }
+    ret n * factorial(n-1)
+}
+
+
+// On the contrary, locals cannot have self-reference
+// The following factorial definition will not compile
+// Because when the compiler looks for the varible localNotSelfReferenced
+// inside de function the name still has not been declared yet.
+/*
+    var localNotSelfReferenced = fun n {
+        if n <= 0 {
+            ret 1
+        }
+        ret n * localNotSelfReferenced(n-1)
+    }
+*/
+
+
+// However, forward declaring the local name will not work neither
+// Because Free variables follow the rules of value semantics vs reference semantics
+// The next example will fail as well:
+/*
+    var localWithSelfReference = nil
+
+    localWithSelfReference = fun n {
+        if n <= 0 {
+            ret 1
+        }
+        ret n * localWithSelfReference(n-1)
+    }
+
+    By the time the compiler is compiling the body of the function,
+    It will take the reference of localWithSelfReference as free variable
+    which is nil at that time, and because nil is a value semantics,
+    the compiler at run time will take a copy of nil, 
+    so at run time will fail with some message
+    pointing that `nil` is not a callable value when attempting to call `localWithSelfReference(n-1)`.
+*/
+
+
+// How Vida solves the self-referencing problem of locals?
+// Using the 'rec' keyword after the 'var' keyword
+// For example:
+
+
+var rec thisLocalCanBeReferencedWell = fun n {
+    if n <= 0 {
+        ret 1
+    }
+    ret n * thisLocalCanBeReferencedWell(n-1)
+}
+
+
+// Of course the 'ver rec' construct is for self-referencing only.
+// Other uses just does not make sense.
+// For example:
+// This statement will compile and the value of AAA will be nil
+// Because while compiling it, the compiler internally 
+// Will do forward delcaration of AAA with value of nil by default
+// And then when finding a self-reference the compiler will patch
+// The register, so at then end the self-reference will have the correct value. 
+var rec AAA = AAA
+
+
+// Globals have the following behaviour with self-delcaration: the value of MMM will be nil
+let MMM = MMM
+
+
+// For referencing a global variable not yet declared in its fully functionallity
+// You can do forward declarations.
+// For example:
+// This makes the name noYetDeclared visible to callToAFunctionNotDeclaredYet
+// However callToAFunctionNotDeclaredYet does not take the value of noYetDeclared
+// But its address in the global storage, so later it will take any value there in that address when
+// doing this call: 'noYetDeclared(x)'.
+let noYetDeclared = nil
+
+
+let callToAFunctionNotDeclaredYet = fun x {
+    noYetDeclared(x)
+}
+
+
+// Then you can actually implement the functionallity
+noYetDeclared = fun x {
+    callToAFunctionNotDeclaredYet(x)
+}
+
+
+// Importat thing about multi value change
+// The expression inside the LHS of the assignment are evaluated first.
+// For example:
+// Let ARRAY be an array and an object and
+// I, J, K valid ARRAY indexes, then:
+/*
+    let ARRAY = [1,2,3]
+    let I, J, K = 0, 1, 2
+    
+    --> At this moment the ARRAY is [1,2,3]
+
+    --> Then this multi-assignment:
+    ARRAY[I], ARRAY[J], ARRAY[K], I, J, K = ARRAY[K], ARRAY[I], ARRAY[J], 100, 200, 300 
+
+    --> This will change the ARRAY at original locations I, J, K
+    After the change ARRAY will be [3, 1, 2]
+    I value will be 100
+    J will 200 and
+    K will be 300
+
+
+    --> If for example the assignment is:
+    I, ARRAY[I], ARRAY[J], ARRAY[K], J, K = 2, ARRAY[K], ARRAY[I], ARRAY[J], 200, 300
+    
+    After the change ARRAY will be [3, 1, 2]
+    I value will be 2
+    J will 200 and
+    K will be 300
+
+
+*/
+
+
+
+
+
+// ───────────────────────────────────────────────────────────────
+// SECTION 4: Vida Expressions
+// ───────────────────────────────────────────────────────────────
+//
+// Before continuing with the rest of Vida statements
+// Here a brief about Vida expressions:
+
+
+// Literal expressions:
+/*
+    literal boolean values are: true, false
+    literal nil value is: nil
+
+    literal integers: 93745, 3453, -345345
+    integers are internally defined as uint64 values
+    other valid literal integers are: 0xFF, 0B10101010, 0o80, 10_000_000
+
+    lieteral floats: 345.345,  -1e-23, 1e6, etc.
+    floats are internally defined as float64 IEEE-754
+    So, floats inherit the problems of such specification like 0.1 + 0.1 + 0.1 is not 0.3 
+
+    strings:
+    Vida has two types of strings: interpreted and uninterpreted
+
+    Interpreted are enclosed by double quotes and they parse their inner escaped sequences
+    For example:
+    "\n\nTwo new lines before and after\n\n"
+    Doubled quoted strings are not multiline strings.
+
+    Uninterpreted strings are enclosed by backticks and they are literally their content without any interpretation.
+    They are good for write regexp or multiline strings.
+    For example, the next is a valid uninterpreted-multiline Vida string:
+
+    `
+
+    This is a multiline Vida string.
+
+
+    `
+
+    This is a common pattern for regular expressions,
+    so you will save escaping symbols. For example:
+
+    let pattern = `a-regex-pattern-here`
+
+    There is a catch with uninterpreted strings in regular expressions:
+    They do not will capture the literal backtick symbol.
+    Some workarounds exists for handle that corner cases.
+
+
+
+    Arrays: Defined as Go slices
+    They can be indexed by an integer or something that evaluates to an integer.
+    For example:
+
+    literal arrays = [] [1,2,3] [hello, world] [[[[[1,2,3]]]]] etc.
+
+    getting the value of an array A[some-expression-that-evaluates-to-an-integer]
+
+    Changing the value of an array is a statement. For example:
+
+    A[I] = VAL
+    A[I][J][K] = VAL
+
+
+
+    Objects are pairs (properties = values)
+    They are internally Go maps: map[string]Value
+    Object literals are expressions. For example:
+
+    let obj1 = {} this will create an empty literal object
+
+    The syntax for literal object definitions is this:
+    let obj2 = { hello = 42, world = 42 }
+
+    Commas between properties are optional
+    let obj3 = { hello = 42 world = 42 }
+
+    Multiline objects are common form of visually organize things
+    let obj4 = { 
+        hello = 42
+        world = 42 
+    }
+
+    Objects can be delcared with property names only, all of them will default to nil
+    For example:
+    let obj4 = { prop1 prop2 prop3 prop4 prop5 }
+
+    Mix of pairs, alone properties with or without commas are allowed.
+    For example:
+    let obj5 = {
+        ipv6, ipv4 = "122.125.126.10"
+        networkMask = "255.255.255.255",
+        port = 8080
+        message
+    }
+
+    Strings can be used as property literals.
+    For example:
+    let obj6 = {
+        `Content-Type` = "application/json"
+        `X-SOME-HEADER` = "hello-world"
+    }
+
+    If so, to get or se that kind of string property the syntax will be for example:
+    obj6[`Content-Type`]
+
+    or
+
+
+    let ct = `Content-Type`
+    obj6[ct]
+
+
+    Object properties can be get, set with this syntax in the case of non-string defined properties.
+    For example:
+
+    let obj7 = { hello world }
+    obj7.hello // For gettting
+    obj7.world = 42 // For setting
+
+    or 
+
+    obj7["hello"] ...
+    obj7[`hello`] ...
+    obj7[prop] ... if prop is a varaible that evaluates to "hello" or "world"
+
+    Trying to access a property does not exists gives back a nil value.
+
+    obj7.someAbsentProperty // nil
+
+
+    Object properties can be of any value.
+    For example, let f be a Vida function, so
+
+    obj1[f] = 42 here f is a valid and unique key.
+
+    Even an object can be a key of itself.
+    For example:
+
+    var self = {}
+    self[self] = self
+    print(self[self]) // this will print self with ellipsis indicating printing a self-referenced object
+
+    Other examples of particular keys:
+
+    var A = [1,2,3]
+    var B = [1,2,3]
+
+    var OOO = {}
+    OOO[A] = 42 this is ok, so
+    print(OOO[A]) will print 42
+
+    OOO[B] will return nil because A is different key from B even though they are both arrays and they have the same values.
+
+    Objects can have functions as values, for example:
+
+    OOO[A] = fun -> nil
+
+
+*/
+
+
+
+
+
+
+
+
+
+
+
+
+// ───────────────────────────────────────────────────────────────
+// SECTION 5: Operators, Precedence and Truthiness
+// ───────────────────────────────────────────────────────────────
+//
+// Vida's binary operators, from LOWEST to HIGHEST precedence:
+//
+//   1 (lowest):  or
+//   2:           and
+//   3:           ==  !=  <  <=  >  >=  in  =<
+//   4:           +  -  |  ^
+//   5:           *  /  %  <<  >>  &
+//   6 (highest): **
+//
+// '=<' shares precedence level 3 with the comparison operators.
+// Its main use is assigning/replacing/clearing an Object's vtable
+// (see SECTION 13), but it is a genuine binary expression operator,
+// so it always produces a value and can appear anywhere an expr can.
+//
+// Unary prefix operators: not  +  -  ~
+// They bind tighter than any binary operator.
+//
+
+
+assert(2 + 3 * 4 == 14)          // * binds tighter than +
+assert((2 + 3) * 4 == 20)        // parens override precedence
+assert(2 ** 3 ** 2 == 512)       // ** is right-associative: 2**(3**2)
+assert(-2 ** 2 == -4)            // unary '-' then '**': -(2**2), because prefix binds like level 5,
+                                  // but '**' (level 6) still binds tighter than the unary minus applies to
+assert(1 + 2 == 3 and 4 - 1 == 3)
+
+
+// TRUTHINESS
+// Only three values are falsy in Vida: false, nil, and any error value.
+// EVERYTHING else is truthy, including 0, 0.0, "", [], and {}.
+// This is a very common source of bugs for people coming from
+// C-like or Python-like languages where 0 or "" are falsy.
+
+if 0 {
+    assert(true) // 0 is truthy
+}
+if "" {
+    assert(true) // empty string is truthy
+}
+if [] {
+    assert(true) // empty array is truthy
+}
+if {} {
+    assert(true) // empty object is truthy
+}
+if not false {
+    assert(true)
+}
+if not nil {
+    assert(true)
+}
+if not error("boom") {
+    assert(true) // an error value is falsy
+}
+
+
+// LOGICAL OPERATORS 'and' / 'or' ARE VALUE-RETURNING AND SHORT-CIRCUITING
+// They behave like Python's 'and'/'or', NOT like C's '&&'/'||':
+// they never coerce their result to a boolean, they return
+// whichever operand decided the result, and the right-hand side
+// is only evaluated when needed (true short-circuit, not just
+// "the value is discarded").
+
+assert((1 and 2) == 2)           // both truthy -> returns the RHS
+assert((0 and 2) == 2)           // 0 is truthy in Vida -> returns the RHS
+assert((false and 2) == false)   // falsy LHS -> returns the LHS unchanged, RHS never evaluated
+assert((nil and 2) == nil)
+assert((1 or 2) == 1)            // truthy LHS -> returns the LHS, short-circuits
+assert((false or 2) == 2)        // falsy LHS -> returns the RHS
+assert((nil or false) == false)
+
+let sideEffects = fun v { ret v }
+var calls = 0
+var track = fun v { calls = calls + 1 ret v }
+calls = 0
+var _ = false and track(true)
+assert(calls == 0) // RHS of 'and' never evaluated because LHS was falsy
+
+
+// EQUALITY '==' / '!='
+// Equality rules differ per type. This is important to internalize:
+//
+//   Integer / Float : compared BY VALUE, and Integer <-> Float compare
+//                      correctly across types (3 == 3.0 is true).
+//   Bool             : compared by value, but Bool is NEVER equal to
+//                      an Integer or Float, even 1 or 0 (true != 1).
+//   nil              : nil == nil is true, but nil == false is FALSE
+//                      (both falsy, but not equal to each other).
+//   String           : compared BY VALUE (content).
+//   String <-> Bytes : compared BY VALUE (content), in either direction.
+//   Bytes <-> Bytes  : compared BY IDENTITY (reference), never by content.
+//   Array            : ALWAYS compared BY IDENTITY, i.e. pointer equality, even with identical
+//                      contents. Two separate array literals with the
+//                      same elements are never '==', and Array equality
+//                      cannot be customized via a vtable.
+//   Object           : compared BY IDENTITY by default, UNLESS the
+//                      object's vtable defines an 'eq' entry, in which
+//                      case 'eq' is invoked and fully overrides identity
+//                      (see SECTION 13). A custom 'eq' can even make an
+//                      object equal to values of a completely different
+//                      type.
+//   Function/Enum    : compared BY IDENTITY.
+
+assert(3 == 3.0 and 3.0 == 3)
+assert((true == 1) == false)
+assert((false == 0) == false)
+assert(nil == nil)
+assert((nil == false) == false)
+assert("hello" == "hel" + "lo")             // strings compare by value
+
+var arr1 = [1, 2, 3]
+var arr2 = [1, 2, 3]
+assert((arr1 == arr2) == false)             // same contents, different identity -> not equal
+assert(arr1 == arr1)                        // an array always equals itself
+
+var obj1 = {}
+var obj2 = {}
+assert((obj1 == obj2) == false)             // no 'eq' override -> identity only
+assert(obj1 == obj1)
+
+
+// ───────────────────────────────────────────────────────────────
+// SECTION 6: Selectors — Indexing, Slicing and Property Access
+// ───────────────────────────────────────────────────────────────
+//
+// A "selector" is anything that chains off a value: '[...]' indexing/
+// slicing, '.name' property access, '.name(...)' method calls,
+// '::name(...)' static calls, and '(...)' direct calls. They can be
+// chained arbitrarily: a.b[c].d(e)::f(g) is all valid, parsed left to
+// right, one selector at a time.
+
+
+// INDEXING
+// Arrays, Strings and Bytes are indexed with an integer expression.
+// Negative indices count from the end: -1 is the last element.
+
+var A = [10, 20, 30, 40, 50]
+assert(A[0] == 10 and A[-1] == 50 and A[-2] == 40)
+assert(A[1+1] == 30) // the index is itself just an expression
+
+var S = "hello"
+assert(S[0] == "h" and S[-1] == "o") // indexing a string yields a 1-rune string
+
+// Objects are indexed with '[expr]' where expr evaluates to the key
+// (any type can be a key, not just strings -- see SECTION 4).
+var O = { hello = 1, world = 2 }
+assert(O["hello"] == 1)
+var key = "world"
+assert(O[key] == 2)
+assert(O.missing == nil) // absent keys read back as nil, they never error
+
+// Setting through an index is a statement (see 'mut' in the grammar):
+A[0] = 999
+O["hello"] = 111
+assert(A[0] == 999 and O.hello == 111)
+
+// Chained indexing works on nested structures, arbitrarily deep:
+var nested = [[1, 2], [3, 4]]
+assert(nested[1][0] == 3)
+nested[1][0] = 30
+assert(nested[1][0] == 30)
+
+
+// SLICING
+// Slicing uses the '..' operator inside brackets. There are four forms:
+//
+//   A[..]     full copy                          (start defaults to 0, end to len)
+//   A[..e]    from the start up to (excluding) e
+//   A[s..]    from s to the end
+//   A[s..e]   from s (including) to e (excluding)
+//
+// Slicing works on Arrays, Strings (by RUNE, not byte) and Bytes.
+// A slice always returns a NEW independent value (shallow copy for
+// reference-semantics elements, deep copy for value-semantics ones);
+// mutating the slice never affects the original.
+//
+// Rules that apply uniformly to every slice form:
+//   - Negative indices wrap from the end (-1 is the last element).
+//   - Indices beyond the bounds are clamped (never a runtime error).
+//   - If, after resolving, start >= end, the result is empty.
+
+A = [1, 2, 3, 4, 5]
+assert(A[..].len() == 5)                  // full copy
+B = A[..3]
+assert(B[0] == A[0] and B[1] == A[1] and B[2] == A[2]) // first 3 elements
+B = A[2..]
+assert(B[0] == A[2] and B[1] == A[3] and B[2] == A[4]) // from index 2 to the end
+B = A[1..4]
+assert(B[0] == A[1] and B[1] == A[2] and B[2] == A[3] ) // range, end excluded
+B = A[-2..]
+assert(B[0] == A[-2] and B[1] == A[-1]) // negative start wraps
+B = A[..-1]
+assert(B[0] == A[-5] and B[1] == A[-4] and B[2] == A[-3] and B[3] == A[-2]) // negative end wraps
+assert(A[3..1].len() == 0) // inverted range -> empty
+assert(A[99..100].len() == 0) // out of range -> empty, never an error
+
+var slice = A[1..4]
+slice[0] = 999
+assert(A[1] == 2)                         // the original array is untouched
+
+// String slicing counts UTF-8 runes, not bytes, so multibyte text
+// slices correctly at character boundaries:
+var jp = "日本語テスト"
+assert(jp.len() == 6)              // 6 runes (18 bytes)
+assert(jp[..3] == "日本語")
+assert(jp[3..] == "テスト")
+assert(jp[-2..] == "スト")
+
+
+// PROPERTY ACCESS ('.') vs BRACKET ACCESS ('[...]')
+// For Objects, '.name' and '["name"]' read/write the same underlying
+// field when 'name' is a valid identifier:
+
+var obj = { hello = 42 }
+assert(obj.hello == obj["hello"])
+obj.hello = 43
+assert(obj["hello"] == 43)
+
+// Bracket access is required when the key is not a valid identifier
+// (e.g. it needs a string with spaces, dashes, etc.) or when the key
+// is itself an expression/variable rather than a literal name:
+
+var headers = { `Content-Type` = "application/json" }
+assert(headers[`Content-Type`] == "application/json")
+// headers.Content-Type would NOT parse as a single identifier
+
+
+// SELECT CHAINING
+// Selectors compose left-to-right, so long paths read naturally:
+var deep = { a = { b = { c = 42 } } }
+assert(deep.a.b.c == 42)
+deep.a.b.c = 43
+assert(deep.a.b.c == 43)
+
+// Any selector step can itself be an arbitrary expression:
+var idx = [0, 1, 2]
+var matrix = [[1, 2, 3], [4, 5, 6]]
+assert(matrix[idx[1]][idx[2]] == 6)
+
+
+// ───────────────────────────────────────────────────────────────
+// SECTION 7: Functions
+// ───────────────────────────────────────────────────────────────
+//
+// Vida functions are first-class values created with the 'fun' keyword.
+// There are two syntactic forms:
+//
+//   fun param1, param2, ... { statement* }     block body, 'ret' to return
+//   fun param1, param2, ... -> expr            arrow body, returns expr's value
+//
+// A function with no parameters just omits the parameter list:
+
+var sayHi = fun { print("hi") }
+var answer = fun -> 42
+assert(answer() == 42)
+
+// Functions with parameters:
+var add = fun x, y -> x + y
+var greet = fun name {
+    ret "hello, " + name
+}
+assert(add(2, 3) == 5)
+assert(greet("Ada") == "hello, Ada")
+
+// If a block-body function falls off the end without hitting 'ret',
+// it implicitly returns nil.
+var noop = fun { var x = 1 }
+assert(noop() == nil)
+
+
+// VARIADIC PARAMETERS
+// The last parameter can be marked with '...' to collect any extra
+// trailing arguments into an Array:
+
+let sum = fun xs... {
+    var total = 0
+    for _, v in xs {
+        total = total + v
+    }
+    ret total
+}
+assert(sum(1, 2, 3, 4) == 10)
+assert(sum() == 0) // xs is simply an empty array when nothing is passed
+
+// A variadic function can mix fixed and collected parameters,
+// as long as '...' is on the LAST parameter only:
+let scale = fun factor, xs... {
+    var out = newArray(xs.len())
+    for i, v in xs {
+        out[i] = v * factor
+    }
+    ret out
+}
+B = scale(10, 1, 2, 3)
+assert(B.len() == 3 and B[0] == 10 and B[1] == 20 and B[2] == 30)
+
+
+// SPREADING ARGUMENTS AT A CALL SITE
+// '...expr' at a call site spreads an array's elements as individual
+// positional arguments. It composes naturally with variadic functions:
+
+let addThree = fun a, b, c -> a + b + c
+var args = [1, 2, 3]
+assert(addThree(...args) == 6)
+
+
+// CLOSURES AND FREE VARIABLES
+// Functions capture outer variables as free variables. Recall from
+// SECTION 2/3: value-semantics types are captured by COPY, reference
+// -semantics types (Array, Object) are captured by REFERENCE.
+
+var makeCounter = fun {
+    var count = 0            // 'count' is a free variable inside 'increment'
+    ret fun {
+        count = count + 1
+        ret count
+    }
+}
+var counterA = makeCounter()
+var counterB = makeCounter() // a fresh, independent 'count' per closure
+assert(counterA() == 1 and counterA() == 2 and counterA() == 3)
+assert(counterB() == 1) // counterB's closure is unaffected by counterA
+
+
+// RECURSION
+// Global ('let') functions can always call themselves directly
+// (see SECTION 3 for the full explanation and the 'var rec' construct
+// needed for self-referencing LOCAL functions). Mutual recursion between
+// globals works too, via forward declaration:
+
+let cons, prod = nil, nil
+prod = fun x {
+    if x <= 0 { ret 0 }
+    ret 1 + cons(x - 1)
+}
+cons = fun x {
+    if x <= 0 { ret 0 }
+    ret 1 + prod(x - 1)
+}
+assert(prod(4) == 4)
+
+// Vida's VM keeps its own call-frame stack (it does not recurse on the
+// host Go stack for each Vida call), so patterns with very deep
+// recursion, like the one below, run without overflowing:
+let countUp = fun x, limit {
+    if x >= limit {
+        ret x
+    }
+    ret countUp(x + 1, limit)
+}
+assert(countUp(0, 10_000_000) == 10_000_000)
+
+
+// MULTIPLE RETURN VALUES
+// Vida has no dedicated multi-return syntax. The idiom is to return
+// an Array and unpack it by index at the call site:
+
+let divmod = fun a, b -> [a / b, a % b]
+var result = divmod(17, 5)
+assert(result[0] == 3 and result[1] == 2)
+// or, unpacked immediately into locals:
+var q, r = result[0], result[1]
+assert(q == 3 and r == 2)
+
+
+// CURRYING
+// Because functions are values and closures capture their environment,
+// currying is a natural, idiomatic pattern:
+
+var curry = fun f -> fun x -> fun y -> f(x, y)
+var curriedAdd = curry(add)
+assert(curriedAdd(2)(3) == 5)
+
+
+// ───────────────────────────────────────────────────────────────
+// SECTION 8: Control Flow — Blocks, if/else, while, break, continue
+// ───────────────────────────────────────────────────────────────
+
+
+// BARE BLOCKS
+// '{ }' on its own is a statement that introduces a new scope.
+// It is legal anywhere a statement is legal, and is commonly used
+// just to scope a group of locals off from the rest of the function.
+
+{
+    var scoped = 100
+    assert(scoped == 100)
+}
+// 'scoped' is not visible here
+
+
+// IF / ELSE IF / ELSE
+// 'if' takes an expression (evaluated for truthiness, see SECTION 5)
+// and a block. 'else if' and 'else' are optional and chain naturally.
+// There are no parentheses around the condition.
+
+var x = 7
+
+if x < 0 {
+    print("negative")
+} else if x == 0 {
+    print("zero")
+} else {
+    print("positive")
+}
+
+// 'if' is a STATEMENT, not an expression, in Vida -- there is no
+// "if-as-expression" / ternary form. Use 'ret' inside each branch
+// when a function needs to produce different values conditionally:
+
+let classify = fun n {
+    if n < 0 {
+        ret "negative"
+    } else if n == 0 {
+        ret "zero"
+    }
+    ret "positive"
+}
+assert(classify(-5) == "negative")
+assert(classify(0) == "zero")
+assert(classify(5) == "positive")
+
+
+// WHILE
+// 'while' takes a condition and a block, evaluated before each iteration.
+
+var i = 0
+while i < 5 {
+    i = i + 1
+}
+assert(i == 5)
+
+// An infinite loop paired with 'break' is a common idiom:
+var n = 0
+while true {
+    n = n + 1
+    if n == 3 {
+        break
+    }
+}
+assert(n == 3)
+
+
+// BREAK / CONTINUE
+// 'break' exits the nearest enclosing loop ('while' or 'for') entirely.
+// 'continue' skips the rest of the current iteration and re-evaluates
+// the loop's condition/sequence.
+
+var total = 0
+var k = 0
+while k < 10 {
+    k = k + 1
+    if k % 2 == 0 {
+        continue // skip even numbers
+    }
+    if k > 7 {
+        break
+    }
+    total = total + k
+}
+assert(total == 1 + 3 + 5 + 7)
+
+// Nested loops: 'break'/'continue' only affect the INNERMOST enclosing
+// loop -- there is no labeled break/continue in Vida.
+var hits = 0
+for i in 3 {
+    for j in 3 {
+        if j == 1 {
+            break // only breaks the inner 'for j' loop
+        }
+        hits = hits + 1
+    }
+}
+assert(hits == 3) // one hit per outer iteration, before the inner loop breaks
+
+
+// ───────────────────────────────────────────────────────────────
+// SECTION 9: For Loops and the Iterator Protocol
+// ───────────────────────────────────────────────────────────────
+//
+// Vida's grammar defines two related 'for' forms:
+//   for ident 'in' expr (',' expr (',' expr)?)? loopBlock     -- numeric range
+//   for ident ',' ident 'in' expr loopBlock                   -- key,value iteration
+//   for 'in' expr loopBlock                                   -- value-less iteration
+
+
+// NUMERIC RANGES: 'for i in stop', 'for i in start, stop', 'for i in start, stop, step'
+// With ONE bound, it ranges over [0, stop):
+for i in 5 {
+    assert(i in [0, 1, 2, 3, 4])
+}
+// With TWO bounds, it ranges over [start, stop) (step defaults to 1):
+for i in 2, 5 {
+    assert(i in [2, 3, 4])
+}
+// With THREE bounds, the third is an explicit step (can be negative):
+for i in 0, 10, 2 {
+    assert(i in [0, 2, 4, 6, 8])
+}
+for i in 10, 0, -2 {
+    assert(i in [10, 8, 6, 4, 2])
+}
+
+
+// ITERATING COLLECTIONS: 'for key, value in expr'
+// Works uniformly over Arrays, Objects, Strings and Bytes.
+// - Array:  key is the integer index, value is the element.
+// - Object: key is the property name (a string), value is the field's value.
+// - String: key is the rune index, value is a 1-rune string.
+// - Bytes:  key is the byte index, value is the byte (an Integer 0-255).
+
+for idx, val in [7, 8, 9] {
+    assert(idx in [0, 1, 2] and val in [7, 8, 9])
+}
+
+var record = { x = 1, y = 2 }
+for name, val in record {
+    assert(name in ["x", "y"] and val in [1, 2])
+}
+
+for idx, ch in "abc" {
+    assert(idx in [0, 1, 2] and ch in ["a", "b", "c"])
+}
+
+// If you only need the value (or only the collection's side effects),
+// use '_' to discard the key you don't need -- '_' is just a normal
+// identifier by convention, not special syntax:
+var sum = 0
+for _, v in [1, 2, 3] {
+    sum = sum + v
+}
+assert(sum == 6)
+
+// VALUE-LESS FORM: 'for in expr' just repeats N times without
+// exposing an index at all (useful for tight, iteration-count-only loops):
+var count = 0
+for in 5 {
+    count = count + 1
+}
+assert(count == 5)
+
+
+// THE ITERATOR PROTOCOL (custom iterables)
+// Any Object can be iterated with 'for k, v in obj' as long as its
+// vtable provides three methods:
+//   next(self)  -> truthy to continue, falsy to stop the loop
+//   key(self)   -> the value handed to the loop as the KEY this step
+//   value(self) -> the value handed to the loop as the VALUE this step
+// 'next' is called first, BEFORE 'key'/'value', each iteration --
+// so it is the natural place to advance internal state.
+// The 'object' declaration sugar (SECTION 14) is the idiomatic way
+// to define these:
+
+object counter(n) {
+    next = fun self {
+        self.n = self.n + 1
+        ret self.n <= 3
+    }
+    key = fun self -> self.n - 1
+    value = fun self -> self.n * 10
+}
+
+for k, v in counter(0) {
+    assert(k in [0, 1, 2] and v in [10, 20, 30])
+}
+
+// An iterable can also expose an 'iter(self)' method that returns a
+// (possibly different) object to actually drive the iteration --
+// useful for producing a fresh, independent iterator on every call
+// so the same source can be iterated multiple times concurrently:
+
+let makeRange = fun lo, hi {
+    object range() {
+        iter = fun self {
+            object internal(cur) {
+                next = fun self {
+                    self.cur = self.cur + 1
+                    ret self.cur <= hi
+                }
+                key = fun self -> self.cur - lo
+                value = fun self -> self.cur
+            }
+            ret internal(lo - 1)
+        }
+    }
+    ret range().iter()
+}
+
+for k, v in makeRange(1, 3) {
+    assert(k in [0, 1, 2] and v in [1, 2, 3])
+}
+
+// 'next' just needs to be truthy/falsy -- any falsy value (false, nil,
+// error) stops the loop, any truthy value continues it, matching the
+// general truthiness rules from SECTION 5.
+
+
+// ───────────────────────────────────────────────────────────────
+// SECTION 10: The 'with' Statement — Deterministic Resource Cleanup
+// ───────────────────────────────────────────────────────────────
+//
+// 'with name = expr { block }' is Vida's resource-management construct,
+// similar in spirit to Python's 'with' or Go's 'defer'. It guarantees
+// that a 'close(self)' method on the bound value's vtable runs when
+// the block finishes -- whether it finishes normally, via 'break',
+// via 'continue', or via 'ret'.
+//
+// grammar:  with := 'with' ident (',' ident)* '=' expr (',' expr)* block
+//
+// The bound value must have its OWN vtable containing a 'close' method
+// (commonly attached to itself with '=<', see SECTION 13):
+
+let makeResource = fun tag {
+    var res = { closed = false }
+    res.close = fun self {
+        self.closed = true
+        print(tag) // proves close() ran
+    }
+    ret res =< res // res is its own vtable, so 'with' can find close() on it
+}
+
+with r = makeResource("R") {
+    assert(r.closed == false) // still open inside the block
+}
+// "R" is printed right here, right after the block ends -- natural close
+
+
+// EARLY RETURN: the value used in 'ret' is captured BEFORE close() runs,
+// but close() still fires before the enclosing function actually returns.
+let run = fun {
+    with r = makeResource("EarlyRet") {
+        ret r.closed // captures FALSE -- evaluated before close() runs
+    }
+}
+assert(run() == false)
+// prints "EarlyRet", THEN the function returns the captured false
+
+
+// BREAK / CONTINUE inside a loop: close() still fires for the resource
+// opened in that iteration, exactly like a 'defer' would, even though
+// control is leaving the block early:
+for i in 0, 3 {
+    with r = makeResource(i) {
+        if i == 1 { break }
+    }
+}
+// i=0: opens, no break, natural close prints 0
+// i=1: opens, breaks -- close still fires (prints 1) before the FOR exits
+// i=2: never runs, because 'break' exits the FOR entirely
+
+
+// MULTIPLE BINDINGS close in LIFO order (reverse of declaration order),
+// exactly like nested 'defer' statements:
+with a, b, c = makeResource("a"), makeResource("b"), makeResource("c") {
+    ret nil
+}
+// prints, in order: c, b, a
+
+
+// NESTING: an outer 'with' is completely unaffected by what happens
+// inside an inner 'with' or inner loops -- only the innermost resource
+// closes when a 'break'/'continue'/'ret' happens inside it:
+with outer = makeResource("Outer") {
+    for i in 0, 3 {
+        with inner = makeResource(i) {
+            if i == 1 { break }
+        }
+    }
+    assert(outer.closed == false) // 'break' above never touched 'outer'
+}
+// "Outer" is only printed here, after the entire block finishes naturally
+
+
+// ───────────────────────────────────────────────────────────────
+// SECTION 11: Errors
+// ───────────────────────────────────────────────────────────────
+//
+// grammar:  Error := 'error' '(' expr? ')'
+//
+// 'error(...)' builds an Error value carrying a '.message' payload
+// (any value, not just a string). Errors are one of only three falsy
+// values in Vida (alongside 'false' and 'nil' -- see SECTION 5).
+
+var e1 = error("something went wrong")
+assert(e1.message == "something went wrong")
+assert(e1.isError())         // universal method to test for an error value
+assert(not e1)                // errors are falsy
+
+var e2 = error() // 'error()' with no argument is also valid
+var e3 = error(42) // the message can be any value, not just a string
+
+// Errors compare EQUAL when their messages compare equal (this is a
+// message-based, not identity-based, comparison):
+assert(error("x") == error("x"))
+assert(error(42) == error(42))
+assert((error("x") == error("y")) == false)
+
+// Because errors are falsy, 'and'/'or' compose naturally for
+// error-checking idioms (recall 'and'/'or' return the deciding
+// operand itself, from SECTION 5):
+var err = error("boom")
+assert((err and 42) == err)   // falsy lhs short-circuits 'and' -> returns err
+assert((err or 42) == 42)     // falsy lhs falls through 'or' -> returns rhs
+
+// A common idiom: a function that can fail returns either a normal
+// value or an error, and the caller checks with 'if' directly on it,
+// relying on truthiness:
+let parseOrFail = fun s {
+    if s == "" {
+        ret error("empty input")
+    }
+    ret s
+}
+var parsed = parseOrFail("")
+if not parsed {
+    assert(parsed.isError())
+}
+
+
+// ───────────────────────────────────────────────────────────────
+// SECTION 12: Enumerations
+// ───────────────────────────────────────────────────────────────
+//
+// grammar:  Enumeration := 'enum' '{' ident+ '}'
+//
+// 'enum { name1 name2 ... }' is an expression producing a value whose
+// members auto-increment starting at 0, in declaration order, exposed
+// as properties (read with '.', like an Object):
+
+let Planet = enum {
+    mercury
+    venus
+    earth
+    mars
+}
+assert(Planet.mercury == 0)
+assert(Planet.venus == 1)
+assert(Planet.earth == 2)
+assert(Planet.mars == 3)
+
+// Members can be separated by whitespace/newlines only, commas are
+// not used inside an 'enum' literal (unlike Object literals):
+let Color = enum { red green blue }
+assert(Color.red == 0 and Color.green == 1 and Color.blue == 2)
+
+// If a name repeats, the LAST occurrence's index wins for that name
+// (earlier occurrences of the same name are simply overwritten):
+let R = enum { hello world again hello world }
+// order of assignment: hello=0, world=1, again=2, hello=3 (overwrites), world=4 (overwrites)
+assert(R.again == 2 and R.hello == 3 and R.world == 4)
+
+// Enums are commonly used the same way a set of named integer constants
+// would be in other languages, e.g. as a tag stored on another Object:
+var conn = { port = 3000, kind = Color.red }
+assert(conn.kind == Color.red)
+if conn.kind == Color.red {
+    conn.kind = Color.blue
+}
+assert(conn.kind == Color.blue)
+
+// Note the difference from a plain Object literal: a BARE identifier
+// inside '{ }' (no '=') is just shorthand for a field whose value is
+// 'nil' -- it is NOT an auto-incrementing enum member. '{ tcp udp }'
+// gives an Object where BOTH 'tcp' and 'udp' equal nil (indistinguishable),
+// unlike 'enum { tcp udp }', which gives 0 and 1 respectively:
+var flags = { tcp udp } // both fields are nil -- useful as a marker/flag set, not as distinct tags
+assert(flags.tcp == nil and flags.udp == nil)
+
+
+// ───────────────────────────────────────────────────────────────
+// SECTION 13: Objects and the Vtable Model
+// ───────────────────────────────────────────────────────────────
+//
+// Every value can carry a "vtable" -- an Object holding message names
+// mapped to functions -- which is how Vida implements methods,
+// operator overloading and inheritance-like sharing, WITHOUT a
+// separate 'class' construct at the language core (SECTION 14's
+// 'object' declaration is convenient sugar built on top of exactly
+// this mechanism).
+
+
+// '=<' — ATTACH / REPLACE / CLEAR AN OBJECT'S OWN VTABLE
+// 'obj =< vt' is a binary expression: it returns the (possibly new)
+// object, so capture it explicitly rather than using it as a bare
+// statement.
+
+var vtA = { greeting = fun self -> "hello from A" }
+var vtB = { greeting = fun self -> "hello from B" }
+var o = {}
+
+o = o =< vtA
+assert(o.greeting() == "hello from A")
+
+o = o =< vtB              // '=<' REPLACES the vtable wholesale, it does not merge
+assert(o.greeting() == "hello from B")
+
+o = o =< nil               // clears the custom vtable back to "none"
+
+
+// '.' vs '::' — THE CENTRAL DISPATCH DISTINCTION
+//   obj.name(...)   a METHOD CALL (dot immediately followed by a call):
+//                    looks up 'name' on the VTABLE CHAIN ONLY, skipping
+//                    obj's own fields entirely, and auto-inserts obj as
+//                    the first ("self") argument.
+//   obj.name        a plain PROPERTY READ (no call): this compiles to
+//                    Get, exactly like '::' below -- obj's OWN FIELDS are
+//                    checked FIRST, and only then its vtable chain. This
+//                    holds even for a name that also exists on the vtable:
+//                    an own field always shadows the vtable for a plain
+//                    read, no matter how deep the vtable chain is.
+//   obj::name(...)  looks up 'name' via Get: obj's OWN FIELDS first,
+//                    then its vtable chain. It does NOT auto-insert obj
+//                    as an argument -- pass it explicitly if needed.
+// '::' always requires an immediate call: there is no bare 'obj::name'
+// property-read form (unlike '.name', which can be read without calling).
+// So '.' has TWO different lookup rules depending on whether a call
+// immediately follows it -- this is the single most important, and most
+// easily mis-remembered, rule in Vida's object model.
+
+var person = { hello = fun self -> "hi, " + self.name, name = "Ada" }
+// person has NO custom vtable, and 'hello' lives on its OWN fields --
+// so '.hello()' (a CALL) fails, because calls never look at own fields:
+// person.hello()            -- fails: '.' as a call only checks the vtable chain
+// while '::hello(person)' succeeds (Get checks own fields first):
+assert(person::hello(person) == "hi, Ada")
+
+// Once a vtable IS attached with the SAME message name, '.name()' calls
+// succeed (auto-passing self), but '.name' / '::name' plain reads still
+// see the OWN field first, never even reaching the vtable's version:
+var withVt = person =< { hello = fun self -> "vtable hello" }
+assert(withVt.hello() == "vtable hello")       // call -> vtable chain only
+assert(withVt::hello(withVt) == "hi, Ada")     // Get -> own field wins over the vtable
+
+// This is exactly why modules loaded with 'load(...)' are always called
+// with '::' -- their exports are stored as own fields with NO vtable at all:
+var mathMod = load("std.math")
+assert(mathMod::sqrt(4.0) == 2.0)
+
+
+// '.getvt()' / '.extendvt(...)' — UNIVERSAL VTABLE INTROSPECTION
+// Every value responds to '.getvt()', even built-ins: it returns the
+// value's current vtable, falling back to that type's shared default
+// vtable if no custom one was ever attached.
+
+var freshObj = {}
+assert(freshObj.getvt() != nil) // never nil, even with no custom vtable
+
+var customObj = {} =< vtA
+assert(customObj.getvt() == vtA) // identity, not a copy
+
+// '.extendvt(name, fn)' (3-arg) adds ONE message; '.extendvt(obj)' (2-arg)
+// merges a whole Object of messages. NEITHER form ever overwrites a key
+// that's already present -- extendvt only ever extends:
+var oo = { greet = fun self -> "v1" } =< { greet = fun self -> "v1" }
+oo.extendvt("greet", fun self -> "v2")
+assert(oo.greet() == "v1") // pre-existing key untouched
+
+// CAUTION: calling '.extendvt(...)' on a value with no custom vtable of
+// its own (a bare {} object, or ANY built-in value like an Integer)
+// mutates that TYPE's shared, global default vtable -- visible from
+// every other value of that type from then on. This is a deliberate,
+// powerful capability (it's how you could add a method to every Integer
+// in the program), but it is global and should be used deliberately:
+// (42).extendvt("double", fun self -> self * 2) would make .double()
+// callable on every Integer afterward.
+
+
+// VTABLE OBJECTS SUPPORT '.has(key)' / '.get(key)' LIKE ANY OBJECT
+assert(oo.getvt().has("greet"))
+assert(oo.getvt().get("greet") != nil)
+
+
+// DEFAULT STRUCTURAL FALLBACKS FOR '+' '-' '&' '|' ON PLAIN OBJECTS
+// When two Objects have no custom operator overload on their vtable,
+// these four operators fall back to structural key-set operations
+// (this fallback is also what powers vtable composition, SECTION 14):
+//   +   union of keys; on a conflict, the LEFT operand's value wins.
+//   |   union of keys; on a conflict, the RIGHT operand's value wins.
+//   -   keys from the left whose name is NOT present on the right at all.
+//   &   keys from the left that ARE present on the right, but the VALUE
+//       comes from the RIGHT operand (a common surprise -- '&' is not symmetric).
+// Every other operator (*, /, %, **, comparisons, bitwise) has NO such
+// fallback for plain Objects and errors if not explicitly overloaded.
+
+var left = { a = 1, b = 2 }
+var right = { b = 20, c = 3 }
+assert((left + right).get("a") == 1 and (left + right).get("b") == 2 and (left + right).get("c") == 3)
+assert((left | right).get("b") == 20) // right wins on conflict
+assert((left - right).has("b") == false) // shared key dropped entirely
+assert((left & right).get("b") == 20)   // shared key kept, but value taken from the RIGHT
+
+
+// ───────────────────────────────────────────────────────────────
+// SECTION 14: 'object' Declarations — Class-like Syntactic Sugar
+// ───────────────────────────────────────────────────────────────
+//
+// grammar:
+//   objectDecl := "object" ident ( '(' ')' | '(' ident (',' ident)* ')' )
+//                 ('=<' Expr)? '{' objectBody '}'
+//   objectBody := (ident '=' Function | ident '=' Expr)*
+//
+// 'object Name(fields...) { methods... }' is convenient sugar over
+// SECTION 13's raw vtable mechanism: it declares Name as a constructor
+// FUNCTION. Calling Name(...) builds a fresh Object whose fields are
+// the constructor parameters, and whose vtable is the shared method
+// table defined in the body (so every instance shares ONE vtable,
+// looked up via '.', exactly as in SECTION 13).
+
+object Point(x, y) {
+    add      = fun self, other -> Point(self.x + other.x, self.y + other.y)
+    toString = fun self -> "Point(%v, %v)".fmt(self.x, self.y)
+}
+
+let p1 = Point(10, 20)
+let p2 = Point(3, 7)
+assert(p1.x == 10 and p1.y == 20)            // constructor params become fields
+assert(p1.getvt() == p2.getvt())              // vtable is SHARED across all instances
+let p3 = p1.add(p2)                           // '.' method dispatch, as usual
+assert(p3.x == 13 and p3.y == 27)
+
+
+// INHERITANCE via '=<' after the parameter list
+// 'object Child(...) =< Parent { ... }' makes Parent's vtable the next
+// link in Child's vtable chain, so Child instances see Parent's methods
+// too, unless Child overrides them:
+
+object Animal(name) {
+    kind  = fun self -> "Animal"
+    speak = fun self -> "..."
+    toString = fun self -> self.kind() + ": " + self.speak()
+}
+object Dog(name) =< Animal {
+    kind  = fun self -> "Dog"
+    speak = fun self -> "Woof!"
+}
+let rex = Dog("Rex")
+assert(rex.name == "Rex" and rex.kind() == "Dog" and rex.speak() == "Woof!")
+assert(rex.toString() == "Dog: Woof!") // 'toString' is inherited, unmodified, from Animal
+
+
+// 'super::method(self)' calls the PARENT's version of a method,
+// letting a child extend rather than fully replace behavior. It chains
+// naturally through multiple inheritance levels, and can be used as
+// either an expression or a plain statement (e.g. inside an 'if'/'while'):
+
+object Base(x) {
+    greet = fun self -> "Hello from Base, x=%v".fmt(self.x)
+}
+object Child(x) =< Base {
+    greet = fun self -> super::greet(self) + " and Child"
+}
+assert(Child(99).greet() == "Hello from Base, x=99 and Child")
+
+
+// COMPOSITION with '+' / '|' (mixing in plain Objects as trait-like sources)
+// Since '=<' just needs "something vtable-shaped", and plain Objects
+// support the structural '+'/'|' fallback from SECTION 13, you can
+// compose several trait-objects together as a Child's vtable source:
+
+let printable = { toString = fun self -> "printing: " + self.kind() }
+let serializable = { serialize = fun self -> "serialized:" + self.kind() }
+object Widget(id) =< serializable + printable {
+    kind = fun self -> "Widget"
+}
+let w = Widget(42)
+assert(w.serialize() == "serialized:Widget" and w.toString() == "printing: Widget")
+
+
+// 'init' HOOK — if the vtable defines 'init(self)', it runs automatically,
+// once, right after construction, before the constructor call returns.
+// It's the idiomatic place to derive extra fields from the constructor's
+// parameters:
+
+object Vec2(x, y) {
+    init = fun self {
+        self.magnitude = self.x * self.x + self.y * self.y
+    }
+}
+let v = Vec2(3, 4)
+assert(v.magnitude == 25) // 3*3 + 4*4, computed by 'init' automatically
+
+
+// OPERATOR OVERLOADING — a vtable method with one of these reserved
+// names is invoked automatically by the matching operator on '.'-style
+// instances: add(+), sub(-), mul(*), lt(<), eq(==) among others.
+// 'toString' is used by string-formatting / printing machinery.
+
+object Money(amount, currency) {
+    add = fun self, other -> Money(self.amount + other.amount, self.currency)
+    lt  = fun self, other -> self.amount < other.amount
+    eq  = fun self, other -> self.amount == other.amount and self.currency == other.currency
+}
+let m1 = Money(100, "USD")
+let m2 = Money(50, "USD")
+assert((m1 + m2).amount == 150)
+assert(m2 < m1)
+assert(m1 == Money(100, "USD")) // uses the 'eq' override, not identity
+
+
+// 'implements(traitObj)' checks whether a vtable provides every message
+// name that 'traitObj' defines (structural interface check):
+let hasAdd = { add = fun self, other -> nil }
+assert(Point(0, 0).getvt().implements(hasAdd))
+
+// Because an 'object' declaration is just sugar over a plain vtable,
+// everything from SECTION 13 still applies directly: '.getvt()' returns
+// the shared vtable, and mutating it (or using '.extendvt(...)') affects
+// every existing and future instance:
+var vt = p1.getvt()
+vt.mul = fun self, other -> 42
+assert(p1 * p1 == 42)
+
+
+// ───────────────────────────────────────────────────────────────
+// SECTION 15: Modules and Program Organization
+// ───────────────────────────────────────────────────────────────
+//
+// grammar:
+//   export := 'export' expr
+//   Import := 'import' '(' String ')'
+//
+// A Vida SCRIPT (a '.vida' file) can optionally end with a single
+// 'export expr' statement, which becomes that module's value when
+// another script imports it. A script with no 'export' statement
+// yields a falsy value (nil) to whatever imports it.
+
+// -- inside a file named "dep-C.vida" --
+// let math = load("std.math")
+// let script = {}
+// script.Pi = math.pi
+// export script
+
+// -- inside a file named "dep-A.vida", in the same project --
+// var depC = import("dep-C")     // runs dep-C.vida, binds its export
+// depC.fourTimesPi = fun self -> self.Pi * 4
+// export depC
+
+// -- from a THIRD script --
+// var depA = import("dep-A")      // 'import' loads a LOCAL project file by name (no extension)
+// assert(depA::fourTimesPi(depA) > 0)
+
+// var depB = import("dep-B")      // a file with no 'export' statement...
+// assert(not depB)                // ...imports as falsy (nil)
+
+
+// 'load("std.xxx")' — LOADING STANDARD LIBRARY / EXTENSION MODULES
+// 'load' is a core global FUNCTION (not a keyword, unlike 'import'),
+// used for the standard library ('std.*') and other registered
+// extensions. Loaded modules are cached: calling 'load' twice with the
+// same name returns the exact same module Object both times.
+
+var math = load("std.math")
+var math2 = load("std.math")
+assert(math == math2) // same cached module object
+
+// Loading a name that doesn't exist returns an error rather than
+// throwing (recall errors are falsy, SECTION 11):
+var missing = load("this-does-not-exist")
+assert(not missing and missing.isError())
+
+// Because module Objects store their exports as OWN FIELDS with no
+// vtable at all (SECTION 13), calling into them ALWAYS uses '::',
+// never '.':
+assert(math::sqrt(4.0) == 2.0)
+
+
+// ───────────────────────────────────────────────────────────────
+// SECTION 16: Built-in Global Functions and Universal Methods
+// ───────────────────────────────────────────────────────────────
+//
+// Vida's "core library" is a small, fixed set of global functions
+// available everywhere without 'load' or 'import': print, newArray,
+// load, assert, input, error. ('error' is covered in SECTION 11,
+// 'load' in SECTION 15.)
+
+
+// print(...) — writes every argument, space-separated, plus a
+// trailing newline, to standard output. Accepts any number/type of
+// arguments.
+print("hello", 42, true, [1, 2, 3])
+
+
+// assert(condition, message?, handler?) — halts the program with an
+// error if 'condition' is falsy. An optional second argument is a
+// human-readable message shown on failure:
+assert(1 + 1 == 2)
+assert(1 + 1 == 2, "math is broken") // message only used if the assertion fails
+
+
+// newArray(...) — constructs arrays several ways:
+assert(newArray().len() == 0)                 // no args: empty array
+assert(newArray(5).len() == 5)                // just a size: fills with nil
+B = newArray(5, 0)
+assert(B.len() == 5)     // size + fill value
+for _, v in B {
+    assert(v == 0)
+}
+// an Object with 'from'/'to' (and optional 'step') builds an integer
+// (or float) RANGE as an array, inclusive of both ends:
+B = newArray({ from = 1, to = 5 })
+for i, v in B {
+    assert(v == i + 1)
+}
+B = newArray({ from = 10, to = 0, step = -2 })
+for i in B.len() {
+    assert(B[i] == [10, 8, 6, 4, 2, 0][i])
+}
+
+
+// input(prompt?) — reads a single line of text from standard input,
+// optionally printing a prompt first. Returns the line as a String.
+// var name = input("What is your name? ")
+
+
+// UNIVERSAL METHODS
+// Every value, of any type, responds to at least these methods:
+//   .type()      -> a String naming the value's type
+//   .clone()     -> a deep copy for reference-semantics types,
+//                    a plain copy for value-semantics types
+//   .getvt()     -> the value's current vtable (SECTION 13)
+//   .extendvt(...) -> add to that vtable (SECTION 13)
+// Arrays/Objects/Strings/Bytes additionally respond to '.len()'.
+
+assert((42).type() == "int")
+assert((3.14).type() == "float")
+assert(true.type() == "bool")
+assert("hi".type() == "string")
+assert([].type() == "array")
+assert({}.type() == "object")
+assert(nil.type() == "nil")
+
+var original = { count = 1 }
+var copy = original.clone()
+copy.count = 2
+assert(original.count == 1) // clone is independent of the original
+
+
+// ───────────────────────────────────────────────────────────────
+// END OF DOCUMENT
+// ───────────────────────────────────────────────────────────────
+//
+// This covers Vida's core language: comments, constructs, variable
+// declarations and scoping, literal expressions, operators and
+// truthiness, selectors/indexing/slicing, functions and closures,
+// control flow, loops and the iterator protocol, 'with', errors,
+// enumerations, the object/vtable model, the 'object' declaration
+// sugar, and module organization.
+//
+// Deliberately OUT OF SCOPE here: the standard library's individual
+// modules (std.text, std.math, std.json, std.http, std.re, std.os,
+// std.file/fs, std.task/co, std.bytes, etc.)
+//
